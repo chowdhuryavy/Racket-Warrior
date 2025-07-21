@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CORS Debug Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+        .test-result { padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #e3f2fd; color: #0d47a1; }
+        .code { background: #f8f9fa; padding: 10px; border-radius: 3px; font-family: monospace; margin: 10px 0; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <h1>🔍 CORS Debug Test for Google Apps Script</h1>
+    <p><strong>Your Script URL:</strong></p>
+    <div class="code">https://script.google.com/macros/s/AKfycby1xaztxjKAt8N1wan8dnFOsz0vbYBt3w0i-5V5vmoXsQTLLMz9mZxkVn8W2FmA6jlaSg/exec</div>
+    
+    <button onclick="testCORS()">🧪 Test CORS Headers</button>
+    <button onclick="testPOST()">📤 Test POST Request</button>
+    <button onclick="testDirectGET()">🔗 Test Direct GET</button>
+    <button onclick="runAllTests()">🚀 Run All Tests</button>
+    
+    <div id="results"></div>
+
+    <script>
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby1xaztxjKAt8N1wan8dnFOsz0vbYBt3w0i-5V5vmoXsQTLLMz9mZxkVn8W2FmA6jlaSg/exec';
+        
+        function addResult(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            div.innerHTML = message;
+            results.appendChild(div);
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+        
+        async function testCORS() {
+            addResult('🧪 Testing CORS Headers (OPTIONS request)...', 'info');
+            
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'OPTIONS',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const corsOrigin = response.headers.get('access-control-allow-origin');
+                const corsMethods = response.headers.get('access-control-allow-methods');
+                const corsHeaders = response.headers.get('access-control-allow-headers');
+                
+                let result = `<strong>CORS Test Results:</strong><br>`;
+                result += `Status: ${response.status}<br>`;
+                result += `Access-Control-Allow-Origin: ${corsOrigin || '❌ MISSING'}<br>`;
+                result += `Access-Control-Allow-Methods: ${corsMethods || '❌ MISSING'}<br>`;
+                result += `Access-Control-Allow-Headers: ${corsHeaders || '❌ MISSING'}<br><br>`;
+                
+                if (corsOrigin === '*') {
+                    result += `✅ <strong>CORS is working!</strong> Your doOptions function is deployed correctly.`;
+                    addResult(result, 'success');
+                } else {
+                    result += `❌ <strong>CORS is NOT working!</strong><br>`;
+                    result += `This means your Google Apps Script is missing the doOptions function or it's not deployed properly.`;
+                    addResult(result, 'error');
+                }
+            } catch (error) {
+                addResult(`❌ <strong>CORS Test Failed:</strong> ${error.message}<br>This usually means the script URL is wrong or the script is not deployed.`, 'error');
+            }
+        }
+        
+        async function testPOST() {
+            addResult('📤 Testing POST request with login action...', 'info');
+            
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'login',
+                        email: 'test@test.com',
+                        password: 'test123'
+                    })
+                });
+                
+                const responseText = await response.text();
+                
+                let result = `<strong>POST Test Results:</strong><br>`;
+                result += `Status: ${response.status}<br>`;
+                result += `Response: <div class="code">${responseText}</div>`;
+                
+                if (response.ok) {
+                    if (responseText.includes('success')) {
+                        result += `✅ <strong>POST Request Working!</strong> Your doPost function is responding.`;
+                        addResult(result, 'success');
+                    } else {
+                        result += `⚠️ <strong>POST Request Working but with errors.</strong> This is expected for invalid credentials.`;
+                        addResult(result, 'info');
+                    }
+                } else {
+                    result += `❌ <strong>POST Request Failed!</strong> Status: ${response.status}`;
+                    addResult(result, 'error');
+                }
+            } catch (error) {
+                let result = `❌ <strong>POST Test Failed:</strong> ${error.message}<br>`;
+                if (error.message.includes('CORS')) {
+                    result += `This is a CORS error - your doOptions function is missing or not working.`;
+                }
+                addResult(result, 'error');
+            }
+        }
+        
+        async function testDirectGET() {
+            addResult('🔗 Testing direct GET request...', 'info');
+            
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'GET'
+                });
+                
+                const responseText = await response.text();
+                
+                let result = `<strong>GET Test Results:</strong><br>`;
+                result += `Status: ${response.status}<br>`;
+                result += `Response: <div class="code">${responseText.substring(0, 200)}${responseText.length > 200 ? '...' : ''}</div>`;
+                
+                if (response.ok) {
+                    result += `✅ <strong>Script is accessible!</strong> The deployment URL is working.`;
+                    addResult(result, 'success');
+                } else {
+                    result += `❌ <strong>Script not accessible!</strong> Check your deployment settings.`;
+                    addResult(result, 'error');
+                }
+            } catch (error) {
+                addResult(`❌ <strong>GET Test Failed:</strong> ${error.message}`, 'error');
+            }
+        }
+        
+        async function runAllTests() {
+            clearResults();
+            addResult('🚀 Running comprehensive tests...', 'info');
+            
+            await testDirectGET();
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+            
+            await testCORS();
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+            
+            await testPOST();
+            
+            addResult('<strong>🏁 All tests completed!</strong> Check the results above to identify the exact issue.', 'info');
+        }
+        
+        // Auto-run basic test on page load
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                addResult('🔍 <strong>Ready to test your Google Apps Script!</strong><br>Click "Run All Tests" to diagnose the CORS issue.', 'info');
+            }, 500);
+        });
+    </script>
+</body>
+</html>
