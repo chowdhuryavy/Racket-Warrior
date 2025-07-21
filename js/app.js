@@ -318,6 +318,15 @@ async function apiCall(action, data = {}) {
         }
     } catch (error) {
         console.error('API call failed:', error);
+        
+        // Detailed CORS debugging
+        if (error.message.includes('CORS') || error.message.includes('Failed to fetch')) {
+            console.error('🚨 CORS Issue Detected:');
+            console.error('📍 Your Google Apps Script URL:', CONFIG.SCRIPT_URL);
+            console.error('❌ This means your Google Apps Script does NOT have CORS headers');
+            console.error('🔧 Solution: Redeploy your Google Apps Script with the updated gas-backend.gs code');
+            console.error('📖 Follow: GOOGLE_APPS_SCRIPT_DEPLOYMENT.md');
+        }
         if (error.name === 'TypeError' && error.message.includes('fetch')) {
             showNotification('Network error. Please check your connection.', 'error');
         } else {
@@ -1308,13 +1317,4 @@ window.addEventListener('error', function(e) {
     showNotification('An unexpected error occurred', 'error');
 });
 
-// Service worker registration for PWA (optional)
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', function() {
-        navigator.serviceWorker.register('/sw.js').then(function(registration) {
-            console.log('SW registered: ', registration);
-        }).catch(function(registrationError) {
-            console.log('SW registration failed: ', registrationError);
-        });
-    });
-}
+// Service worker removed - not needed for this application
