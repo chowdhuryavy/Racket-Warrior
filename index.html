@@ -120,27 +120,27 @@
                     <button class="close-sidebar" onclick="closeSidebar()" style="margin-left: auto; background: none; border: none; font-size: 1.25rem; color: var(--text-secondary); cursor: pointer;">×</button>
                 </div>
             <nav class="sidebar-nav">
-                <a href="#" class="nav-item active" onclick="showPage('dashboard')">
+                <a href="#" class="nav-item active" onclick="handleNavClick('dashboard')">
                     <i class="fas fa-tachometer-alt"></i>
                     <span>Dashboard</span>
                 </a>
-                <a href="#" class="nav-item" onclick="showPage('players')">
+                <a href="#" class="nav-item" onclick="handleNavClick('players')">
                     <i class="fas fa-users"></i>
                     <span>Players</span>
                 </a>
-                <a href="#" class="nav-item" onclick="showPage('collections')">
+                <a href="#" class="nav-item" onclick="handleNavClick('collections')">
                     <i class="fas fa-money-bill-wave"></i>
                     <span>Collections</span>
                 </a>
-                <a href="#" class="nav-item" onclick="showPage('expenses')">
+                <a href="#" class="nav-item" onclick="handleNavClick('expenses')">
                     <i class="fas fa-receipt"></i>
                     <span>Expenses</span>
                 </a>
-                <a href="#" class="nav-item admin-only" onclick="showPage('logs')">
+                <a href="#" class="nav-item admin-only" onclick="handleNavClick('logs')">
                     <i class="fas fa-clipboard-list"></i>
                     <span>Logs</span>
                 </a>
-                <a href="#" class="nav-item admin-only" onclick="showPage('admin')">
+                <a href="#" class="nav-item admin-only" onclick="handleNavClick('admin')">
                     <i class="fas fa-cog"></i>
                     <span>Admin</span>
                 </a>
@@ -161,6 +161,14 @@
                 </button>
             </div>
         </div>
+
+        <!-- Mobile Menu Button -->
+        <button id="mobileMenuBtn" class="mobile-menu-btn" onclick="toggleSidebar()">
+            <i class="fas fa-bars"></i>
+        </button>
+
+        <!-- Sidebar Overlay for Mobile -->
+        <div id="sidebarOverlay" class="sidebar-overlay" onclick="closeSidebar()"></div>
 
         <!-- Main Content -->
         <div class="main-content">
