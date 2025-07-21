@@ -79,14 +79,9 @@ body {
     width: 80px;
     height: 80px;
     border-radius: var(--border-radius);
-    background: var(--primary-green);
-    display: flex;
-    align-items: center;
-    justify-content: center;
     margin: 0 auto;
-    color: var(--white);
-    font-size: 1.5rem;
-    font-weight: bold;
+    object-fit: contain;
+    display: block;
 }
 
 .login-card h2 {
@@ -234,14 +229,9 @@ body {
 .sidebar-logo {
     width: 32px;
     height: 32px;
-    background: var(--primary-green);
     border-radius: var(--border-radius);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--white);
-    font-size: 0.875rem;
-    font-weight: bold;
+    object-fit: contain;
+    display: block;
 }
 
 .sidebar-header h3 {
