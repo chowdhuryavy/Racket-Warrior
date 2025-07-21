@@ -1273,6 +1273,14 @@ function generateMonthlyStatusOptions() {
     });
 }
 
+// Sidebar toggle functions
+function closeSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar && window.innerWidth <= 768) {
+        sidebar.style.transform = 'translateY(-100%)';
+    }
+}
+
 // Placeholder functions for edit/delete operations
 async function editPlayer(playerId) {
     const player = cachedData.players.find(p => p.ID === playerId);
