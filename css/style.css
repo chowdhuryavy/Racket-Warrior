@@ -1536,6 +1536,8 @@ body {
     animation: slideInRight 0.3s ease-out;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     backdrop-filter: blur(10px);
+    max-width: 400px;
+    word-wrap: break-word;
 }
 
 @keyframes slideInRight {

@@ -400,19 +400,35 @@ async function handleLogin(e) {
         localStorage.setItem('gymUser', JSON.stringify(currentUser));
         
         // Show app and hide login
-        document.getElementById('loginPage').style.display = 'none';
-        document.getElementById('appContainer').style.display = 'flex';
+        const loginPage = document.getElementById('loginPage');
+        const appContainer = document.getElementById('appContainer');
+        
+        if (loginPage && appContainer) {
+            console.log('Hiding login page and showing app container');
+            loginPage.style.display = 'none';
+            appContainer.style.display = 'flex';
+        } else {
+            console.error('Could not find login page or app container elements');
+            if (!loginPage) console.error('loginPage element not found');
+            if (!appContainer) console.error('appContainer element not found');
+        }
         
         // Set user info
-        document.getElementById('currentUserName').textContent = currentUser.name;
-        document.getElementById('currentUserRole').textContent = currentUser.role;
+        const userNameEl = document.getElementById('currentUserName');
+        const userRoleEl = document.getElementById('currentUserRole');
+        
+        if (userNameEl) userNameEl.textContent = currentUser.name || currentUser.email;
+        if (userRoleEl) userRoleEl.textContent = currentUser.role || 'User';
         
         // Show/hide admin sections
         setupUserPermissions();
         
+        // Log the login action
+        await logUserAction('LOGIN', 'User logged in successfully', { email: currentUser.email });
+        
         // Load initial data
         await loadDashboardData();
-        showNotification(`Welcome back, ${currentUser.name}!`, 'success');
+        showNotification(`Welcome back, ${currentUser.name || currentUser.email}!`, 'success');
         
         // Adjust for mobile
         adjustForMobile();
@@ -460,13 +476,21 @@ function setupUserPermissions() {
     }
 }
 
-function logout() {
+async function logout() {
+    if (currentUser) {
+        // Log the logout action
+        await logUserAction('LOGOUT', 'User logged out', { email: currentUser.email });
+    }
+    
     localStorage.removeItem('gymUser');
     currentUser = null;
     
     // Reset UI
-    document.getElementById('loginPage').style.display = 'flex';
-    document.getElementById('appContainer').style.display = 'none';
+    const loginPage = document.getElementById('loginPage');
+    const appContainer = document.getElementById('appContainer');
+    
+    if (loginPage) loginPage.style.display = 'flex';
+    if (appContainer) appContainer.style.display = 'none';
     
     // Clear forms
     const loginForm = document.getElementById('loginForm');
@@ -484,23 +508,55 @@ function logout() {
     showNotification('Logged out successfully', 'info');
 }
 
+// Logging function
+async function logUserAction(action, description, data = {}) {
+    try {
+        if (!currentUser) return;
+        
+        await apiCall('logAction', {
+            user: JSON.stringify(currentUser),
+            action: action,
+            description: description,
+            data: JSON.stringify(data)
+        });
+    } catch (error) {
+        console.error('Failed to log action:', error);
+    }
+}
+
 function checkSession() {
     try {
         const stored = localStorage.getItem('gymUser');
         if (stored) {
             currentUser = JSON.parse(stored);
+            console.log('Session found for user:', currentUser);
             
             // Auto-login if session exists
-            document.getElementById('loginPage').style.display = 'none';
-            document.getElementById('appContainer').style.display = 'flex';
+            const loginPage = document.getElementById('loginPage');
+            const appContainer = document.getElementById('appContainer');
+            
+            if (loginPage && appContainer) {
+                console.log('Session check: Hiding login page and showing app container');
+                loginPage.style.display = 'none';
+                appContainer.style.display = 'flex';
+            } else {
+                console.error('Session check: Could not find login page or app container elements');
+                if (!loginPage) console.error('loginPage element not found');
+                if (!appContainer) console.error('appContainer element not found');
+            }
             
             // Set user info
-            document.getElementById('currentUserName').textContent = currentUser.name;
-            document.getElementById('currentUserRole').textContent = currentUser.role;
+            const userNameEl = document.getElementById('currentUserName');
+            const userRoleEl = document.getElementById('currentUserRole');
+            
+            if (userNameEl) userNameEl.textContent = currentUser.name || currentUser.email;
+            if (userRoleEl) userRoleEl.textContent = currentUser.role || 'User';
             
             setupUserPermissions();
             loadDashboardData();
             adjustForMobile();
+        } else {
+            console.log('No session found, staying on login page');
         }
     } catch (error) {
         console.error('Error checking session:', error);
@@ -566,6 +622,18 @@ async function handleForgotPassword(e) {
         const email = document.getElementById('forgotEmail').value;
         await apiCall('sendOTP', { email });
         
+        // Log OTP request (no user context since not logged in)
+        try {
+            await apiCall('logAction', {
+                user: JSON.stringify({ email: email }),
+                action: 'OTP_REQUEST',
+                description: 'User requested password reset OTP',
+                data: JSON.stringify({ email: email })
+            });
+        } catch (logError) {
+            console.error('Failed to log OTP request:', logError);
+        }
+        
         document.getElementById('forgotStep1').style.display = 'none';
         document.getElementById('forgotStep2').style.display = 'block';
         
@@ -587,6 +655,18 @@ async function handleOTPVerification(e) {
         const email = document.getElementById('forgotEmail').value;
         const otp = document.getElementById('otpCode').value;
         await apiCall('verifyOTP', { email, otp });
+        
+        // Log OTP verification
+        try {
+            await apiCall('logAction', {
+                user: JSON.stringify({ email: email }),
+                action: 'OTP_VERIFY',
+                description: 'User verified OTP successfully',
+                data: JSON.stringify({ email: email })
+            });
+        } catch (logError) {
+            console.error('Failed to log OTP verification:', logError);
+        }
         
         document.getElementById('forgotStep2').style.display = 'none';
         document.getElementById('forgotStep3').style.display = 'block';
@@ -633,6 +713,18 @@ async function handleResetPassword(e) {
         }
         
         await apiCall('resetPassword', { email, password });
+        
+        // Log password reset
+        try {
+            await apiCall('logAction', {
+                user: JSON.stringify({ email: email }),
+                action: 'PASSWORD_RESET',
+                description: 'User reset password successfully',
+                data: JSON.stringify({ email: email })
+            });
+        } catch (logError) {
+            console.error('Failed to log password reset:', logError);
+        }
         
         closeForgotPassword();
         showNotification('Password reset successfully', 'success');
@@ -682,6 +774,9 @@ function showPage(pageName) {
         }
         
         currentPage = pageName;
+        
+        // Log page view
+        logUserAction('PAGE_VIEW', `Viewed ${pageName} page`, { page: pageName });
         
         // Load page data
         switch (pageName) {
@@ -1191,9 +1286,11 @@ async function handlePlayerSubmit(e) {
         
         if (playerData.id) {
             await apiCall('updatePlayer', playerData);
+            await logUserAction('PLAYER_UPDATE', `Updated player: ${playerData.name}`, playerData);
             showNotification('Player updated successfully', 'success');
         } else {
             await apiCall('addPlayer', playerData);
+            await logUserAction('PLAYER_ADD', `Added new player: ${playerData.name}`, playerData);
             showNotification('Player added successfully', 'success');
         }
         
@@ -1228,9 +1325,11 @@ async function handleCollectionSubmit(e) {
         
         if (collectionData.id) {
             await apiCall('updateIncome', collectionData);
+            await logUserAction('COLLECTION_UPDATE', `Updated collection: ${collectionData.amount} from ${collectionData.player}`, collectionData);
             showNotification('Collection updated successfully', 'success');
         } else {
             await apiCall('addIncome', collectionData);
+            await logUserAction('COLLECTION_ADD', `Added collection: ${collectionData.amount} from ${collectionData.player}`, collectionData);
             showNotification('Collection added successfully', 'success');
         }
         
@@ -1267,9 +1366,11 @@ async function handleExpenseSubmit(e) {
         
         if (expenseData.id) {
             await apiCall('updateExpense', expenseData);
+            await logUserAction('EXPENSE_UPDATE', `Updated expense: ${expenseData.amount} - ${expenseData.description}`, expenseData);
             showNotification('Expense updated successfully', 'success');
         } else {
             await apiCall('addExpense', expenseData);
+            await logUserAction('EXPENSE_ADD', `Added expense: ${expenseData.amount} - ${expenseData.description}`, expenseData);
             showNotification('Expense added successfully', 'success');
         }
         
@@ -1469,7 +1570,12 @@ async function deletePlayer(playerId) {
     if (!confirm('Are you sure you want to delete this player?')) return;
     
     try {
+        // Get player name before deletion for logging
+        const player = playersData.find(p => p.id === playerId);
+        const playerName = player ? player.name : `ID: ${playerId}`;
+        
         await apiCall('deletePlayer', { id: playerId });
+        await logUserAction('PLAYER_DELETE', `Deleted player: ${playerName}`, { id: playerId, name: playerName });
         showNotification('Player deleted successfully', 'success');
         loadPlayersData();
     } catch (error) {

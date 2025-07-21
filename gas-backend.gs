@@ -204,6 +204,11 @@ function doGet(e) {
         response = handleGetLogs(requestData);
         break;
       
+      // Logging action
+      case 'logAction':
+        response = handleLogAction(requestData);
+        break;
+      
       // Dashboard data
       case 'getDashboardData':
         response = handleGetDashboardData(requestData);
@@ -1577,6 +1582,37 @@ function handleGetLogs(data) {
   } catch (error) {
     console.error('Get logs error:', error);
     return createErrorResponse(`Failed to get logs: ${error.toString()}`, 'GET_LOGS_ERROR');
+  }
+}
+
+// Handle log action
+function handleLogAction(data) {
+  try {
+    const userStr = data.user;
+    const action = data.action;
+    const description = data.description;
+    const logData = data.data;
+    
+    if (!userStr || !action || !description) {
+      return createErrorResponse('Missing required fields for logging', 'MISSING_FIELDS');
+    }
+    
+    let user;
+    try {
+      user = JSON.parse(userStr);
+    } catch (parseError) {
+      console.error('Error parsing user data for logging:', parseError);
+      return createErrorResponse('Invalid user data format', 'INVALID_USER_DATA');
+    }
+    
+    // Log the action
+    logAction(user, action, description);
+    
+    return createSuccessResponse({ message: 'Action logged successfully' });
+    
+  } catch (error) {
+    console.error('Log action error:', error);
+    return createErrorResponse(`Failed to log action: ${error.toString()}`, 'LOG_ACTION_ERROR');
   }
 }
 
