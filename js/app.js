@@ -41,9 +41,6 @@ function initializeApp() {
     // Check for existing session
     checkSession();
     
-    // Load initial data to populate from Google Sheets
-    loadInitialData();
-    
     // Set up event listeners
     setupEventListeners();
     
@@ -534,8 +531,6 @@ function hideButtonLoading(button) {
 
 // JSONP API call function to bypass CORS completely
 function apiCall(action, data = {}) {
-    showLoading();
-    
     return new Promise((resolve, reject) => {
         // Create unique callback name
         const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
@@ -550,7 +545,6 @@ function apiCall(action, data = {}) {
             // Clean up
             document.head.removeChild(script);
             delete window[callbackName];
-            hideLoading();
             
             if (response && response.success) {
                 console.log('JSONP Success, data:', response.data);
@@ -567,7 +561,6 @@ function apiCall(action, data = {}) {
             console.error('Script load failed for URL:', script.src);
             document.head.removeChild(script);
             delete window[callbackName];
-            hideLoading();
             reject(new Error('Backend connection failed. Please check your internet connection and backend URL.'));
         };
         
@@ -598,7 +591,6 @@ function apiCall(action, data = {}) {
             if (window[callbackName]) {
                 document.head.removeChild(script);
                 delete window[callbackName];
-                hideLoading();
                 reject(new Error('Request timeout - please check your internet connection'));
             }
         }, 30000); // 30 second timeout
@@ -654,9 +646,11 @@ async function handleLogin(event) {
             // Set up user permissions and transition to app
             setupUserPermissions();
             
-            setTimeout(() => {
+            setTimeout(async () => {
                 const transitionSuccess = transitionToApp();
                 if (transitionSuccess) {
+                    // Load initial data from Google Sheets
+                    await loadInitialData();
                     showPage('dashboard');
                     loadDashboardData();
                 } else {
@@ -1159,6 +1153,17 @@ function showPage(pageName) {
         const targetPage = document.getElementById(`${pageName}Page`);
         if (targetPage) {
             targetPage.classList.add('active');
+            // Scroll to top of the page
+            targetPage.scrollTop = 0;
+            
+            // Also scroll main content to top
+            const mainContent = document.querySelector('.main-content');
+            if (mainContent) {
+                mainContent.scrollTop = 0;
+            }
+            
+            // Scroll window to top as well
+            window.scrollTo(0, 0);
         }
         
         // Update navigation highlighting
@@ -1434,21 +1439,7 @@ function handleFilterChange(filterId) {
     }
 }
 
-// Players functions
-async function loadPlayersData() {
-    try {
-        const players = await apiCall('getPlayers');
-        cachedData.players = players || [];
-        
-        updatePlayersFilters();
-        renderPlayersTable();
-        generateMonthlyStatusOptions();
-        
-    } catch (error) {
-        console.error('Failed to load players data:', error);
-        showNotification('Failed to load players data', 'error');
-    }
-}
+// Duplicate function removed - using main definition below
 
 function updatePlayersFilters() {
     const monthFilter = document.getElementById('playersMonthFilter');
@@ -1795,48 +1786,9 @@ async function handleUserSubmit(e) {
     }
 }
 
-// Collections/Income functions
-async function loadCollectionsData() {
-    try {
-        const [income, players] = await Promise.all([
-            apiCall('getIncome'),
-            apiCall('getPlayers')
-        ]);
-        
-        cachedData.income = income || [];
-        cachedData.players = players || [];
-        
-        updateCollectionsFilters();
-        renderCollectionsTable();
-        
-    } catch (error) {
-        console.error('Failed to load collections data:', error);
-        showNotification('Failed to load collections data', 'error');
-        
-        // Set empty data on error
-        cachedData.income = [];
-        cachedData.players = [];
-        renderCollectionsTable();
-    }
-}
+// Duplicate function removed - using main definition below
 
-async function loadExpensesData() {
-    try {
-        const expenses = await apiCall('getExpenses');
-        cachedData.expenses = expenses || [];
-        
-        updateExpensesFilters();
-        renderExpensesTable();
-        
-    } catch (error) {
-        console.error('Failed to load expenses data:', error);
-        showNotification('Failed to load expenses data', 'error');
-        
-        // Set empty data on error
-        cachedData.expenses = [];
-        renderExpensesTable();
-    }
-}
+// Duplicate function removed - using main definition below
 
 async function loadLogsData() {
     if (currentUser?.role !== 'admin') return;
@@ -2194,7 +2146,6 @@ function filterByMonth() {
 // Enhanced Load Functions with Fallback Data
 async function loadDashboardData(month = '') {
     try {
-        showLoading();
         console.log('Loading dashboard data...');
         
         // Try to load real data
@@ -2210,8 +2161,6 @@ async function loadDashboardData(month = '') {
         
         // Show demo data as fallback
         renderDemoDashboardData();
-    } finally {
-        hideLoading();
     }
 }
 
@@ -2257,12 +2206,31 @@ function renderDemoDashboardData() {
 async function loadPlayersData() {
     try {
         console.log('Loading players data...');
+        
+        // First render cached data if available
+        if (cachedData.players && cachedData.players.length > 0) {
+            console.log('Using cached players data:', cachedData.players);
+            renderPlayersTable(cachedData.players);
+        }
+        
+        // Then fetch fresh data
         const playersData = await apiCall('getPlayers');
-        renderPlayersTable(playersData);
+        console.log('Fresh players data received:', playersData);
+        
+        cachedData.players = playersData || [];
+        renderPlayersTable(cachedData.players);
+        
     } catch (error) {
         console.error('Failed to load players data:', error);
         showNotification('Failed to load players data', 'error');
-        renderPlayersTable([]); // Show empty table
+        
+        // Use cached data as fallback
+        if (cachedData.players && cachedData.players.length > 0) {
+            console.log('Using cached players as fallback');
+            renderPlayersTable(cachedData.players);
+        } else {
+            renderPlayersTable([]); // Show empty table
+        }
     }
 }
 
@@ -2332,12 +2300,31 @@ function renderPlayersTable(players) {
 async function loadCollectionsData() {
     try {
         console.log('Loading collections data...');
+        
+        // First render cached data if available
+        if (cachedData.income && cachedData.income.length > 0) {
+            console.log('Using cached collections data:', cachedData.income);
+            renderCollectionsTable(cachedData.income);
+        }
+        
+        // Then fetch fresh data
         const collectionsData = await apiCall('getIncome');
-        renderCollectionsTable(collectionsData);
+        console.log('Fresh collections data received:', collectionsData);
+        
+        cachedData.income = collectionsData || [];
+        renderCollectionsTable(cachedData.income);
+        
     } catch (error) {
         console.error('Failed to load collections data:', error);
         showNotification('Failed to load collections data', 'error');
-        renderCollectionsTable([]);
+        
+        // Use cached data as fallback
+        if (cachedData.income && cachedData.income.length > 0) {
+            console.log('Using cached collections as fallback');
+            renderCollectionsTable(cachedData.income);
+        } else {
+            renderCollectionsTable([]);
+        }
     }
 }
 
@@ -2400,12 +2387,31 @@ function renderCollectionsTable(collections) {
 async function loadExpensesData() {
     try {
         console.log('Loading expenses data...');
+        
+        // First render cached data if available
+        if (cachedData.expenses && cachedData.expenses.length > 0) {
+            console.log('Using cached expenses data:', cachedData.expenses);
+            renderExpensesTable(cachedData.expenses);
+        }
+        
+        // Then fetch fresh data
         const expensesData = await apiCall('getExpenses');
-        renderExpensesTable(expensesData);
+        console.log('Fresh expenses data received:', expensesData);
+        
+        cachedData.expenses = expensesData || [];
+        renderExpensesTable(cachedData.expenses);
+        
     } catch (error) {
         console.error('Failed to load expenses data:', error);
         showNotification('Failed to load expenses data', 'error');
-        renderExpensesTable([]);
+        
+        // Use cached data as fallback
+        if (cachedData.expenses && cachedData.expenses.length > 0) {
+            console.log('Using cached expenses as fallback');
+            renderExpensesTable(cachedData.expenses);
+        } else {
+            renderExpensesTable([]);
+        }
     }
 }
 
@@ -2491,8 +2497,10 @@ function setupEditFormHandlers() {
                 notes: formData.get('editPlayerNotes')
             };
             
+            const submitButton = e.target.querySelector('button[type="submit"]');
+            showButtonLoading(submitButton, 'Updating Player...');
+            
             try {
-                showLoading();
                 await apiCall('editPlayer', playerData);
                 await logUserAction('PLAYER_EDIT', `Updated player: ${playerData.name}`, playerData);
                 showNotification('Player updated successfully!', 'success');
@@ -2504,7 +2512,7 @@ function setupEditFormHandlers() {
                 console.error('Failed to update player:', error);
                 showNotification('Failed to update player. Please try again.', 'error');
             } finally {
-                hideLoading();
+                hideButtonLoading(submitButton);
             }
         };
     }
@@ -2524,8 +2532,10 @@ function setupEditFormHandlers() {
                 description: formData.get('editCollectionDescription')
             };
             
+            const submitButton = e.target.querySelector('button[type="submit"]');
+            showButtonLoading(submitButton, 'Updating Collection...');
+            
             try {
-                showLoading();
                 await apiCall('editIncome', collectionData);
                 await logUserAction('COLLECTION_EDIT', `Updated collection: QAR ${collectionData.amount} from ${collectionData.player}`, collectionData);
                 showNotification('Collection updated successfully!', 'success');
@@ -2537,7 +2547,7 @@ function setupEditFormHandlers() {
                 console.error('Failed to update collection:', error);
                 showNotification('Failed to update collection. Please try again.', 'error');
             } finally {
-                hideLoading();
+                hideButtonLoading(submitButton);
             }
         };
     }
@@ -2557,8 +2567,10 @@ function setupEditFormHandlers() {
                 description: formData.get('editExpenseDescription')
             };
             
+            const submitButton = e.target.querySelector('button[type="submit"]');
+            showButtonLoading(submitButton, 'Updating Expense...');
+            
             try {
-                showLoading();
                 await apiCall('editExpense', expenseData);
                 await logUserAction('EXPENSE_EDIT', `Updated expense: QAR ${expenseData.amount} - ${expenseData.description}`, expenseData);
                 showNotification('Expense updated successfully!', 'success');
@@ -2570,7 +2582,7 @@ function setupEditFormHandlers() {
                 console.error('Failed to update expense:', error);
                 showNotification('Failed to update expense. Please try again.', 'error');
             } finally {
-                hideLoading();
+                hideButtonLoading(submitButton);
             }
         };
     }
@@ -2728,7 +2740,6 @@ async function deleteUser(userId) {
     }
     
     try {
-        showLoading();
         await apiCall('deleteUser', { id: userId });
         await logUserAction('USER_DELETE', `Deleted user: ${userId}`, { id: userId });
         showNotification('User deleted successfully', 'success');
@@ -2740,15 +2751,12 @@ async function deleteUser(userId) {
     } catch (error) {
         console.error('Failed to delete user:', error);
         showNotification('Failed to delete user. Please try again.', 'error');
-    } finally {
-        hideLoading();
     }
 }
 
 // Load users data
 async function loadUsersData() {
     try {
-        showLoading();
         console.log('Loading users data...');
         
         const users = await apiCall('getUsers');
@@ -2762,8 +2770,6 @@ async function loadUsersData() {
         showNotification('Failed to load users data', 'error');
         cachedData.users = [];
         renderUsersTable([]);
-    } finally {
-        hideLoading();
     }
 }
 
@@ -2838,7 +2844,6 @@ function renderUsersTable(users) {
 // Load logs data
 async function loadLogsData() {
     try {
-        showLoading();
         console.log('Loading logs data...');
         
         const logs = await apiCall('getLogs');
@@ -2852,8 +2857,6 @@ async function loadLogsData() {
         showNotification('Failed to load logs data', 'error');
         cachedData.logs = [];
         renderLogsTable([]);
-    } finally {
-        hideLoading();
     }
 }
 
