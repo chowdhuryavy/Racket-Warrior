@@ -48,6 +48,12 @@ function initializeApp() {
     // Set up edit form handlers
     setupEditFormHandlers();
     
+    // Set up user form handlers
+    setupUserFormHandlers();
+    
+    // Initialize navigation sections
+    initializeNavSections();
+    
     console.log('Gym Management System initialized');
 }
 
@@ -304,8 +310,10 @@ async function handlePlayerFormSubmit(e) {
         notes: formData.get('notes')
     };
     
+    const submitButton = e.target.querySelector('button[type="submit"]');
+    showButtonLoading(submitButton, 'Saving Player...');
+    
     try {
-        showLoading();
         await apiCall('addPlayer', playerData);
         await logUserAction('PLAYER_ADD', `Added new player: ${playerData.name}`, playerData);
         showNotification('Player added successfully!', 'success');
@@ -319,7 +327,7 @@ async function handlePlayerFormSubmit(e) {
         console.error('Failed to add player:', error);
         showNotification('Failed to add player. Please try again.', 'error');
     } finally {
-        hideLoading();
+        hideButtonLoading(submitButton);
     }
 }
 
@@ -505,18 +513,26 @@ function showNotification(message, type = 'info') {
     }, 6000);
 }
 
-function showButtonLoading(button) {
-    if (button) {
-        button.classList.add('loading');
-        button.disabled = true;
-    }
+// Button loading states
+function showButtonLoading(button, originalText) {
+    if (!button) return;
+    
+    button.setAttribute('data-original-text', originalText || button.textContent);
+    button.classList.add('loading');
+    button.disabled = true;
 }
 
 function hideButtonLoading(button) {
-    if (button) {
-        button.classList.remove('loading');
-        button.disabled = false;
+    if (!button) return;
+    
+    const originalText = button.getAttribute('data-original-text');
+    if (originalText) {
+        button.textContent = originalText;
+        button.removeAttribute('data-original-text');
     }
+    
+    button.classList.remove('loading');
+    button.disabled = false;
 }
 
 // JSONP API call function to bypass CORS completely
@@ -593,92 +609,73 @@ function apiCall(action, data = {}) {
 }
 
 // Authentication functions
-async function handleLogin(e) {
-    e.preventDefault();
+async function handleLogin(event) {
+    event.preventDefault();
     
-    const submitButton = e.target.querySelector('button[type="submit"]');
-    showButtonLoading(submitButton);
+    const form = event.target;
+    const submitButton = form.querySelector('button[type="submit"]');
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    
+    if (!email || !password) {
+        showNotification('Please enter both email and password', 'error');
+        return;
+    }
+    
+    // Show loading on login button
+    showButtonLoading(submitButton, 'Signing In...');
     
     try {
-        const emailInput = document.getElementById('loginEmail');
-        const passwordInput = document.getElementById('loginPassword');
+        console.log('Attempting login for:', email);
         
-        if (!emailInput || !passwordInput) {
-            throw new Error('Login form elements not found');
-        }
+        const response = await apiCall('login', {
+            email: email,
+            password: password
+        });
         
-        const email = emailInput.value.trim();
-        const password = passwordInput.value;
+        console.log('Login response:', response);
         
-        console.log('Attempting login with email:', email);
-        
-        if (!email || !password) {
-            throw new Error('Please enter both email and password');
-        }
-        
-        // Skip connectivity test for now to avoid blocking login
-        
-        console.log('Making API call to login...');
-        const result = await apiCall('login', { email, password });
-        console.log('API call result:', result);
-        
-        // Handle different response formats
-        if (result && (result.user || result.email)) {
-            currentUser = result.user || result;
-            console.log('Login successful, user:', currentUser);
+        if (response && (response.email || response.user)) {
+            const userData = response.user || response;
+            console.log('Login successful, user:', userData);
+            
+            // Store user data
+            currentUser = {
+                email: userData.email || email,
+                role: userData.role || 'user', 
+                name: userData.name || email.split('@')[0],
+                needsPasswordChange: userData.needsPasswordChange || ''
+            };
+            
+            localStorage.setItem('gymUser', JSON.stringify(currentUser));
+            
+            // Log the login action
+            await logUserAction('LOGIN', 'User logged in', { email: currentUser.email });
+            
+            showNotification(`Welcome ${currentUser.name}!`, 'success');
+            
+            // Set up user permissions and transition to app
+            setupUserPermissions();
+            
+            setTimeout(() => {
+                const transitionSuccess = transitionToApp();
+                if (transitionSuccess) {
+                    showPage('dashboard');
+                    loadDashboardData();
+                } else {
+                    console.error('Failed to transition to app');
+                    showNotification('Login successful but failed to load app. Please refresh.', 'error');
+                }
+            }, 100);
+            
         } else {
-            throw new Error('Invalid response format from server');
+            console.error('Login failed: Invalid response format', response);
+            showNotification('Invalid credentials. Please try again.', 'error');
         }
-        
-        // Store user session
-        localStorage.setItem('gymUser', JSON.stringify(currentUser));
-        
-        // Show app and hide login
-        const loginPage = document.getElementById('loginPage');
-        const appContainer = document.getElementById('appContainer');
-        
-        // Use robust transition function
-        if (!transitionToApp()) {
-            console.error('Failed to transition to app');
-            return;
-        }
-        
-        // Set user info
-        const userNameEl = document.getElementById('currentUserName');
-        const userRoleEl = document.getElementById('currentUserRole');
-        
-        if (userNameEl) userNameEl.textContent = currentUser.name || currentUser.email;
-        if (userRoleEl) userRoleEl.textContent = currentUser.role || 'User';
-        
-        // Show/hide admin sections
-        setupUserPermissions();
-        
-        // Log the login action
-        await logUserAction('LOGIN', 'User logged in successfully', { email: currentUser.email });
-        
-        // Load initial data
-        await loadDashboardData();
-        showNotification(`Welcome back, ${currentUser.name || currentUser.email}!`, 'success');
-        
-        // Initialize sidebar and mobile setup
-        initializeSidebar();
-        adjustForMobile();
         
     } catch (error) {
         console.error('Login error:', error);
-        let errorMessage = 'Login failed. Please try again.';
-        
-        if (error.message.includes('Invalid credentials')) {
-            errorMessage = 'Invalid email or password. Please check your credentials.';
-        } else if (error.message.includes('Network')) {
-            errorMessage = 'Network error. Please check your internet connection.';
-        } else if (error.message.includes('timeout')) {
-            errorMessage = 'Request timeout. Please try again.';
-        } else if (error.message) {
-            errorMessage = error.message;
-        }
-        
-        showNotification(errorMessage, 'error');
+        showNotification('Login failed. Please check your credentials and try again.', 'error');
     } finally {
         hideButtonLoading(submitButton);
     }
@@ -1525,16 +1522,10 @@ function editExpense(expenseId) {
 }
 
 function showAddUserModal() {
-    const modal = document.getElementById('addUserModal');
-    const form = document.getElementById('userForm');
-    const title = document.getElementById('userModalTitle');
-    
-    if (modal && form && title) {
-        title.textContent = 'Add User';
+    const form = document.getElementById('addUserForm');
+    if (form) {
         form.reset();
-        document.getElementById('userId').value = '';
-        
-        modal.classList.add('active');
+        showModal('addUserModal');
     }
 }
 
@@ -2486,4 +2477,347 @@ function setupEditFormHandlers() {
             }
         };
     }
+}
+
+// Toggle navigation section
+function toggleNavSection(sectionId) {
+    const section = document.getElementById(sectionId);
+    if (section) {
+        section.classList.toggle('collapsed');
+        
+        // Save state to localStorage
+        const isCollapsed = section.classList.contains('collapsed');
+        localStorage.setItem(`nav_${sectionId}`, isCollapsed ? 'collapsed' : 'expanded');
+    }
+}
+
+// Initialize navigation sections from saved state
+function initializeNavSections() {
+    const sections = ['playersSection', 'collectionsSection', 'expensesSection'];
+    
+    sections.forEach(sectionId => {
+        const section = document.getElementById(sectionId);
+        const savedState = localStorage.getItem(`nav_${sectionId}`);
+        
+        if (section) {
+            if (savedState === 'collapsed') {
+                section.classList.add('collapsed');
+            } else {
+                section.classList.remove('collapsed');
+            }
+        }
+    });
+}
+
+// User Management Functions
+function showAddUserModal() {
+    const form = document.getElementById('addUserForm');
+    if (form) {
+        form.reset();
+        showModal('addUserModal');
+    }
+}
+
+// Add user form handler
+function setupUserFormHandlers() {
+    // Add User Form
+    const addUserForm = document.getElementById('addUserForm');
+    if (addUserForm) {
+        addUserForm.onsubmit = async function(e) {
+            e.preventDefault();
+            const submitButton = e.target.querySelector('button[type="submit"]');
+            showButtonLoading(submitButton, 'Adding User...');
+            
+            const formData = new FormData(e.target);
+            const userData = {
+                name: formData.get('addUserName') || document.getElementById('addUserName').value,
+                email: formData.get('addUserEmail') || document.getElementById('addUserEmail').value,
+                role: formData.get('addUserRole') || document.getElementById('addUserRole').value,
+                status: formData.get('addUserStatus') || document.getElementById('addUserStatus').value
+            };
+            
+            // Validate data
+            if (!userData.name || !userData.email || !userData.role) {
+                showNotification('Please fill in all required fields', 'error');
+                hideButtonLoading(submitButton);
+                return;
+            }
+            
+            try {
+                console.log('Adding user with data:', userData);
+                const response = await apiCall('addUser', userData);
+                console.log('Add user response:', response);
+                
+                await logUserAction('USER_ADD', `Added new user: ${userData.name}`, userData);
+                showNotification('User added successfully! Welcome email sent.', 'success');
+                closeModal('addUserModal');
+                
+                // Refresh users data if on admin page
+                if (currentPage === 'admin') {
+                    loadUsersData();
+                }
+                
+            } catch (error) {
+                console.error('Failed to add user:', error);
+                showNotification('Failed to add user. Please try again.', 'error');
+            } finally {
+                hideButtonLoading(submitButton);
+            }
+        };
+    }
+
+    // Edit User Form
+    const editUserForm = document.getElementById('editUserForm');
+    if (editUserForm) {
+        editUserForm.onsubmit = async function(e) {
+            e.preventDefault();
+            const submitButton = e.target.querySelector('button[type="submit"]');
+            showButtonLoading(submitButton, 'Updating User...');
+            
+            const formData = new FormData(e.target);
+            const userData = {
+                id: document.getElementById('editUserId').value,
+                name: document.getElementById('editUserName').value,
+                email: document.getElementById('editUserEmail').value,
+                role: document.getElementById('editUserRole').value,
+                status: document.getElementById('editUserStatus').value
+            };
+            
+            try {
+                await apiCall('editUser', userData);
+                await logUserAction('USER_EDIT', `Updated user: ${userData.name}`, userData);
+                showNotification('User updated successfully!', 'success');
+                closeModal('editUserModal');
+                
+                if (currentPage === 'admin') {
+                    loadUsersData();
+                }
+                
+            } catch (error) {
+                console.error('Failed to update user:', error);
+                showNotification('Failed to update user. Please try again.', 'error');
+            } finally {
+                hideButtonLoading(submitButton);
+            }
+        };
+    }
+}
+
+// Edit user function
+function editUser(userId) {
+    console.log('Edit user:', userId);
+    
+    const user = cachedData.users.find(u => u.id === userId || u.Id === userId || u.email === userId);
+    if (!user) {
+        showNotification('User not found', 'error');
+        return;
+    }
+    
+    // Populate modal with user data
+    document.getElementById('editUserId').value = userId;
+    document.getElementById('editUserName').value = user.name || user.Name || '';
+    document.getElementById('editUserEmail').value = user.email || user.Email || '';
+    document.getElementById('editUserRole').value = user.role || user.Role || '';
+    document.getElementById('editUserStatus').value = user.status || user.Status || 'active';
+    
+    showModal('editUserModal');
+}
+
+// Delete user function
+async function deleteUser(userId) {
+    if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+        return;
+    }
+    
+    try {
+        showLoading();
+        await apiCall('deleteUser', { id: userId });
+        await logUserAction('USER_DELETE', `Deleted user: ${userId}`, { id: userId });
+        showNotification('User deleted successfully', 'success');
+        
+        if (currentPage === 'admin') {
+            loadUsersData();
+        }
+        
+    } catch (error) {
+        console.error('Failed to delete user:', error);
+        showNotification('Failed to delete user. Please try again.', 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+// Load users data
+async function loadUsersData() {
+    try {
+        showLoading();
+        console.log('Loading users data...');
+        
+        const users = await apiCall('getUsers');
+        console.log('Users data received:', users);
+        
+        cachedData.users = users || [];
+        renderUsersTable(cachedData.users);
+        
+    } catch (error) {
+        console.error('Failed to load users:', error);
+        showNotification('Failed to load users data', 'error');
+        cachedData.users = [];
+        renderUsersTable([]);
+    } finally {
+        hideLoading();
+    }
+}
+
+// Render users table
+function renderUsersTable(users) {
+    const container = document.getElementById('usersTable');
+    if (!container) return;
+    
+    if (!users || users.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-users" style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 1rem;"></i>
+                <h3>No Users Found</h3>
+                <p>Start by adding your first user to the system.</p>
+                <button class="btn btn-primary" onclick="showAddUserModal()">
+                    <i class="fas fa-plus"></i>
+                    Add First User
+                </button>
+            </div>
+        `;
+        return;
+    }
+    
+    let tableHTML = `
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Last Login</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    users.forEach(user => {
+        const status = user.status || user.Status || 'active';
+        const role = user.role || user.Role || 'user';
+        const name = user.name || user.Name || 'N/A';
+        const email = user.email || user.Email || 'N/A';
+        const lastLogin = user.lastLogin || user.LastLogin || 'Never';
+        const userId = user.id || user.Id || user.email || user.Email;
+        
+        tableHTML += `
+            <tr>
+                <td>${escapeHtml(name)}</td>
+                <td>${escapeHtml(email)}</td>
+                <td><span class="status-badge ${role}">${role.charAt(0).toUpperCase() + role.slice(1)}</span></td>
+                <td><span class="status-badge ${status}">${status.charAt(0).toUpperCase() + status.slice(1)}</span></td>
+                <td>${formatDate(lastLogin) || 'Never'}</td>
+                <td>
+                    <button class="btn btn-sm btn-secondary" onclick="editUser('${userId}')">
+                        <i class="fas fa-edit"></i>
+                        Edit
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteUser('${userId}')">
+                        <i class="fas fa-trash"></i>
+                        Delete
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+    
+    tableHTML += '</tbody></table>';
+    container.innerHTML = tableHTML;
+}
+
+// Load logs data
+async function loadLogsData() {
+    try {
+        showLoading();
+        console.log('Loading logs data...');
+        
+        const logs = await apiCall('getLogs');
+        console.log('Logs data received:', logs);
+        
+        cachedData.logs = logs || [];
+        renderLogsTable(cachedData.logs);
+        
+    } catch (error) {
+        console.error('Failed to load logs:', error);
+        showNotification('Failed to load logs data', 'error');
+        cachedData.logs = [];
+        renderLogsTable([]);
+    } finally {
+        hideLoading();
+    }
+}
+
+// Render logs table
+function renderLogsTable(logs) {
+    const container = document.getElementById('logsTable');
+    if (!container) return;
+    
+    if (!logs || logs.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-clipboard-list" style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 1rem;"></i>
+                <h3>No Logs Found</h3>
+                <p>System activity logs will appear here.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let tableHTML = `
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>User</th>
+                    <th>Action</th>
+                    <th>Description</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    logs.slice().reverse().forEach(log => {
+        const timestamp = log.timestamp || log.Timestamp || '';
+        const user = log.user || log.User || 'System';
+        const action = log.action || log.Action || 'N/A';
+        const description = log.description || log.Description || 'N/A';
+        const details = log.details || log.Details || '';
+        
+        tableHTML += `
+            <tr>
+                <td>${formatDate(timestamp) || 'N/A'}</td>
+                <td>${escapeHtml(user)}</td>
+                <td><span class="status-badge ${action.toLowerCase()}">${action}</span></td>
+                <td>${escapeHtml(description)}</td>
+                <td>${escapeHtml(details)}</td>
+            </tr>
+        `;
+    });
+    
+    tableHTML += '</tbody></table>';
+    container.innerHTML = tableHTML;
+}
+
+// Refresh functions
+async function refreshUsersData() {
+    await loadUsersData();
+    showNotification('Users data refreshed', 'success');
+}
+
+async function refreshLogsData() {
+    await loadLogsData();
+    showNotification('Logs data refreshed', 'success');
 }

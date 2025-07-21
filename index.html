@@ -126,8 +126,8 @@
                 </a>
                 
                 <!-- Players Section -->
-                <div class="nav-section">
-                    <div class="nav-section-header">
+                <div class="nav-section" id="playersSection">
+                    <div class="nav-section-header" onclick="toggleNavSection('playersSection')">
                         <i class="fas fa-users"></i>
                         <span>Players</span>
                     </div>
@@ -144,8 +144,8 @@
                 </div>
 
                 <!-- Collections Section -->
-                <div class="nav-section">
-                    <div class="nav-section-header">
+                <div class="nav-section" id="collectionsSection">
+                    <div class="nav-section-header" onclick="toggleNavSection('collectionsSection')">
                         <i class="fas fa-money-bill-wave"></i>
                         <span>Collections</span>
                     </div>
@@ -162,8 +162,8 @@
                 </div>
 
                 <!-- Expenses Section -->
-                <div class="nav-section">
-                    <div class="nav-section-header">
+                <div class="nav-section" id="expensesSection">
+                    <div class="nav-section-header" onclick="toggleNavSection('expensesSection')">
                         <i class="fas fa-receipt"></i>
                         <span>Expenses</span>
                     </div>
@@ -827,20 +827,20 @@
     <div id="addUserModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeModal('addUserModal')">&times;</span>
-            <h3 id="userModalTitle">Add User</h3>
-            <form id="userForm">
-                <input type="hidden" id="userId">
+            <h3 id="addUserModalTitle">Add New User</h3>
+            <form id="addUserForm">
                 <div class="form-group">
-                    <label>Name</label>
-                    <input type="text" id="userName" required>
+                    <label>Full Name</label>
+                    <input type="text" id="addUserName" required>
                 </div>
                 <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" id="userEmail" required>
+                    <label>Email Address</label>
+                    <input type="email" id="addUserEmail" required>
                 </div>
                 <div class="form-group">
                     <label>Role</label>
-                    <select id="userRole" required>
+                    <select id="addUserRole" required>
+                        <option value="">Select Role</option>
                         <option value="view">View Only</option>
                         <option value="user">User</option>
                         <option value="admin">Admin</option>
@@ -848,14 +848,52 @@
                 </div>
                 <div class="form-group">
                     <label>Status</label>
-                    <select id="userStatus" required>
+                    <select id="addUserStatus" required>
                         <option value="active">Active</option>
                         <option value="inactive">Inactive</option>
                     </select>
                 </div>
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" onclick="closeModal('addUserModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save User</button>
+                    <button type="submit" class="btn btn-primary">Add User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div id="editUserModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('editUserModal')">&times;</span>
+            <h3 id="editUserModalTitle">Edit User</h3>
+            <form id="editUserForm">
+                <input type="hidden" id="editUserId">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="editUserName" required>
+                </div>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="editUserEmail" required>
+                </div>
+                <div class="form-group">
+                    <label>Role</label>
+                    <select id="editUserRole" required>
+                        <option value="view">View Only</option>
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="editUserStatus" required>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('editUserModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update User</button>
                 </div>
             </form>
         </div>
