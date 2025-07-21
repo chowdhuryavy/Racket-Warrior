@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0891b2">
+    <meta name="description" content="Complete Gym Management System with member tracking, collections, and expense management">
     <title>Gym Management System</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
@@ -11,30 +13,62 @@
     <!-- Login Page -->
     <div id="loginPage" class="page active">
         <div class="login-container">
+            <!-- Demo Credentials Card -->
+            <div class="demo-credentials">
+                <h4><i class="fas fa-key"></i> Demo Credentials</h4>
+                <p><strong>Admin:</strong> admin@gym.com / Admin123!</p>
+                <p><strong>User:</strong> user@gym.com / User123!</p>
+                <p><strong>View Only:</strong> view@gym.com / View123!</p>
+            </div>
+            
             <div class="login-card">
                 <div class="logo-container">
                     <img src="https://i.imgur.com/04MGPFl.png" alt="Gym Logo" class="logo">
                 </div>
                 <h2>Welcome Back</h2>
+                <p style="text-align: center; color: var(--text-secondary); margin-bottom: 2rem; font-weight: 500;">
+                    Sign in to your account to continue
+                </p>
+                
                 <form id="loginForm">
                     <div class="form-group">
                         <i class="fas fa-envelope"></i>
-                        <input type="email" id="loginEmail" placeholder="Email" required>
+                        <input type="email" id="loginEmail" placeholder=" " required>
+                        <label class="form-label">Email Address</label>
                     </div>
                     <div class="form-group">
                         <i class="fas fa-lock"></i>
-                        <input type="password" id="loginPassword" placeholder="Password" required>
+                        <input type="password" id="loginPassword" placeholder=" " required>
+                        <label class="form-label">Password</label>
                         <span class="toggle-password" onclick="togglePassword('loginPassword')">
                             <i class="fas fa-eye"></i>
                         </span>
                     </div>
+                    
+                    <div class="form-options" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; color: var(--text-secondary);">
+                            <input type="checkbox" id="rememberMe" style="width: auto; margin: 0;">
+                            Remember me
+                        </label>
+                        <a href="#" onclick="showForgotPassword()" style="font-size: 14px; color: var(--primary-color); text-decoration: none;">
+                            Forgot Password?
+                        </a>
+                    </div>
+                    
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-sign-in-alt"></i>
                         Sign In
                     </button>
                 </form>
+                
                 <div class="login-footer">
-                    <a href="#" onclick="showForgotPassword()">Forgot Password?</a>
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-top: 1.5rem; opacity: 0.8;">
+                        <div style="flex: 1; height: 1px; background: var(--medium-gray);"></div>
+                        <span style="font-size: 12px; color: var(--text-secondary); font-weight: 500;">
+                            Gym Management System
+                        </span>
+                        <div style="flex: 1; height: 1px; background: var(--medium-gray);"></div>
+                    </div>
                 </div>
             </div>
         </div>

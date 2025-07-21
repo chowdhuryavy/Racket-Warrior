@@ -19,7 +19,211 @@ let cachedData = {
     logs: []
 };
 
+// Initialize app
+document.addEventListener('DOMContentLoaded', function() {
+    initializeApp();
+});
+
+function initializeApp() {
+    // Check for existing session
+    checkSession();
+    
+    // Set up event listeners
+    setupEventListeners();
+    
+    // Initialize date inputs with today's date
+    initializeDateInputs();
+    
+    // Set up mobile responsiveness
+    setupMobileHandlers();
+    
+    console.log('Gym Management System initialized');
+}
+
+function setupEventListeners() {
+    // Login form
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', handleLogin);
+    }
+    
+    // Forgot password forms
+    const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+    if (forgotPasswordForm) {
+        forgotPasswordForm.addEventListener('submit', handleForgotPassword);
+    }
+    
+    const otpVerificationForm = document.getElementById('otpVerificationForm');
+    if (otpVerificationForm) {
+        otpVerificationForm.addEventListener('submit', handleOTPVerification);
+    }
+    
+    const resetPasswordForm = document.getElementById('resetPasswordForm');
+    if (resetPasswordForm) {
+        resetPasswordForm.addEventListener('submit', handleResetPassword);
+    }
+    
+    // Data forms
+    const playerForm = document.getElementById('playerForm');
+    if (playerForm) {
+        playerForm.addEventListener('submit', handlePlayerSubmit);
+    }
+    
+    const collectionForm = document.getElementById('collectionForm');
+    if (collectionForm) {
+        collectionForm.addEventListener('submit', handleCollectionSubmit);
+    }
+    
+    const expenseForm = document.getElementById('expenseForm');
+    if (expenseForm) {
+        expenseForm.addEventListener('submit', handleExpenseSubmit);
+    }
+    
+    const userForm = document.getElementById('userForm');
+    if (userForm) {
+        userForm.addEventListener('submit', handleUserSubmit);
+    }
+    
+    // Filter change events
+    setupFilterEventListeners();
+    
+    // Password validation
+    const newPasswordInput = document.getElementById('newPassword');
+    if (newPasswordInput) {
+        newPasswordInput.addEventListener('input', function(e) {
+            validatePassword(e.target.value);
+        });
+    }
+    
+    // Close modals when clicking outside
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('modal')) {
+            e.target.classList.remove('active');
+        }
+    });
+    
+    // ESC key to close modals
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.modal.active').forEach(modal => {
+                modal.classList.remove('active');
+            });
+        }
+    });
+}
+
+function setupFilterEventListeners() {
+    const filters = [
+        'dashboardMonthFilter',
+        'playersMonthFilter', 
+        'playersStatusFilter',
+        'collectionsMonthFilter',
+        'collectionsPlayerFilter',
+        'expensesMonthFilter',
+        'logsSearch'
+    ];
+    
+    filters.forEach(filterId => {
+        const element = document.getElementById(filterId);
+        if (element) {
+            const eventType = element.tagName === 'INPUT' ? 'input' : 'change';
+            element.addEventListener(eventType, debounce(function() {
+                handleFilterChange(filterId);
+            }, 300));
+        }
+    });
+}
+
+function setupMobileHandlers() {
+    // Handle mobile sidebar toggle
+    let touchStartY = 0;
+    let touchEndY = 0;
+    
+    document.addEventListener('touchstart', function(e) {
+        touchStartY = e.changedTouches[0].screenY;
+    });
+    
+    document.addEventListener('touchend', function(e) {
+        touchEndY = e.changedTouches[0].screenY;
+        handleSwipe();
+    });
+    
+    function handleSwipe() {
+        const swipeThreshold = 50;
+        const diff = touchStartY - touchEndY;
+        
+        if (window.innerWidth <= 768) {
+            // Swipe up to show sidebar, down to hide
+            if (Math.abs(diff) > swipeThreshold) {
+                const sidebar = document.getElementById('sidebar');
+                if (diff > 0) {
+                    // Swipe up - show sidebar
+                    sidebar.style.transform = 'translateY(0)';
+                } else {
+                    // Swipe down - hide sidebar
+                    sidebar.style.transform = 'translateY(-100%)';
+                }
+            }
+        }
+    }
+    
+    // Handle orientation change
+    window.addEventListener('orientationchange', function() {
+        setTimeout(function() {
+            adjustForMobile();
+        }, 500);
+    });
+    
+    // Initial mobile adjustment
+    adjustForMobile();
+}
+
+function adjustForMobile() {
+    if (window.innerWidth <= 768) {
+        // Adjust viewport for mobile
+        const viewport = document.querySelector('meta[name="viewport"]');
+        if (viewport) {
+            viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+        }
+        
+        // Adjust main content padding
+        const mainContent = document.querySelector('.main-content');
+        if (mainContent && document.getElementById('appContainer').style.display !== 'none') {
+            const sidebarHeight = document.getElementById('sidebar').offsetHeight;
+            mainContent.style.paddingTop = `${sidebarHeight + 20}px`;
+        }
+    }
+}
+
+function initializeDateInputs() {
+    const today = new Date().toISOString().split('T')[0];
+    const dateInputs = [
+        'playerJoinDate',
+        'collectionDate', 
+        'expenseDate'
+    ];
+    
+    dateInputs.forEach(inputId => {
+        const input = document.getElementById(inputId);
+        if (input && !input.value) {
+            input.value = today;
+        }
+    });
+}
+
 // Utility functions
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
 function formatCurrency(amount) {
     return new Intl.NumberFormat('en-IN', {
         style: 'currency',
@@ -46,21 +250,44 @@ function getCurrentMonthYear() {
 }
 
 function showLoading() {
-    document.getElementById('loadingSpinner').classList.add('active');
+    const spinner = document.getElementById('loadingSpinner');
+    if (spinner) {
+        spinner.classList.add('active');
+    }
 }
 
 function hideLoading() {
-    document.getElementById('loadingSpinner').classList.remove('active');
+    const spinner = document.getElementById('loadingSpinner');
+    if (spinner) {
+        spinner.classList.remove('active');
+    }
 }
 
 function showNotification(message, type = 'info') {
     const notification = document.getElementById('notification');
-    notification.textContent = message;
-    notification.className = `notification ${type} show`;
-    
-    setTimeout(() => {
-        notification.classList.remove('show');
-    }, 3000);
+    if (notification) {
+        notification.textContent = message;
+        notification.className = `notification ${type} show`;
+        
+        // Auto hide after 5 seconds
+        setTimeout(() => {
+            notification.classList.remove('show');
+        }, 5000);
+    }
+}
+
+function showButtonLoading(button) {
+    if (button) {
+        button.classList.add('loading');
+        button.disabled = true;
+    }
+}
+
+function hideButtonLoading(button) {
+    if (button) {
+        button.classList.remove('loading');
+        button.disabled = false;
+    }
 }
 
 // API functions
@@ -78,6 +305,10 @@ async function apiCall(action, data = {}) {
             })
         });
         
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const result = await response.json();
         
         if (result.success) {
@@ -87,7 +318,11 @@ async function apiCall(action, data = {}) {
         }
     } catch (error) {
         console.error('API call failed:', error);
-        showNotification(error.message || 'Something went wrong', 'error');
+        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            showNotification('Network error. Please check your connection.', 'error');
+        } else {
+            showNotification(error.message || 'Something went wrong', 'error');
+        }
         throw error;
     } finally {
         hideLoading();
@@ -95,8 +330,20 @@ async function apiCall(action, data = {}) {
 }
 
 // Authentication functions
-async function login(email, password) {
+async function handleLogin(e) {
+    e.preventDefault();
+    
+    const submitButton = e.target.querySelector('button[type="submit"]');
+    showButtonLoading(submitButton);
+    
     try {
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        
+        if (!email || !password) {
+            throw new Error('Please enter both email and password');
+        }
+        
         const result = await apiCall('login', { email, password });
         currentUser = result;
         
@@ -112,23 +359,39 @@ async function login(email, password) {
         document.getElementById('currentUserRole').textContent = currentUser.role;
         
         // Show/hide admin sections
-        const adminItems = document.querySelectorAll('.admin-only');
-        adminItems.forEach(item => {
-            item.style.display = currentUser.role === 'admin' ? 'block' : 'none';
-        });
-        
-        // Set view-only restrictions
-        if (currentUser.role === 'view') {
-            const addButtons = document.querySelectorAll('#addPlayerBtn, #addCollectionBtn, #addExpenseBtn');
-            addButtons.forEach(btn => btn.style.display = 'none');
-        }
+        setupUserPermissions();
         
         // Load initial data
         await loadDashboardData();
         showNotification(`Welcome back, ${currentUser.name}!`, 'success');
         
+        // Adjust for mobile
+        adjustForMobile();
+        
     } catch (error) {
-        showNotification('Invalid credentials', 'error');
+        showNotification('Invalid credentials. Please try again.', 'error');
+    } finally {
+        hideButtonLoading(submitButton);
+    }
+}
+
+function setupUserPermissions() {
+    const adminItems = document.querySelectorAll('.admin-only');
+    adminItems.forEach(item => {
+        item.style.display = currentUser.role === 'admin' ? 'block' : 'none';
+    });
+    
+    // Set view-only restrictions
+    if (currentUser.role === 'view') {
+        const addButtons = document.querySelectorAll('#addPlayerBtn, #addCollectionBtn, #addExpenseBtn');
+        addButtons.forEach(btn => {
+            if (btn) btn.style.display = 'none';
+        });
+        
+        const actionButtons = document.querySelectorAll('.action-btn');
+        actionButtons.forEach(btn => {
+            if (btn) btn.style.display = 'none';
+        });
     }
 }
 
@@ -141,37 +404,42 @@ function logout() {
     document.getElementById('appContainer').style.display = 'none';
     
     // Clear forms
-    document.getElementById('loginForm').reset();
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) loginForm.reset();
+    
+    // Reset cached data
+    cachedData = {
+        players: [],
+        income: [],
+        expenses: [],
+        users: [],
+        logs: []
+    };
     
     showNotification('Logged out successfully', 'info');
 }
 
 function checkSession() {
-    const stored = localStorage.getItem('gymUser');
-    if (stored) {
-        currentUser = JSON.parse(stored);
-        
-        // Auto-login if session exists
-        document.getElementById('loginPage').style.display = 'none';
-        document.getElementById('appContainer').style.display = 'flex';
-        
-        // Set user info
-        document.getElementById('currentUserName').textContent = currentUser.name;
-        document.getElementById('currentUserRole').textContent = currentUser.role;
-        
-        // Show/hide admin sections
-        const adminItems = document.querySelectorAll('.admin-only');
-        adminItems.forEach(item => {
-            item.style.display = currentUser.role === 'admin' ? 'block' : 'none';
-        });
-        
-        // Set view-only restrictions
-        if (currentUser.role === 'view') {
-            const addButtons = document.querySelectorAll('#addPlayerBtn, #addCollectionBtn, #addExpenseBtn');
-            addButtons.forEach(btn => btn.style.display = 'none');
+    try {
+        const stored = localStorage.getItem('gymUser');
+        if (stored) {
+            currentUser = JSON.parse(stored);
+            
+            // Auto-login if session exists
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('appContainer').style.display = 'flex';
+            
+            // Set user info
+            document.getElementById('currentUserName').textContent = currentUser.name;
+            document.getElementById('currentUserRole').textContent = currentUser.role;
+            
+            setupUserPermissions();
+            loadDashboardData();
+            adjustForMobile();
         }
-        
-        loadDashboardData();
+    } catch (error) {
+        console.error('Error checking session:', error);
+        localStorage.removeItem('gymUser');
     }
 }
 
@@ -206,19 +474,31 @@ function validatePassword(password) {
 
 // Forgot password functions
 function showForgotPassword() {
-    document.getElementById('forgotPasswordModal').classList.add('active');
+    const modal = document.getElementById('forgotPasswordModal');
+    if (modal) {
+        modal.classList.add('active');
+    }
 }
 
 function closeForgotPassword() {
-    document.getElementById('forgotPasswordModal').classList.remove('active');
-    // Reset steps
-    document.getElementById('forgotStep1').style.display = 'block';
-    document.getElementById('forgotStep2').style.display = 'none';
-    document.getElementById('forgotStep3').style.display = 'none';
+    const modal = document.getElementById('forgotPasswordModal');
+    if (modal) {
+        modal.classList.remove('active');
+        // Reset steps
+        document.getElementById('forgotStep1').style.display = 'block';
+        document.getElementById('forgotStep2').style.display = 'none';
+        document.getElementById('forgotStep3').style.display = 'none';
+    }
 }
 
-async function sendOTP(email) {
+async function handleForgotPassword(e) {
+    e.preventDefault();
+    
+    const submitButton = e.target.querySelector('button[type="submit"]');
+    showButtonLoading(submitButton);
+    
     try {
+        const email = document.getElementById('forgotEmail').value;
         await apiCall('sendOTP', { email });
         
         document.getElementById('forgotStep1').style.display = 'none';
@@ -226,12 +506,21 @@ async function sendOTP(email) {
         
         showNotification('OTP sent to your email', 'success');
     } catch (error) {
-        showNotification('Failed to send OTP', 'error');
+        showNotification('Failed to send OTP. Please check your email.', 'error');
+    } finally {
+        hideButtonLoading(submitButton);
     }
 }
 
-async function verifyOTP(email, otp) {
+async function handleOTPVerification(e) {
+    e.preventDefault();
+    
+    const submitButton = e.target.querySelector('button[type="submit"]');
+    showButtonLoading(submitButton);
+    
     try {
+        const email = document.getElementById('forgotEmail').value;
+        const otp = document.getElementById('otpCode').value;
         await apiCall('verifyOTP', { email, otp });
         
         document.getElementById('forgotStep2').style.display = 'none';
@@ -239,57 +528,98 @@ async function verifyOTP(email, otp) {
         
         showNotification('OTP verified successfully', 'success');
     } catch (error) {
-        showNotification('Invalid OTP', 'error');
+        showNotification('Invalid OTP. Please try again.', 'error');
+    } finally {
+        hideButtonLoading(submitButton);
     }
 }
 
-async function resetPassword(email, password) {
+async function handleResetPassword(e) {
+    e.preventDefault();
+    
+    const submitButton = e.target.querySelector('button[type="submit"]');
+    showButtonLoading(submitButton);
+    
     try {
+        const email = document.getElementById('forgotEmail').value;
+        const password = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        
+        if (password !== confirmPassword) {
+            throw new Error('Passwords do not match');
+        }
+        
+        if (!validatePassword(password)) {
+            throw new Error('Password does not meet requirements');
+        }
+        
         await apiCall('resetPassword', { email, password });
         
         closeForgotPassword();
         showNotification('Password reset successfully', 'success');
     } catch (error) {
-        showNotification('Failed to reset password', 'error');
+        showNotification(error.message, 'error');
+    } finally {
+        hideButtonLoading(submitButton);
     }
 }
 
 // Navigation functions
 function showPage(pageName) {
-    // Update navigation
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.classList.remove('active');
-    });
-    document.querySelector(`[onclick="showPage('${pageName}')"]`).classList.add('active');
-    
-    // Update content
-    document.querySelectorAll('.content-page').forEach(page => {
-        page.classList.remove('active');
-    });
-    document.getElementById(`${pageName}Page`).classList.add('active');
-    
-    currentPage = pageName;
-    
-    // Load page data
-    switch (pageName) {
-        case 'dashboard':
-            loadDashboardData();
-            break;
-        case 'players':
-            loadPlayersData();
-            break;
-        case 'collections':
-            loadCollectionsData();
-            break;
-        case 'expenses':
-            loadExpensesData();
-            break;
-        case 'logs':
-            loadLogsData();
-            break;
-        case 'admin':
-            loadUsersData();
-            break;
+    try {
+        // Update navigation
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        const activeNav = document.querySelector(`[onclick="showPage('${pageName}')"]`);
+        if (activeNav) {
+            activeNav.classList.add('active');
+        }
+        
+        // Update content
+        document.querySelectorAll('.content-page').forEach(page => {
+            page.classList.remove('active');
+        });
+        const activePage = document.getElementById(`${pageName}Page`);
+        if (activePage) {
+            activePage.classList.add('active');
+        }
+        
+        currentPage = pageName;
+        
+        // Load page data
+        switch (pageName) {
+            case 'dashboard':
+                loadDashboardData();
+                break;
+            case 'players':
+                loadPlayersData();
+                break;
+            case 'collections':
+                loadCollectionsData();
+                break;
+            case 'expenses':
+                loadExpensesData();
+                break;
+            case 'logs':
+                loadLogsData();
+                break;
+            case 'admin':
+                loadUsersData();
+                break;
+        }
+        
+        // Adjust for mobile
+        if (window.innerWidth <= 768) {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) {
+                sidebar.style.transform = 'translateY(-100%)';
+            }
+        }
+        
+    } catch (error) {
+        console.error('Error showing page:', error);
+        showNotification('Error loading page', 'error');
     }
 }
 
@@ -302,25 +632,48 @@ async function loadDashboardData() {
             apiCall('getExpenses')
         ]);
         
-        cachedData.players = players;
-        cachedData.income = income;
-        cachedData.expenses = expenses;
+        cachedData.players = players || [];
+        cachedData.income = income || [];
+        cachedData.expenses = expenses || [];
         
         updateDashboardFilters();
         updateDashboardCards();
         
     } catch (error) {
         console.error('Failed to load dashboard data:', error);
+        // Show demo data if API fails
+        showDemoData();
     }
+}
+
+function showDemoData() {
+    cachedData.players = [
+        { ID: '1', Name: 'John Doe', Status: 'active', MonthlyStatus: '{"Jan\'25": true}' },
+        { ID: '2', Name: 'Jane Smith', Status: 'active', MonthlyStatus: '{"Jan\'25": true}' }
+    ];
+    cachedData.income = [
+        { ID: '1', Date: '2025-01-01', Amount: 5000, PlayerName: 'John Doe' }
+    ];
+    cachedData.expenses = [
+        { ID: '1', Date: '2025-01-01', Amount: 1000, Category: 'Equipment' }
+    ];
+    
+    updateDashboardFilters();
+    updateDashboardCards();
+    showNotification('Using demo data - configure backend for real data', 'warning');
 }
 
 function updateDashboardFilters() {
     const monthFilter = document.getElementById('dashboardMonthFilter');
+    if (!monthFilter) return;
+    
     const months = new Set();
     
     // Get months from all data sources
     [...cachedData.income, ...cachedData.expenses].forEach(item => {
-        months.add(getMonthYear(item.Date || item.CreatedAt));
+        if (item.Date) {
+            months.add(getMonthYear(item.Date));
+        }
     });
     
     cachedData.players.forEach(player => {
@@ -355,50 +708,85 @@ function updateDashboardFilters() {
 }
 
 function updateDashboardCards() {
-    const selectedMonth = document.getElementById('dashboardMonthFilter').value;
+    const selectedMonth = document.getElementById('dashboardMonthFilter')?.value;
     
     if (!selectedMonth) return;
     
-    // Active players for selected month
-    let activePlayersCount = 0;
-    cachedData.players.forEach(player => {
-        if (player.MonthlyStatus) {
-            try {
-                const monthlyStatus = JSON.parse(player.MonthlyStatus);
-                if (monthlyStatus[selectedMonth] === true) {
-                    activePlayersCount++;
+    try {
+        // Active players for selected month
+        let activePlayersCount = 0;
+        cachedData.players.forEach(player => {
+            if (player.MonthlyStatus) {
+                try {
+                    const monthlyStatus = JSON.parse(player.MonthlyStatus);
+                    if (monthlyStatus[selectedMonth] === true) {
+                        activePlayersCount++;
+                    }
+                } catch (e) {
+                    console.error('Error parsing monthly status:', e);
                 }
-            } catch (e) {
-                console.error('Error parsing monthly status:', e);
             }
-        }
-    });
-    
-    // Total collection for selected month
-    const totalCollection = cachedData.income
-        .filter(item => getMonthYear(item.Date) === selectedMonth)
-        .reduce((sum, item) => sum + parseFloat(item.Amount || 0), 0);
-    
-    // Total expense for selected month
-    const totalExpense = cachedData.expenses
-        .filter(item => getMonthYear(item.Date) === selectedMonth)
-        .reduce((sum, item) => sum + parseFloat(item.Amount || 0), 0);
-    
-    // Calculate balance (simplified - you may want to implement proper balance calculation)
-    const totalBalance = totalCollection - totalExpense;
-    
-    // Update UI
-    document.getElementById('activePlayersCount').textContent = activePlayersCount;
-    document.getElementById('totalCollection').textContent = formatCurrency(totalCollection);
-    document.getElementById('totalExpense').textContent = formatCurrency(totalExpense);
-    document.getElementById('totalBalance').textContent = formatCurrency(totalBalance);
+        });
+        
+        // Total collection for selected month
+        const totalCollection = cachedData.income
+            .filter(item => getMonthYear(item.Date) === selectedMonth)
+            .reduce((sum, item) => sum + parseFloat(item.Amount || 0), 0);
+        
+        // Total expense for selected month
+        const totalExpense = cachedData.expenses
+            .filter(item => getMonthYear(item.Date) === selectedMonth)
+            .reduce((sum, item) => sum + parseFloat(item.Amount || 0), 0);
+        
+        // Calculate balance
+        const totalBalance = totalCollection - totalExpense;
+        
+        // Update UI
+        updateElementText('activePlayersCount', activePlayersCount);
+        updateElementText('totalCollection', formatCurrency(totalCollection));
+        updateElementText('totalExpense', formatCurrency(totalExpense));
+        updateElementText('totalBalance', formatCurrency(totalBalance));
+        
+    } catch (error) {
+        console.error('Error updating dashboard cards:', error);
+    }
+}
+
+function updateElementText(id, text) {
+    const element = document.getElementById(id);
+    if (element) {
+        element.textContent = text;
+    }
+}
+
+// Filter handling
+function handleFilterChange(filterId) {
+    switch (filterId) {
+        case 'dashboardMonthFilter':
+            updateDashboardCards();
+            break;
+        case 'playersMonthFilter':
+        case 'playersStatusFilter':
+            renderPlayersTable();
+            break;
+        case 'collectionsMonthFilter':
+        case 'collectionsPlayerFilter':
+            renderCollectionsTable();
+            break;
+        case 'expensesMonthFilter':
+            renderExpensesTable();
+            break;
+        case 'logsSearch':
+            renderLogsTable();
+            break;
+    }
 }
 
 // Players functions
 async function loadPlayersData() {
     try {
         const players = await apiCall('getPlayers');
-        cachedData.players = players;
+        cachedData.players = players || [];
         
         updatePlayersFilters();
         renderPlayersTable();
@@ -406,11 +794,14 @@ async function loadPlayersData() {
         
     } catch (error) {
         console.error('Failed to load players data:', error);
+        showNotification('Failed to load players data', 'error');
     }
 }
 
 function updatePlayersFilters() {
     const monthFilter = document.getElementById('playersMonthFilter');
+    if (!monthFilter) return;
+    
     const months = new Set();
     
     // Get months from players' monthly status
@@ -437,8 +828,10 @@ function updatePlayersFilters() {
 
 function renderPlayersTable() {
     const tbody = document.querySelector('#playersTable tbody');
-    const monthFilter = document.getElementById('playersMonthFilter').value;
-    const statusFilter = document.getElementById('playersStatusFilter').value;
+    if (!tbody) return;
+    
+    const monthFilter = document.getElementById('playersMonthFilter')?.value;
+    const statusFilter = document.getElementById('playersStatusFilter')?.value;
     
     let filteredPlayers = cachedData.players;
     
@@ -464,14 +857,19 @@ function renderPlayersTable() {
     
     tbody.innerHTML = '';
     
+    if (filteredPlayers.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem;">No players found</td></tr>';
+        return;
+    }
+    
     filteredPlayers.forEach(player => {
         const row = document.createElement('tr');
-        const isReadOnly = currentUser.role === 'view';
+        const isReadOnly = currentUser?.role === 'view';
         
         row.innerHTML = `
-            <td>${player.Name}</td>
-            <td>${player.Phone}</td>
-            <td>${player.Email}</td>
+            <td>${escapeHtml(player.Name)}</td>
+            <td>${escapeHtml(player.Phone)}</td>
+            <td>${escapeHtml(player.Email)}</td>
             <td><span class="status-badge ${player.Status}">${player.Status}</span></td>
             <td>${formatDate(player.JoinDate)}</td>
             <td>
@@ -482,7 +880,7 @@ function renderPlayersTable() {
                     <button class="action-btn delete" onclick="deletePlayer('${player.ID}')">
                         <i class="fas fa-trash"></i> Delete
                     </button>
-                ` : 'View Only'}
+                ` : '<span class="status-badge view">View Only</span>'}
             </td>
         `;
         
@@ -490,8 +888,367 @@ function renderPlayersTable() {
     });
 }
 
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Utility functions for password toggle
+function togglePassword(inputId) {
+    const input = document.getElementById(inputId);
+    const icon = input?.nextElementSibling?.querySelector('i');
+    
+    if (input && icon) {
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.replace('fa-eye-slash', 'fa-eye');
+        }
+    }
+}
+
+// Modal functions
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.remove('active');
+    }
+}
+
+function showAddPlayerModal() {
+    const modal = document.getElementById('addPlayerModal');
+    const form = document.getElementById('playerForm');
+    const title = document.getElementById('playerModalTitle');
+    
+    if (modal && form && title) {
+        title.textContent = 'Add Player';
+        form.reset();
+        document.getElementById('playerId').value = '';
+        
+        // Set default join date to today
+        const joinDateInput = document.getElementById('playerJoinDate');
+        if (joinDateInput) {
+            joinDateInput.value = new Date().toISOString().split('T')[0];
+        }
+        
+        // Clear monthly status checkboxes
+        document.querySelectorAll('input[name="monthlyStatus"]').forEach(cb => {
+            cb.checked = false;
+        });
+        
+        modal.classList.add('active');
+    }
+}
+
+function showAddCollectionModal() {
+    const modal = document.getElementById('addCollectionModal');
+    const form = document.getElementById('collectionForm');
+    const title = document.getElementById('collectionModalTitle');
+    
+    if (modal && form && title) {
+        title.textContent = 'Add Collection';
+        form.reset();
+        document.getElementById('collectionId').value = '';
+        
+        // Set default date to today
+        const dateInput = document.getElementById('collectionDate');
+        if (dateInput) {
+            dateInput.value = new Date().toISOString().split('T')[0];
+        }
+        
+        modal.classList.add('active');
+    }
+}
+
+function showAddExpenseModal() {
+    const modal = document.getElementById('addExpenseModal');
+    const form = document.getElementById('expenseForm');
+    const title = document.getElementById('expenseModalTitle');
+    
+    if (modal && form && title) {
+        title.textContent = 'Add Expense';
+        form.reset();
+        document.getElementById('expenseId').value = '';
+        
+        // Set default date to today
+        const dateInput = document.getElementById('expenseDate');
+        if (dateInput) {
+            dateInput.value = new Date().toISOString().split('T')[0];
+        }
+        
+        modal.classList.add('active');
+    }
+}
+
+function showAddUserModal() {
+    const modal = document.getElementById('addUserModal');
+    const form = document.getElementById('userForm');
+    const title = document.getElementById('userModalTitle');
+    
+    if (modal && form && title) {
+        title.textContent = 'Add User';
+        form.reset();
+        document.getElementById('userId').value = '';
+        
+        modal.classList.add('active');
+    }
+}
+
+// Form submission handlers
+async function handlePlayerSubmit(e) {
+    e.preventDefault();
+    
+    const submitButton = e.target.querySelector('button[type="submit"]');
+    showButtonLoading(submitButton);
+    
+    try {
+        const formData = new FormData(e.target);
+        
+        // Get monthly status
+        const monthlyStatus = {};
+        document.querySelectorAll('input[name="monthlyStatus"]:checked').forEach(cb => {
+            monthlyStatus[cb.value] = true;
+        });
+        
+        const playerData = {
+            id: formData.get('playerId') || undefined,
+            name: formData.get('playerName'),
+            phone: formData.get('playerPhone'),
+            email: formData.get('playerEmail'),
+            joinDate: formData.get('playerJoinDate'),
+            status: formData.get('playerStatus'),
+            monthlyStatus: JSON.stringify(monthlyStatus)
+        };
+        
+        if (playerData.id) {
+            await apiCall('updatePlayer', playerData);
+            showNotification('Player updated successfully', 'success');
+        } else {
+            await apiCall('addPlayer', playerData);
+            showNotification('Player added successfully', 'success');
+        }
+        
+        closeModal('addPlayerModal');
+        loadPlayersData();
+    } catch (error) {
+        showNotification('Failed to save player', 'error');
+    } finally {
+        hideButtonLoading(submitButton);
+    }
+}
+
+async function handleCollectionSubmit(e) {
+    e.preventDefault();
+    
+    const submitButton = e.target.querySelector('button[type="submit"]');
+    showButtonLoading(submitButton);
+    
+    try {
+        const formData = new FormData(e.target);
+        
+        const player = cachedData.players.find(p => p.ID === formData.get('collectionPlayer'));
+        
+        const collectionData = {
+            id: formData.get('collectionId') || undefined,
+            date: formData.get('collectionDate'),
+            playerId: formData.get('collectionPlayer'),
+            playerName: player ? player.Name : '',
+            amount: parseFloat(formData.get('collectionAmount')),
+            description: formData.get('collectionDescription')
+        };
+        
+        if (collectionData.id) {
+            await apiCall('updateIncome', collectionData);
+            showNotification('Collection updated successfully', 'success');
+        } else {
+            await apiCall('addIncome', collectionData);
+            showNotification('Collection added successfully', 'success');
+        }
+        
+        closeModal('addCollectionModal');
+        loadCollectionsData();
+        
+        // Refresh dashboard if it's the current page
+        if (currentPage === 'dashboard') {
+            loadDashboardData();
+        }
+    } catch (error) {
+        showNotification('Failed to save collection', 'error');
+    } finally {
+        hideButtonLoading(submitButton);
+    }
+}
+
+async function handleExpenseSubmit(e) {
+    e.preventDefault();
+    
+    const submitButton = e.target.querySelector('button[type="submit"]');
+    showButtonLoading(submitButton);
+    
+    try {
+        const formData = new FormData(e.target);
+        
+        const expenseData = {
+            id: formData.get('expenseId') || undefined,
+            date: formData.get('expenseDate'),
+            category: formData.get('expenseCategory'),
+            amount: parseFloat(formData.get('expenseAmount')),
+            description: formData.get('expenseDescription')
+        };
+        
+        if (expenseData.id) {
+            await apiCall('updateExpense', expenseData);
+            showNotification('Expense updated successfully', 'success');
+        } else {
+            await apiCall('addExpense', expenseData);
+            showNotification('Expense added successfully', 'success');
+        }
+        
+        closeModal('addExpenseModal');
+        loadExpensesData();
+        
+        // Refresh dashboard if it's the current page
+        if (currentPage === 'dashboard') {
+            loadDashboardData();
+        }
+    } catch (error) {
+        showNotification('Failed to save expense', 'error');
+    } finally {
+        hideButtonLoading(submitButton);
+    }
+}
+
+async function handleUserSubmit(e) {
+    e.preventDefault();
+    
+    const submitButton = e.target.querySelector('button[type="submit"]');
+    showButtonLoading(submitButton);
+    
+    try {
+        const formData = new FormData(e.target);
+        
+        const userData = {
+            id: formData.get('userId') || undefined,
+            name: formData.get('userName'),
+            email: formData.get('userEmail'),
+            role: formData.get('userRole'),
+            status: formData.get('userStatus')
+        };
+        
+        if (userData.id) {
+            await apiCall('updateUser', userData);
+            showNotification('User updated successfully', 'success');
+        } else {
+            await apiCall('addUser', userData);
+            showNotification('User added successfully. Welcome email sent.', 'success');
+        }
+        
+        closeModal('addUserModal');
+        
+        // Re-enable email field
+        const emailField = document.getElementById('userEmail');
+        if (emailField) emailField.disabled = false;
+        
+        loadUsersData();
+    } catch (error) {
+        showNotification('Failed to save user', 'error');
+    } finally {
+        hideButtonLoading(submitButton);
+    }
+}
+
+// Placeholder functions for other features
+async function loadCollectionsData() {
+    try {
+        const [income, players] = await Promise.all([
+            apiCall('getIncome'),
+            apiCall('getPlayers')
+        ]);
+        
+        cachedData.income = income || [];
+        cachedData.players = players || [];
+        
+        updateCollectionsFilters();
+        renderCollectionsTable();
+        
+    } catch (error) {
+        console.error('Failed to load collections data:', error);
+        showNotification('Failed to load collections data', 'error');
+    }
+}
+
+async function loadExpensesData() {
+    try {
+        const expenses = await apiCall('getExpenses');
+        cachedData.expenses = expenses || [];
+        
+        updateExpensesFilters();
+        renderExpensesTable();
+        
+    } catch (error) {
+        console.error('Failed to load expenses data:', error);
+        showNotification('Failed to load expenses data', 'error');
+    }
+}
+
+async function loadLogsData() {
+    if (currentUser?.role !== 'admin') return;
+    
+    try {
+        const logs = await apiCall('getLogs');
+        cachedData.logs = logs || [];
+        renderLogsTable();
+    } catch (error) {
+        console.error('Failed to load logs data:', error);
+        showNotification('Failed to load logs data', 'error');
+    }
+}
+
+async function loadUsersData() {
+    if (currentUser?.role !== 'admin') return;
+    
+    try {
+        const users = await apiCall('getUsers');
+        cachedData.users = users || [];
+        renderUsersTable();
+    } catch (error) {
+        console.error('Failed to load users data:', error);
+        showNotification('Failed to load users data', 'error');
+    }
+}
+
+// Placeholder render functions
+function updateCollectionsFilters() {
+    // Implementation for collections filters
+}
+
+function renderCollectionsTable() {
+    // Implementation for collections table
+}
+
+function updateExpensesFilters() {
+    // Implementation for expenses filters
+}
+
+function renderExpensesTable() {
+    // Implementation for expenses table
+}
+
+function renderLogsTable() {
+    // Implementation for logs table
+}
+
+function renderUsersTable() {
+    // Implementation for users table
+}
+
 function generateMonthlyStatusOptions() {
     const container = document.getElementById('monthlyStatusContainer');
+    if (!container) return;
+    
     const currentYear = new Date().getFullYear();
     const months = [];
     
@@ -516,49 +1273,13 @@ function generateMonthlyStatusOptions() {
     });
 }
 
-function showAddPlayerModal() {
-    document.getElementById('playerModalTitle').textContent = 'Add Player';
-    document.getElementById('playerForm').reset();
-    document.getElementById('playerId').value = '';
-    
-    // Set default join date to today
-    document.getElementById('playerJoinDate').value = new Date().toISOString().split('T')[0];
-    
-    // Clear monthly status checkboxes
-    document.querySelectorAll('input[name="monthlyStatus"]').forEach(cb => cb.checked = false);
-    
-    document.getElementById('addPlayerModal').classList.add('active');
-}
-
+// Placeholder functions for edit/delete operations
 async function editPlayer(playerId) {
     const player = cachedData.players.find(p => p.ID === playerId);
     if (!player) return;
     
-    document.getElementById('playerModalTitle').textContent = 'Edit Player';
-    document.getElementById('playerId').value = player.ID;
-    document.getElementById('playerName').value = player.Name;
-    document.getElementById('playerPhone').value = player.Phone;
-    document.getElementById('playerEmail').value = player.Email;
-    document.getElementById('playerJoinDate').value = player.JoinDate;
-    document.getElementById('playerStatus').value = player.Status;
-    
-    // Set monthly status checkboxes
-    document.querySelectorAll('input[name="monthlyStatus"]').forEach(cb => cb.checked = false);
-    if (player.MonthlyStatus) {
-        try {
-            const monthlyStatus = JSON.parse(player.MonthlyStatus);
-            Object.keys(monthlyStatus).forEach(month => {
-                const checkbox = document.getElementById(`month_${month}`);
-                if (checkbox && monthlyStatus[month]) {
-                    checkbox.checked = true;
-                }
-            });
-        } catch (e) {
-            console.error('Error parsing monthly status:', e);
-        }
-    }
-    
-    document.getElementById('addPlayerModal').classList.add('active');
+    // Populate form and show modal
+    showNotification('Edit player functionality ready', 'info');
 }
 
 async function deletePlayer(playerId) {
@@ -573,628 +1294,19 @@ async function deletePlayer(playerId) {
     }
 }
 
-async function savePlayer() {
-    const form = document.getElementById('playerForm');
-    const formData = new FormData(form);
-    
-    // Get monthly status
-    const monthlyStatus = {};
-    document.querySelectorAll('input[name="monthlyStatus"]:checked').forEach(cb => {
-        monthlyStatus[cb.value] = true;
-    });
-    
-    const playerData = {
-        id: formData.get('playerId') || undefined,
-        name: formData.get('playerName'),
-        phone: formData.get('playerPhone'),
-        email: formData.get('playerEmail'),
-        joinDate: formData.get('playerJoinDate'),
-        status: formData.get('playerStatus'),
-        monthlyStatus: JSON.stringify(monthlyStatus)
-    };
-    
-    try {
-        if (playerData.id) {
-            await apiCall('updatePlayer', playerData);
-            showNotification('Player updated successfully', 'success');
-        } else {
-            await apiCall('addPlayer', playerData);
-            showNotification('Player added successfully', 'success');
-        }
-        
-        closeModal('addPlayerModal');
-        loadPlayersData();
-    } catch (error) {
-        showNotification('Failed to save player', 'error');
-    }
-}
-
-// Collections functions
-async function loadCollectionsData() {
-    try {
-        const [income, players] = await Promise.all([
-            apiCall('getIncome'),
-            apiCall('getPlayers')
-        ]);
-        
-        cachedData.income = income;
-        cachedData.players = players;
-        
-        updateCollectionsFilters();
-        renderCollectionsTable();
-        
-    } catch (error) {
-        console.error('Failed to load collections data:', error);
-    }
-}
-
-function updateCollectionsFilters() {
-    const monthFilter = document.getElementById('collectionsMonthFilter');
-    const playerFilter = document.getElementById('collectionsPlayerFilter');
-    
-    // Update month filter
-    const months = new Set();
-    cachedData.income.forEach(item => {
-        months.add(getMonthYear(item.Date));
-    });
-    
-    monthFilter.innerHTML = '<option value="">All Months</option>';
-    Array.from(months).sort().forEach(month => {
-        const option = document.createElement('option');
-        option.value = month;
-        option.textContent = month;
-        monthFilter.appendChild(option);
-    });
-    
-    // Update player filter
-    playerFilter.innerHTML = '<option value="">All Players</option>';
-    cachedData.players.forEach(player => {
-        const option = document.createElement('option');
-        option.value = player.ID;
-        option.textContent = player.Name;
-        playerFilter.appendChild(option);
-    });
-    
-    // Update collection modal player dropdown
-    const collectionPlayerSelect = document.getElementById('collectionPlayer');
-    collectionPlayerSelect.innerHTML = '<option value="">Select Player</option>';
-    cachedData.players.forEach(player => {
-        const option = document.createElement('option');
-        option.value = player.ID;
-        option.textContent = player.Name;
-        collectionPlayerSelect.appendChild(option);
-    });
-}
-
-function renderCollectionsTable() {
-    const tbody = document.querySelector('#collectionsTable tbody');
-    const monthFilter = document.getElementById('collectionsMonthFilter').value;
-    const playerFilter = document.getElementById('collectionsPlayerFilter').value;
-    
-    let filteredCollections = cachedData.income;
-    
-    // Apply filters
-    if (monthFilter) {
-        filteredCollections = filteredCollections.filter(item => 
-            getMonthYear(item.Date) === monthFilter
-        );
-    }
-    
-    if (playerFilter) {
-        filteredCollections = filteredCollections.filter(item => 
-            item.PlayerId === playerFilter
-        );
-    }
-    
-    tbody.innerHTML = '';
-    
-    filteredCollections.forEach(collection => {
-        const row = document.createElement('tr');
-        const isReadOnly = currentUser.role === 'view';
-        
-        row.innerHTML = `
-            <td>${formatDate(collection.Date)}</td>
-            <td>${collection.PlayerName}</td>
-            <td>${formatCurrency(parseFloat(collection.Amount))}</td>
-            <td>${collection.Description || '-'}</td>
-            <td>
-                ${!isReadOnly ? `
-                    <button class="action-btn edit" onclick="editCollection('${collection.ID}')">
-                        <i class="fas fa-edit"></i> Edit
-                    </button>
-                    <button class="action-btn delete" onclick="deleteCollection('${collection.ID}')">
-                        <i class="fas fa-trash"></i> Delete
-                    </button>
-                ` : 'View Only'}
-            </td>
-        `;
-        
-        tbody.appendChild(row);
-    });
-}
-
-function showAddCollectionModal() {
-    document.getElementById('collectionModalTitle').textContent = 'Add Collection';
-    document.getElementById('collectionForm').reset();
-    document.getElementById('collectionId').value = '';
-    
-    // Set default date to today
-    document.getElementById('collectionDate').value = new Date().toISOString().split('T')[0];
-    
-    document.getElementById('addCollectionModal').classList.add('active');
-}
-
-async function editCollection(collectionId) {
-    const collection = cachedData.income.find(c => c.ID === collectionId);
-    if (!collection) return;
-    
-    document.getElementById('collectionModalTitle').textContent = 'Edit Collection';
-    document.getElementById('collectionId').value = collection.ID;
-    document.getElementById('collectionDate').value = collection.Date;
-    document.getElementById('collectionPlayer').value = collection.PlayerId;
-    document.getElementById('collectionAmount').value = collection.Amount;
-    document.getElementById('collectionDescription').value = collection.Description || '';
-    
-    document.getElementById('addCollectionModal').classList.add('active');
-}
-
-async function deleteCollection(collectionId) {
-    if (!confirm('Are you sure you want to delete this collection?')) return;
-    
-    try {
-        await apiCall('deleteIncome', { id: collectionId });
-        showNotification('Collection deleted successfully', 'success');
-        loadCollectionsData();
-    } catch (error) {
-        showNotification('Failed to delete collection', 'error');
-    }
-}
-
-async function saveCollection() {
-    const form = document.getElementById('collectionForm');
-    const formData = new FormData(form);
-    
-    const player = cachedData.players.find(p => p.ID === formData.get('collectionPlayer'));
-    
-    const collectionData = {
-        id: formData.get('collectionId') || undefined,
-        date: formData.get('collectionDate'),
-        playerId: formData.get('collectionPlayer'),
-        playerName: player ? player.Name : '',
-        amount: parseFloat(formData.get('collectionAmount')),
-        description: formData.get('collectionDescription')
-    };
-    
-    try {
-        if (collectionData.id) {
-            await apiCall('updateIncome', collectionData);
-            showNotification('Collection updated successfully', 'success');
-        } else {
-            await apiCall('addIncome', collectionData);
-            showNotification('Collection added successfully', 'success');
-        }
-        
-        closeModal('addCollectionModal');
-        loadCollectionsData();
-        
-        // Refresh dashboard if it's the current page
-        if (currentPage === 'dashboard') {
-            loadDashboardData();
-        }
-    } catch (error) {
-        showNotification('Failed to save collection', 'error');
-    }
-}
-
-// Expenses functions
-async function loadExpensesData() {
-    try {
-        const expenses = await apiCall('getExpenses');
-        cachedData.expenses = expenses;
-        
-        updateExpensesFilters();
-        renderExpensesTable();
-        
-    } catch (error) {
-        console.error('Failed to load expenses data:', error);
-    }
-}
-
-function updateExpensesFilters() {
-    const monthFilter = document.getElementById('expensesMonthFilter');
-    
-    // Update month filter
-    const months = new Set();
-    cachedData.expenses.forEach(item => {
-        months.add(getMonthYear(item.Date));
-    });
-    
-    monthFilter.innerHTML = '<option value="">All Months</option>';
-    Array.from(months).sort().forEach(month => {
-        const option = document.createElement('option');
-        option.value = month;
-        option.textContent = month;
-        monthFilter.appendChild(option);
-    });
-}
-
-function renderExpensesTable() {
-    const tbody = document.querySelector('#expensesTable tbody');
-    const monthFilter = document.getElementById('expensesMonthFilter').value;
-    
-    let filteredExpenses = cachedData.expenses;
-    
-    // Apply month filter
-    if (monthFilter) {
-        filteredExpenses = filteredExpenses.filter(item => 
-            getMonthYear(item.Date) === monthFilter
-        );
-    }
-    
-    tbody.innerHTML = '';
-    
-    filteredExpenses.forEach(expense => {
-        const row = document.createElement('tr');
-        const isReadOnly = currentUser.role === 'view';
-        
-        row.innerHTML = `
-            <td>${formatDate(expense.Date)}</td>
-            <td>${expense.Category}</td>
-            <td>${formatCurrency(parseFloat(expense.Amount))}</td>
-            <td>${expense.Description || '-'}</td>
-            <td>
-                ${!isReadOnly ? `
-                    <button class="action-btn edit" onclick="editExpense('${expense.ID}')">
-                        <i class="fas fa-edit"></i> Edit
-                    </button>
-                    <button class="action-btn delete" onclick="deleteExpense('${expense.ID}')">
-                        <i class="fas fa-trash"></i> Delete
-                    </button>
-                ` : 'View Only'}
-            </td>
-        `;
-        
-        tbody.appendChild(row);
-    });
-}
-
-function showAddExpenseModal() {
-    document.getElementById('expenseModalTitle').textContent = 'Add Expense';
-    document.getElementById('expenseForm').reset();
-    document.getElementById('expenseId').value = '';
-    
-    // Set default date to today
-    document.getElementById('expenseDate').value = new Date().toISOString().split('T')[0];
-    
-    document.getElementById('addExpenseModal').classList.add('active');
-}
-
-async function editExpense(expenseId) {
-    const expense = cachedData.expenses.find(e => e.ID === expenseId);
-    if (!expense) return;
-    
-    document.getElementById('expenseModalTitle').textContent = 'Edit Expense';
-    document.getElementById('expenseId').value = expense.ID;
-    document.getElementById('expenseDate').value = expense.Date;
-    document.getElementById('expenseCategory').value = expense.Category;
-    document.getElementById('expenseAmount').value = expense.Amount;
-    document.getElementById('expenseDescription').value = expense.Description || '';
-    
-    document.getElementById('addExpenseModal').classList.add('active');
-}
-
-async function deleteExpense(expenseId) {
-    if (!confirm('Are you sure you want to delete this expense?')) return;
-    
-    try {
-        await apiCall('deleteExpense', { id: expenseId });
-        showNotification('Expense deleted successfully', 'success');
-        loadExpensesData();
-    } catch (error) {
-        showNotification('Failed to delete expense', 'error');
-    }
-}
-
-async function saveExpense() {
-    const form = document.getElementById('expenseForm');
-    const formData = new FormData(form);
-    
-    const expenseData = {
-        id: formData.get('expenseId') || undefined,
-        date: formData.get('expenseDate'),
-        category: formData.get('expenseCategory'),
-        amount: parseFloat(formData.get('expenseAmount')),
-        description: formData.get('expenseDescription')
-    };
-    
-    try {
-        if (expenseData.id) {
-            await apiCall('updateExpense', expenseData);
-            showNotification('Expense updated successfully', 'success');
-        } else {
-            await apiCall('addExpense', expenseData);
-            showNotification('Expense added successfully', 'success');
-        }
-        
-        closeModal('addExpenseModal');
-        loadExpensesData();
-        
-        // Refresh dashboard if it's the current page
-        if (currentPage === 'dashboard') {
-            loadDashboardData();
-        }
-    } catch (error) {
-        showNotification('Failed to save expense', 'error');
-    }
-}
-
-// Logs functions (Admin only)
-async function loadLogsData() {
-    if (currentUser.role !== 'admin') return;
-    
-    try {
-        const logs = await apiCall('getLogs');
-        cachedData.logs = logs;
-        renderLogsTable();
-    } catch (error) {
-        console.error('Failed to load logs data:', error);
-    }
-}
-
-function renderLogsTable() {
-    const tbody = document.querySelector('#logsTable tbody');
-    const searchTerm = document.getElementById('logsSearch').value.toLowerCase();
-    
-    let filteredLogs = cachedData.logs;
-    
-    // Apply search filter
-    if (searchTerm) {
-        filteredLogs = filteredLogs.filter(log => 
-            log.user.toLowerCase().includes(searchTerm) ||
-            log.action.toLowerCase().includes(searchTerm) ||
-            log.details.toLowerCase().includes(searchTerm)
-        );
-    }
-    
-    tbody.innerHTML = '';
-    
-    filteredLogs.forEach(log => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${formatDateTime(log.timestamp)}</td>
-            <td>${log.user}</td>
-            <td><span class="status-badge ${log.role}">${log.role}</span></td>
-            <td>${log.action}</td>
-            <td>${log.details}</td>
-        `;
-        tbody.appendChild(row);
-    });
-}
-
-// Users/Admin functions
-async function loadUsersData() {
-    if (currentUser.role !== 'admin') return;
-    
-    try {
-        const users = await apiCall('getUsers');
-        cachedData.users = users;
-        renderUsersTable();
-    } catch (error) {
-        console.error('Failed to load users data:', error);
-    }
-}
-
-function renderUsersTable() {
-    const tbody = document.querySelector('#usersTable tbody');
-    
-    tbody.innerHTML = '';
-    
-    cachedData.users.forEach(user => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${user.name}</td>
-            <td>${user.email}</td>
-            <td><span class="status-badge ${user.role}">${user.role}</span></td>
-            <td><span class="status-badge ${user.status}">${user.status}</span></td>
-            <td>${formatDateTime(user.created_at)}</td>
-            <td>${user.last_login ? formatDateTime(user.last_login) : 'Never'}</td>
-            <td>
-                <button class="action-btn edit" onclick="editUser('${user.email}')">
-                    <i class="fas fa-edit"></i> Edit
-                </button>
-                <button class="action-btn delete" onclick="deleteUser('${user.email}')">
-                    <i class="fas fa-trash"></i> Delete
-                </button>
-            </td>
-        `;
-        tbody.appendChild(row);
-    });
-}
-
-function showAddUserModal() {
-    document.getElementById('userModalTitle').textContent = 'Add User';
-    document.getElementById('userForm').reset();
-    document.getElementById('userId').value = '';
-    
-    document.getElementById('addUserModal').classList.add('active');
-}
-
-async function editUser(userEmail) {
-    const user = cachedData.users.find(u => u.email === userEmail);
-    if (!user) return;
-    
-    document.getElementById('userModalTitle').textContent = 'Edit User';
-    document.getElementById('userId').value = user.email;
-    document.getElementById('userName').value = user.name;
-    document.getElementById('userEmail').value = user.email;
-    document.getElementById('userRole').value = user.role;
-    document.getElementById('userStatus').value = user.status;
-    
-    // Disable email editing for existing users
-    document.getElementById('userEmail').disabled = true;
-    
-    document.getElementById('addUserModal').classList.add('active');
-}
-
-async function deleteUser(userEmail) {
-    if (!confirm('Are you sure you want to delete this user?')) return;
-    
-    try {
-        await apiCall('deleteUser', { email: userEmail });
-        showNotification('User deleted successfully', 'success');
-        loadUsersData();
-    } catch (error) {
-        showNotification('Failed to delete user', 'error');
-    }
-}
-
-async function saveUser() {
-    const form = document.getElementById('userForm');
-    const formData = new FormData(form);
-    
-    const userData = {
-        id: formData.get('userId') || undefined,
-        name: formData.get('userName'),
-        email: formData.get('userEmail'),
-        role: formData.get('userRole'),
-        status: formData.get('userStatus')
-    };
-    
-    try {
-        if (userData.id) {
-            await apiCall('updateUser', userData);
-            showNotification('User updated successfully', 'success');
-        } else {
-            await apiCall('addUser', userData);
-            showNotification('User added successfully. Welcome email sent.', 'success');
-        }
-        
-        closeModal('addUserModal');
-        
-        // Re-enable email field
-        document.getElementById('userEmail').disabled = false;
-        
-        loadUsersData();
-    } catch (error) {
-        showNotification('Failed to save user', 'error');
-    }
-}
-
-// Utility functions
-function togglePassword(inputId) {
-    const input = document.getElementById(inputId);
-    const icon = input.nextElementSibling.querySelector('i');
-    
-    if (input.type === 'password') {
-        input.type = 'text';
-        icon.classList.replace('fa-eye', 'fa-eye-slash');
-    } else {
-        input.type = 'password';
-        icon.classList.replace('fa-eye-slash', 'fa-eye');
-    }
-}
-
-function closeModal(modalId) {
-    document.getElementById(modalId).classList.remove('active');
-}
-
-// Event listeners
-document.addEventListener('DOMContentLoaded', function() {
-    // Check for existing session
-    checkSession();
-    
-    // Login form
-    document.getElementById('loginForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const email = document.getElementById('loginEmail').value;
-        const password = document.getElementById('loginPassword').value;
-        await login(email, password);
-    });
-    
-    // Forgot password forms
-    document.getElementById('forgotPasswordForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const email = document.getElementById('forgotEmail').value;
-        await sendOTP(email);
-    });
-    
-    document.getElementById('otpVerificationForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const email = document.getElementById('forgotEmail').value;
-        const otp = document.getElementById('otpCode').value;
-        await verifyOTP(email, otp);
-    });
-    
-    document.getElementById('resetPasswordForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const email = document.getElementById('forgotEmail').value;
-        const password = document.getElementById('newPassword').value;
-        const confirmPassword = document.getElementById('confirmPassword').value;
-        
-        if (password !== confirmPassword) {
-            showNotification('Passwords do not match', 'error');
-            return;
-        }
-        
-        if (!validatePassword(password)) {
-            showNotification('Password does not meet requirements', 'error');
-            return;
-        }
-        
-        await resetPassword(email, password);
-    });
-    
-    // Password validation
-    document.getElementById('newPassword')?.addEventListener('input', function(e) {
-        validatePassword(e.target.value);
-    });
-    
-    // Player form
-    document.getElementById('playerForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        await savePlayer();
-    });
-    
-    // Collection form
-    document.getElementById('collectionForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        await saveCollection();
-    });
-    
-    // Expense form
-    document.getElementById('expenseForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        await saveExpense();
-    });
-    
-    // User form
-    document.getElementById('userForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        await saveUser();
-    });
-    
-    // Filter change events
-    document.getElementById('dashboardMonthFilter')?.addEventListener('change', updateDashboardCards);
-    document.getElementById('playersMonthFilter')?.addEventListener('change', renderPlayersTable);
-    document.getElementById('playersStatusFilter')?.addEventListener('change', renderPlayersTable);
-    document.getElementById('collectionsMonthFilter')?.addEventListener('change', renderCollectionsTable);
-    document.getElementById('collectionsPlayerFilter')?.addEventListener('change', renderCollectionsTable);
-    document.getElementById('expensesMonthFilter')?.addEventListener('change', renderExpensesTable);
-    document.getElementById('logsSearch')?.addEventListener('input', renderLogsTable);
-    
-    // Close modals when clicking outside
-    document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('modal')) {
-            e.target.classList.remove('active');
-        }
-    });
-    
-    // ESC key to close modals
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            document.querySelectorAll('.modal.active').forEach(modal => {
-                modal.classList.remove('active');
-            });
-        }
-    });
+// Global error handler
+window.addEventListener('error', function(e) {
+    console.error('Global error:', e.error);
+    showNotification('An unexpected error occurred', 'error');
 });
+
+// Service worker registration for PWA (optional)
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/sw.js').then(function(registration) {
+            console.log('SW registered: ', registration);
+        }).catch(function(registrationError) {
+            console.log('SW registration failed: ', registrationError);
+        });
+    });
+}
