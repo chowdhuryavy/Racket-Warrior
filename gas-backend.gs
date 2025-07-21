@@ -480,7 +480,7 @@ function handleSendOTP(data) {
     
     console.log(`Generated OTP for ${email}: ${otp}, expires: ${expiry}`);
     
-    // Send beautiful HTML email
+    // Send beautiful HTML email matching the design
     const subject = 'Password Reset - Racket Warrior';
     const htmlBody = `
 <!DOCTYPE html>
@@ -490,26 +490,27 @@ function handleSendOTP(data) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Password Reset - Racket Warrior</title>
     <style>
-        body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f5f5; }
-        .container { max-width: 600px; margin: 0 auto; background-color: white; }
-        .header { background: linear-gradient(135deg, #4CAF50, #45a049); padding: 40px 20px; text-align: center; }
-        .logo { width: 80px; height: 80px; margin: 0 auto 20px; border-radius: 12px; }
-        .header h1 { color: white; margin: 0; font-size: 28px; font-weight: 600; }
-        .content { padding: 40px 30px; }
-        .greeting { font-size: 18px; color: #333; margin-bottom: 20px; font-weight: 500; }
-        .message { font-size: 16px; color: #666; line-height: 1.6; margin-bottom: 30px; }
-        .otp-container { background: linear-gradient(135deg, #ff6b35, #f7931e); padding: 25px; border-radius: 12px; text-align: center; margin: 30px 0; }
-        .otp-label { color: white; font-size: 16px; font-weight: 600; margin-bottom: 10px; }
-        .otp-code { background: white; color: #ff6b35; font-size: 32px; font-weight: bold; padding: 15px; border-radius: 8px; letter-spacing: 3px; margin: 10px 0; display: inline-block; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .validity { color: white; font-size: 14px; opacity: 0.9; }
-        .warning { background-color: #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 15px; border-radius: 8px; margin: 20px 0; font-size: 14px; }
-        .footer { background-color: #f8f9fa; padding: 25px; text-align: center; border-top: 1px solid #e9ecef; }
-        .footer-text { color: #6c757d; font-size: 14px; margin: 5px 0; }
-        .brand { color: #4CAF50; font-weight: 600; }
+        body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f6f8fa; line-height: 1.6; }
+        .email-container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .header { background: linear-gradient(135deg, #0969da, #218bff); padding: 30px 20px; text-align: center; color: white; }
+        .logo { width: 64px; height: 64px; margin: 0 auto 15px; border-radius: 8px; display: block; }
+        .header h1 { margin: 0; font-size: 24px; font-weight: 600; }
+        .content { padding: 30px; background: white; }
+        .greeting { font-size: 20px; color: #0969da; margin-bottom: 20px; font-weight: 600; }
+        .message { font-size: 16px; color: #24292f; margin-bottom: 20px; }
+        .otp-section { background: #f6f8fa; border: 2px solid #d1d9e0; border-radius: 8px; padding: 20px; text-align: center; margin: 25px 0; }
+        .otp-text { font-size: 16px; color: #656d76; margin-bottom: 15px; }
+        .otp-code { background: linear-gradient(135deg, #fd7e14, #ffc107); color: white; font-size: 32px; font-weight: bold; padding: 12px 20px; border-radius: 6px; display: inline-block; letter-spacing: 2px; box-shadow: 0 2px 8px rgba(253,126,20,0.3); }
+        .otp-validity { font-size: 14px; color: #656d76; margin-top: 10px; }
+        .warning { background: #fff8c5; border: 1px solid #f9c23c; border-radius: 6px; padding: 15px; margin: 20px 0; }
+        .warning-text { font-size: 14px; color: #7c2d12; margin: 0; }
+        .footer { background: #f6f8fa; padding: 20px; text-align: center; border-top: 1px solid #d1d9e0; }
+        .footer-text { color: #656d76; font-size: 14px; margin: 5px 0; }
+        .brand { color: #0969da; font-weight: 600; }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="email-container">
         <div class="header">
             <img src="https://i.imgur.com/04MGPFl.png" alt="Racket Warrior" class="logo">
             <h1>Racket Warrior</h1>
@@ -526,15 +527,17 @@ function handleSendOTP(data) {
                 To proceed, please use the One-Time Password (OTP) below:
             </div>
             
-            <div class="otp-container">
-                <div class="otp-label">🔐 OTP Code:</div>
+            <div class="otp-section">
+                <div class="otp-text">🔐 <strong>OTP Code:</strong></div>
                 <div class="otp-code">${otp}</div>
-                <div class="validity">This OTP is valid for the next 10 minutes.</div>
+                <div class="otp-validity">This OTP is valid for the next 10 minutes.</div>
             </div>
             
             <div class="warning">
-                <strong>⚠️ Security Notice:</strong><br>
-                If you did not request a password reset, please ignore this email or contact our support team immediately.
+                <p class="warning-text">
+                    <strong>⚠️ Security Notice:</strong><br>
+                    If you did not request a password reset, please ignore this email or contact our support team immediately.
+                </p>
             </div>
             
             <div class="message">
@@ -1330,9 +1333,9 @@ function handleAddUser(data) {
       ''  // resetTokenExpiry
     ]);
     
-    // Send welcome email
+    // Send welcome email matching the design
     try {
-      const subject = 'Welcome! RACKET WARRIOR';
+      const subject = 'Welcome to Racket Warrior!';
       const htmlBody = `
 <!DOCTYPE html>
 <html>
@@ -1341,26 +1344,29 @@ function handleAddUser(data) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Welcome - Racket Warrior</title>
     <style>
-        body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f5f5; }
-        .container { max-width: 600px; margin: 0 auto; background-color: white; }
-        .header { background: linear-gradient(135deg, #4CAF50, #45a049); padding: 40px 20px; text-align: center; }
-        .logo { width: 80px; height: 80px; margin: 0 auto 20px; border-radius: 12px; }
-        .header h1 { color: white; margin: 0; font-size: 28px; font-weight: 600; }
-        .content { padding: 40px 30px; }
-        .greeting { font-size: 18px; color: #333; margin-bottom: 20px; font-weight: 500; }
-        .message { font-size: 16px; color: #666; line-height: 1.6; margin-bottom: 30px; }
-        .credentials { background: #f8f9fa; border: 1px solid #e9ecef; padding: 20px; border-radius: 8px; margin: 20px 0; }
-        .cred-row { display: flex; justify-content: space-between; margin: 10px 0; }
-        .cred-label { font-weight: 600; color: #495057; }
-        .cred-value { color: #007bff; font-family: monospace; }
-        .warning { background-color: #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 15px; border-radius: 8px; margin: 20px 0; font-size: 14px; }
-        .footer { background-color: #f8f9fa; padding: 25px; text-align: center; border-top: 1px solid #e9ecef; }
-        .footer-text { color: #6c757d; font-size: 14px; margin: 5px 0; }
-        .brand { color: #4CAF50; font-weight: 600; }
+        body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f6f8fa; line-height: 1.6; }
+        .email-container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .header { background: linear-gradient(135deg, #0969da, #218bff); padding: 30px 20px; text-align: center; color: white; }
+        .logo { width: 64px; height: 64px; margin: 0 auto 15px; border-radius: 8px; display: block; }
+        .header h1 { margin: 0; font-size: 24px; font-weight: 600; }
+        .content { padding: 30px; background: white; }
+        .greeting { font-size: 20px; color: #0969da; margin-bottom: 20px; font-weight: 600; }
+        .message { font-size: 16px; color: #24292f; margin-bottom: 20px; }
+        .credentials-section { background: #f6f8fa; border: 2px solid #d1d9e0; border-radius: 8px; padding: 20px; margin: 25px 0; }
+        .cred-item { background: white; padding: 15px; margin: 10px 0; border-radius: 6px; border: 1px solid #d1d9e0; display: flex; align-items: center; }
+        .cred-icon { font-size: 18px; margin-right: 12px; }
+        .cred-content { flex: 1; }
+        .cred-label { font-size: 14px; color: #656d76; margin-bottom: 4px; }
+        .cred-value { font-size: 16px; color: #0969da; font-weight: 600; font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace; }
+        .warning { background: #fff8c5; border: 1px solid #f9c23c; border-radius: 6px; padding: 15px; margin: 20px 0; }
+        .warning-text { font-size: 14px; color: #7c2d12; margin: 0; }
+        .footer { background: #f6f8fa; padding: 20px; text-align: center; border-top: 1px solid #d1d9e0; }
+        .footer-text { color: #656d76; font-size: 14px; margin: 5px 0; }
+        .brand { color: #0969da; font-weight: 600; }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="email-container">
         <div class="header">
             <img src="https://i.imgur.com/04MGPFl.png" alt="Racket Warrior" class="logo">
             <h1>Welcome to Racket Warrior!</h1>
@@ -1373,20 +1379,27 @@ function handleAddUser(data) {
                 Your account has been successfully created. Welcome to the Racket Warrior management system!
             </div>
             
-            <div class="credentials">
-                <div class="cred-row">
-                    <span class="cred-label">👤 Username:</span>
-                    <span class="cred-value">${email}</span>
+            <div class="credentials-section">
+                <div class="cred-item">
+                    <div class="cred-icon">👤</div>
+                    <div class="cred-content">
+                        <div class="cred-label">Username:</div>
+                        <div class="cred-value">${email}</div>
+                    </div>
                 </div>
-                <div class="cred-row">
-                    <span class="cred-label">🔐 Temporary Password:</span>
-                    <span class="cred-value">${tempPassword}</span>
+                <div class="cred-item">
+                    <div class="cred-icon">🔐</div>
+                    <div class="cred-content">
+                        <div class="cred-label">Temporary Password:</div>
+                        <div class="cred-value">${tempPassword}</div>
+                    </div>
                 </div>
             </div>
             
             <div class="warning">
-                <strong>⚠️ Important:</strong><br>
-                Please change your password after your first login for security purposes.
+                <p class="warning-text">
+                    <strong>⚠️ Please change your password after your first login for security purposes.</strong>
+                </p>
             </div>
             
             <div class="message">

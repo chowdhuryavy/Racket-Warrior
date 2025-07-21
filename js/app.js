@@ -404,10 +404,26 @@ async function handleLogin(e) {
 }
 
 function setupUserPermissions() {
+    if (!currentUser) return;
+    
+    console.log('Setting up permissions for user:', currentUser.role);
+    
+    // Show/hide admin-only items
     const adminItems = document.querySelectorAll('.admin-only');
     adminItems.forEach(item => {
         item.style.display = currentUser.role === 'admin' ? 'block' : 'none';
     });
+    
+    // Update user info in sidebar
+    const userInfo = document.querySelector('.user-info');
+    if (userInfo) {
+        userInfo.innerHTML = `
+            <div class="user-details">
+                <span class="user-name">${escapeHtml(currentUser.name || currentUser.email)}</span>
+                <span class="user-role">${escapeHtml(currentUser.role || 'User')}</span>
+            </div>
+        `;
+    }
     
     // Set view-only restrictions
     if (currentUser.role === 'view') {
