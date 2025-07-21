@@ -654,23 +654,93 @@ function showPage(pageName) {
 // Dashboard functions
 async function loadDashboardData() {
     try {
-        const [players, income, expenses] = await Promise.all([
-            apiCall('getPlayers'),
-            apiCall('getIncome'),
-            apiCall('getExpenses')
-        ]);
+        const dashboardData = await apiCall('getDashboardData');
         
-        cachedData.players = players || [];
-        cachedData.income = income || [];
-        cachedData.expenses = expenses || [];
-        
-        updateDashboardFilters();
-        updateDashboardCards();
+        // Update dashboard cards with real data
+        renderDashboardCards(dashboardData || {
+            activePlayersCount: 0,
+            totalCollection: 0,
+            totalExpenses: 0,
+            totalBalance: 0,
+            recentPlayers: [],
+            recentTransactions: []
+        });
         
     } catch (error) {
         console.error('Failed to load dashboard data:', error);
-        // Show demo data if API fails
-        showDemoData();
+        // Show empty dashboard if API fails
+        renderDashboardCards({
+            activePlayersCount: 0,
+            totalCollection: 0,
+            totalExpenses: 0,
+            totalBalance: 0,
+            recentPlayers: [],
+            recentTransactions: []
+        });
+    }
+}
+
+function renderDashboardCards(data) {
+    // Update dashboard cards
+    const cardsContainer = document.querySelector('.dashboard-cards');
+    if (cardsContainer) {
+        cardsContainer.innerHTML = `
+            <div class="dashboard-card">
+                <div class="card-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="card-content">
+                    <div class="card-value">${data.activePlayersCount || 0}</div>
+                    <div class="card-label">Active Players</div>
+                </div>
+            </div>
+            
+            <div class="dashboard-card">
+                <div class="card-icon">
+                    <i class="fas fa-coins"></i>
+                </div>
+                <div class="card-content">
+                    <div class="card-value">${formatCurrency(data.totalCollection || 0)}</div>
+                    <div class="card-label">Total Collection</div>
+                </div>
+            </div>
+            
+            <div class="dashboard-card">
+                <div class="card-icon">
+                    <i class="fas fa-receipt"></i>
+                </div>
+                <div class="card-content">
+                    <div class="card-value">${formatCurrency(data.totalExpenses || 0)}</div>
+                    <div class="card-label">Total Expense</div>
+                </div>
+            </div>
+            
+            <div class="dashboard-card">
+                <div class="card-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="card-content">
+                    <div class="card-value">${formatCurrency(data.totalBalance || 0)}</div>
+                    <div class="card-label">Total Balance</div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Update recent players
+    const recentPlayersContainer = document.querySelector('.recent-players');
+    if (recentPlayersContainer && data.recentPlayers) {
+        recentPlayersContainer.innerHTML = data.recentPlayers.length > 0 
+            ? data.recentPlayers.map(player => `
+                <div class="recent-item">
+                    <div class="item-info">
+                        <span class="item-name">${escapeHtml(player.name)}</span>
+                        <span class="item-date">${formatDate(player.joinDate)}</span>
+                    </div>
+                    <span class="item-status status-${player.status}">${escapeHtml(player.status)}</span>
+                </div>
+            `).join('')
+            : '<div class="no-data">No recent players</div>';
     }
 }
 
@@ -1188,7 +1258,7 @@ async function handleUserSubmit(e) {
     }
 }
 
-// Placeholder functions for other features
+// Collections/Income functions
 async function loadCollectionsData() {
     try {
         const [income, players] = await Promise.all([
@@ -1205,6 +1275,11 @@ async function loadCollectionsData() {
     } catch (error) {
         console.error('Failed to load collections data:', error);
         showNotification('Failed to load collections data', 'error');
+        
+        // Set empty data on error
+        cachedData.income = [];
+        cachedData.players = [];
+        renderCollectionsTable();
     }
 }
 
@@ -1219,6 +1294,10 @@ async function loadExpensesData() {
     } catch (error) {
         console.error('Failed to load expenses data:', error);
         showNotification('Failed to load expenses data', 'error');
+        
+        // Set empty data on error
+        cachedData.expenses = [];
+        renderExpensesTable();
     }
 }
 
