@@ -263,46 +263,65 @@ function hideLoading() {
     }
 }
 
+let notificationTimeout = null;
+
 function showNotification(message, type = 'info') {
-    // Remove any existing notifications first
+    console.log('Showing notification:', message, type);
+    
+    // Clear any existing timeout
+    if (notificationTimeout) {
+        clearTimeout(notificationTimeout);
+        notificationTimeout = null;
+    }
+    
+    // Remove any existing notifications
     const existingNotifications = document.querySelectorAll('.notification');
     existingNotifications.forEach(n => {
-        if (n.parentElement) {
+        if (n && n.parentElement) {
             n.remove();
         }
     });
     
-    // Wait a moment before showing new notification
-    setTimeout(() => {
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
-        notification.innerHTML = `
-            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-            <span>${message}</span>
-            <button onclick="this.parentElement.remove()" style="margin-left: auto; background: none; border: none; color: inherit; cursor: pointer; font-size: 1.2rem; padding: 0 5px;">&times;</button>
-        `;
-        
-        // Add flexbox styling
-        notification.style.display = 'flex';
-        notification.style.alignItems = 'center';
-        notification.style.gap = '10px';
-        notification.style.position = 'fixed';
-        notification.style.zIndex = '10001';
-        
-        document.body.appendChild(notification);
-        
-        // Auto remove after 5 seconds with slide out animation
-        setTimeout(() => {
-            if (notification && notification.parentElement) {
-                notification.style.animation = 'slideOutRight 0.3s ease-in forwards';
-                setTimeout(() => {
-                    if (notification && notification.parentElement) {
-                        notification.remove();
-                    }
-                }, 300);
-            }
-        }, 5000);
-    }, 100);
+    // Create new notification
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+        <span>${message}</span>
+        <button onclick="this.parentElement.remove()" style="margin-left: auto; background: none; border: none; color: inherit; cursor: pointer; font-size: 1.2rem; padding: 0 5px;">&times;</button>
+    `;
+    
+    // Ensure proper styling
+    notification.style.cssText = `
+        display: flex !important;
+        align-items: center;
+        gap: 10px;
+        position: fixed;
+        z-index: 99999;
+        visibility: visible;
+        opacity: 1;
+    `;
+    
+    // Add to DOM
+    document.body.appendChild(notification);
+    
+    // Force reflow
+    notification.offsetHeight;
+    
+    console.log('Notification added to DOM, computed style:', window.getComputedStyle(notification).display);
+    
+    // Auto remove after 6 seconds
+    notificationTimeout = setTimeout(() => {
+        if (notification && notification.parentElement) {
+            notification.style.animation = 'slideOutRight 0.3s ease-in forwards';
+            setTimeout(() => {
+                if (notification && notification.parentElement) {
+                    notification.remove();
+                }
+                notificationTimeout = null;
+            }, 300);
+        }
+    }, 6000);
 }
 
 function showButtonLoading(button) {
@@ -332,15 +351,20 @@ function apiCall(action, data = {}) {
         
         // Set up callback function
         window[callbackName] = function(response) {
+            console.log('JSONP Response received:', response);
+            
             // Clean up
             document.head.removeChild(script);
             delete window[callbackName];
             hideLoading();
             
             if (response && response.success) {
+                console.log('JSONP Success, data:', response.data);
                 resolve(response.data);
             } else {
-                reject(new Error(response ? response.message : 'Request failed'));
+                console.error('JSONP Error:', response);
+                const errorMsg = response ? (response.message || 'Request failed') : 'Request failed';
+                reject(new Error(errorMsg));
             }
         };
         
@@ -394,17 +418,43 @@ async function handleLogin(e) {
     showButtonLoading(submitButton);
     
     try {
-        const email = document.getElementById('loginEmail').value;
-        const password = document.getElementById('loginPassword').value;
+        const emailInput = document.getElementById('loginEmail');
+        const passwordInput = document.getElementById('loginPassword');
+        
+        if (!emailInput || !passwordInput) {
+            throw new Error('Login form elements not found');
+        }
+        
+        const email = emailInput.value.trim();
+        const password = passwordInput.value;
+        
+        console.log('Attempting login with email:', email);
         
         if (!email || !password) {
             throw new Error('Please enter both email and password');
         }
         
-        const result = await apiCall('login', { email, password });
-        currentUser = result.user || result; // Handle both response formats
+        // Test backend connectivity first
+        console.log('Testing backend connectivity...');
+        try {
+            const testResult = await apiCall('test');
+            console.log('Backend test result:', testResult);
+        } catch (testError) {
+            console.error('Backend connectivity test failed:', testError);
+            throw new Error('Cannot connect to server. Please check your internet connection.');
+        }
         
-        console.log('Login successful, user:', currentUser);
+        console.log('Making API call to login...');
+        const result = await apiCall('login', { email, password });
+        console.log('API call result:', result);
+        
+        // Handle different response formats
+        if (result && (result.user || result.email)) {
+            currentUser = result.user || result;
+            console.log('Login successful, user:', currentUser);
+        } else {
+            throw new Error('Invalid response format from server');
+        }
         
         // Store user session
         localStorage.setItem('gymUser', JSON.stringify(currentUser));
@@ -440,7 +490,20 @@ async function handleLogin(e) {
         adjustForMobile();
         
     } catch (error) {
-        showNotification('Invalid credentials. Please try again.', 'error');
+        console.error('Login error:', error);
+        let errorMessage = 'Login failed. Please try again.';
+        
+        if (error.message.includes('Invalid credentials')) {
+            errorMessage = 'Invalid email or password. Please check your credentials.';
+        } else if (error.message.includes('Network')) {
+            errorMessage = 'Network error. Please check your internet connection.';
+        } else if (error.message.includes('timeout')) {
+            errorMessage = 'Request timeout. Please try again.';
+        } else if (error.message) {
+            errorMessage = error.message;
+        }
+        
+        showNotification(errorMessage, 'error');
     } finally {
         hideButtonLoading(submitButton);
     }
@@ -1604,23 +1667,35 @@ function transitionToApp() {
     loginPage.classList.remove('active');
     appContainer.classList.add('visible');
     
-    // Method 3: Force DOM update
+    // Method 3: Force DOM update and mobile adjustments
     requestAnimationFrame(() => {
         loginPage.style.pointerEvents = 'none';
         appContainer.style.pointerEvents = 'auto';
+        
+        // Mobile responsive adjustments
+        if (window.innerWidth <= 768) {
+            document.body.classList.add('mobile-view');
+            // Ensure mobile sidebar is hidden initially
+            const sidebar = document.querySelector('.sidebar');
+            if (sidebar) {
+                sidebar.classList.remove('sidebar-open');
+            }
+        }
         
         // Final verification
         const loginDisplay = window.getComputedStyle(loginPage).display;
         const appDisplay = window.getComputedStyle(appContainer).display;
         
         console.log('Final states - Login:', loginDisplay, 'App:', appDisplay);
+        console.log('Window size:', window.innerWidth, 'x', window.innerHeight);
         
         if (loginDisplay !== 'none' || appDisplay === 'none') {
             console.warn('Transition may have failed, applying fallback');
-            // Fallback method
-            document.body.style.overflow = 'hidden';
+            // Fallback method - use transforms instead of display
             loginPage.style.transform = 'translateX(-100vw)';
+            loginPage.style.visibility = 'hidden';
             appContainer.style.transform = 'translateX(0)';
+            appContainer.style.visibility = 'visible';
         }
     });
     

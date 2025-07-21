@@ -1579,12 +1579,14 @@ body.login-mode .app-container {
     border-radius: 12px;
     color: white;
     font-weight: 600;
-    z-index: 10000;
+    z-index: 99999;
     animation: slideInRight 0.3s ease-out;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     backdrop-filter: blur(10px);
-    max-width: 400px;
+    max-width: 350px;
     word-wrap: break-word;
+    pointer-events: auto;
+    min-width: 250px;
 }
 
 @keyframes slideInRight {
@@ -1777,4 +1779,212 @@ html {
     border-radius: 50%;
     border-top-color: transparent;
     animation: spin 1s linear infinite;
+}
+
+/* Mobile Responsiveness for Login Page and Notifications */
+@media (max-width: 768px) {
+    /* Login page mobile optimizations */
+    #loginPage {
+        padding: 1rem;
+        min-height: 100vh;
+        align-items: flex-start;
+        padding-top: 2rem;
+    }
+    
+    .login-container {
+        max-width: 100%;
+        width: 100%;
+        padding: 0 15px;
+    }
+    
+    .login-card {
+        padding: 1.5rem;
+        margin: 0;
+        border-radius: 16px;
+        width: 100%;
+        box-sizing: border-box;
+        max-width: none;
+    }
+    
+    .logo {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .login-card h2 {
+        font-size: 1.75rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .login-card p {
+        font-size: 0.9rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+    
+    .form-group label {
+        font-size: 0.8rem;
+        margin-bottom: 0.4rem;
+    }
+    
+    .form-group input {
+        padding: 0.875rem;
+        font-size: 16px; /* Prevent zoom on iOS */
+        border-radius: 10px;
+    }
+    
+    .btn-primary {
+        padding: 0.875rem 1rem;
+        font-size: 1rem;
+        border-radius: 10px;
+    }
+    
+    .form-options {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    /* Mobile notification positioning */
+    .notification {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+        min-width: auto;
+        width: calc(100vw - 20px);
+        margin: 0;
+        box-sizing: border-box;
+        border-radius: 8px;
+        padding: 0.875rem 1rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* Extra small devices (phones in portrait) */
+@media (max-width: 480px) {
+    #loginPage {
+        padding: 0.5rem;
+        padding-top: 1rem;
+    }
+    
+    .login-card {
+        padding: 1.25rem;
+        border-radius: 12px;
+    }
+    
+    .logo {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .login-card h2 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .login-card p {
+        font-size: 0.85rem;
+    }
+    
+    .form-group input {
+        padding: 0.75rem;
+        font-size: 16px;
+    }
+    
+    .btn-primary {
+        padding: 0.75rem;
+        font-size: 0.95rem;
+    }
+    
+    .notification {
+        padding: 0.75rem;
+        font-size: 0.85rem;
+        top: 5px;
+        left: 5px;
+        right: 5px;
+        width: calc(100vw - 10px);
+    }
+}
+
+/* Landscape orientation on small devices */
+@media (max-width: 768px) and (orientation: landscape) {
+    #loginPage {
+        padding: 1rem;
+        align-items: center;
+        padding-top: 1rem;
+    }
+    
+    .login-card {
+        padding: 1.25rem;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    
+    .logo {
+        width: 50px;
+        height: 50px;
+    }
+}
+
+/* Large screens */
+@media (min-width: 1200px) {
+    .login-container {
+        max-width: 480px;
+    }
+    
+    .login-card {
+        padding: 3rem;
+        border-radius: 24px;
+    }
+    
+    .logo {
+        width: 90px;
+        height: 90px;
+    }
+    
+    .notification {
+        max-width: 400px;
+        min-width: 300px;
+    }
+}
+
+/* iOS specific fixes */
+@supports (-webkit-touch-callout: none) {
+    .form-group input {
+        font-size: 16px !important; /* Prevents zoom on iOS */
+        transform: translateZ(0); /* Hardware acceleration */
+    }
+}
+
+/* Mobile view adjustments */
+body.mobile-view {
+    overflow-x: hidden;
+}
+
+body.mobile-view .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+}
+
+body.mobile-view .sidebar.sidebar-open {
+    transform: translateX(0);
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+    .btn-primary:hover {
+        transform: none;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    }
+    
+    .login-card:hover {
+        transform: none;
+        box-shadow: 
+            0 20px 40px rgba(0, 0, 0, 0.1),
+            0 0 0 1px rgba(255, 255, 255, 0.2);
+    }
 }
