@@ -1,7 +1,7 @@
 // Configuration
 const CONFIG = {
     // Replace with your actual Google Apps Script Web App URL
-    SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwJy_ti8Ficp8R_TYV6V9f0r6T9R-GPrjIfsvokiDUEo7fcmkopDbcBp1me3iTmeK2MxQ/exec',
+    SCRIPT_URL: 'https://script.google.com/macros/s/AKfycby1xaztxjKAt8N1wan8dnFOsz0vbYBt3w0i-5V5vmoXsQTLLMz9mZxkVn8W2FmA6jlaSg/exec',
     MONTHS: [
         'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
         'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
