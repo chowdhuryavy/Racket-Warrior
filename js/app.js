@@ -23,6 +23,11 @@ let playersData = [];
 let collectionsData = [];
 let expensesData = [];
 
+// Forgot Password Flow Management
+let currentForgotStep = 1;
+let forgotEmailCache = '';
+let forgotOTPCache = '';
+
 // Initialize app
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
@@ -54,6 +59,9 @@ function initializeApp() {
     // Set up user form handlers
     setupUserFormHandlers();
     
+    // Set up forgot password handlers
+    setupForgotPasswordHandlers();
+    
     // Initialize navigation sections
     initializeNavSections();
     
@@ -67,21 +75,7 @@ function setupEventListeners() {
         loginForm.addEventListener('submit', handleLogin);
     }
     
-    // Forgot password forms
-    const forgotPasswordForm = document.getElementById('forgotPasswordForm');
-    if (forgotPasswordForm) {
-        forgotPasswordForm.addEventListener('submit', handleForgotPassword);
-    }
-    
-    const otpVerificationForm = document.getElementById('otpVerificationForm');
-    if (otpVerificationForm) {
-        otpVerificationForm.addEventListener('submit', handleOTPVerification);
-    }
-    
-    const resetPasswordForm = document.getElementById('resetPasswordForm');
-    if (resetPasswordForm) {
-        resetPasswordForm.addEventListener('submit', handleResetPassword);
-    }
+    // Forgot password forms - handled by setupForgotPasswordHandlers()
     
     // Data forms
     const playerForm = document.getElementById('playerForm');
@@ -444,18 +438,14 @@ function getCurrentMonthYear() {
     return getMonthYear(now);
 }
 
+// Deprecated - use showButtonLoading instead
 function showLoading() {
-    const spinner = document.getElementById('loadingSpinner');
-    if (spinner) {
-        spinner.classList.add('active');
-    }
+    console.log('Global loading deprecated - use button loading instead');
 }
 
+// Deprecated - use hideButtonLoading instead
 function hideLoading() {
-    const spinner = document.getElementById('loadingSpinner');
-    if (spinner) {
-        spinner.classList.remove('active');
-    }
+    console.log('Global loading deprecated - use button loading instead');
 }
 
 function showNotification(message, type = 'info') {
@@ -870,161 +860,285 @@ function validatePassword(password) {
 
 // Forgot password functions
 function showForgotPassword() {
-    const modal = document.getElementById('forgotPasswordModal');
+    currentForgotStep = 1;
+    forgotEmailCache = '';
+    forgotOTPCache = '';
+    showForgotStep(1);
+    showModal('forgotPasswordModal');
+}
+
+function closeForgotPassword() {
+    closeModal('forgotPasswordModal');
+    currentForgotStep = 1;
+    forgotEmailCache = '';
+    forgotOTPCache = '';
+    
+    // Reset all forms
+    document.getElementById('forgotPasswordForm').reset();
+    document.getElementById('otpVerificationForm').reset();
+    document.getElementById('resetPasswordForm').reset();
+    
+    // Reset password requirements
+    resetPasswordRequirements();
+}
+
+function showForgotStep(step) {
+    // Hide all steps
+    document.getElementById('forgotStep1').style.display = 'none';
+    document.getElementById('forgotStep2').style.display = 'none';
+    document.getElementById('forgotStep3').style.display = 'none';
+    
+    // Show target step
+    document.getElementById(`forgotStep${step}`).style.display = 'block';
+    currentForgotStep = step;
+    
+    if (step === 3) {
+        // Setup password validation
+        setupPasswordValidation();
+    }
+}
+
+// Setup Forgot Password Form Handlers
+function setupForgotPasswordHandlers() {
+    // Step 1: Send OTP
+    const forgotForm = document.getElementById('forgotPasswordForm');
+    if (forgotForm) {
+        forgotForm.onsubmit = async function(e) {
+            e.preventDefault();
+            const submitButton = e.target.querySelector('button[type="submit"]');
+            showButtonLoading(submitButton, 'Sending Code...');
+            
+            const email = document.getElementById('forgotEmail').value.trim();
+            
+            if (!email) {
+                showNotification('Please enter your email address', 'error');
+                hideButtonLoading(submitButton);
+                return;
+            }
+            
+            try {
+                console.log('Sending OTP to:', email);
+                await apiCall('sendOTP', { email: email });
+                forgotEmailCache = email;
+                showNotification('Verification code sent to your email!', 'success');
+                showForgotStep(2);
+            } catch (error) {
+                console.error('Failed to send OTP:', error);
+                showNotification('Failed to send verification code. Please try again.', 'error');
+            } finally {
+                hideButtonLoading(submitButton);
+            }
+        };
+    }
+    
+    // Step 2: Verify OTP
+    const otpForm = document.getElementById('otpVerificationForm');
+    if (otpForm) {
+        otpForm.onsubmit = async function(e) {
+            e.preventDefault();
+            const submitButton = e.target.querySelector('button[type="submit"]');
+            showButtonLoading(submitButton, 'Verifying...');
+            
+            const otp = document.getElementById('otpCode').value.trim();
+            
+            if (!otp) {
+                showNotification('Please enter the verification code', 'error');
+                hideButtonLoading(submitButton);
+                return;
+            }
+            
+            try {
+                console.log('Verifying OTP:', otp, 'for email:', forgotEmailCache);
+                await apiCall('verifyOTP', { 
+                    email: forgotEmailCache, 
+                    otp: otp 
+                });
+                forgotOTPCache = otp;
+                showNotification('Code verified successfully!', 'success');
+                showForgotStep(3);
+            } catch (error) {
+                console.error('Failed to verify OTP:', error);
+                showNotification('Invalid verification code. Please try again.', 'error');
+            } finally {
+                hideButtonLoading(submitButton);
+            }
+        };
+    }
+    
+    // Step 3: Reset Password
+    const resetForm = document.getElementById('resetPasswordForm');
+    if (resetForm) {
+        resetForm.onsubmit = async function(e) {
+            e.preventDefault();
+            const submitButton = e.target.querySelector('button[type="submit"]');
+            showButtonLoading(submitButton, 'Resetting Password...');
+            
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (!newPassword || !confirmPassword) {
+                showNotification('Please fill in all password fields', 'error');
+                hideButtonLoading(submitButton);
+                return;
+            }
+            
+            if (newPassword !== confirmPassword) {
+                showNotification('Passwords do not match', 'error');
+                hideButtonLoading(submitButton);
+                return;
+            }
+            
+            if (!validatePasswordStrength(newPassword)) {
+                showNotification('Password does not meet requirements', 'error');
+                hideButtonLoading(submitButton);
+                return;
+            }
+            
+            try {
+                console.log('Resetting password for:', forgotEmailCache);
+                await apiCall('resetPassword', { 
+                    email: forgotEmailCache, 
+                    otp: forgotOTPCache,
+                    newPassword: newPassword 
+                });
+                
+                showNotification('Password reset successfully! You can now login with your new password.', 'success');
+                closeForgotPassword();
+                
+                // Pre-fill login email
+                const loginEmailInput = document.getElementById('loginEmail');
+                if (loginEmailInput) {
+                    loginEmailInput.value = forgotEmailCache;
+                }
+                
+            } catch (error) {
+                console.error('Failed to reset password:', error);
+                showNotification('Failed to reset password. Please try again.', 'error');
+            } finally {
+                hideButtonLoading(submitButton);
+            }
+        };
+    }
+}
+
+// Password Validation with Visual Feedback
+function setupPasswordValidation() {
+    const newPasswordInput = document.getElementById('newPassword');
+    const confirmPasswordInput = document.getElementById('confirmPassword');
+    const resetButton = document.getElementById('resetPasswordBtn');
+    
+    if (!newPasswordInput || !confirmPasswordInput || !resetButton) return;
+    
+    function validateAndUpdate() {
+        const password = newPasswordInput.value;
+        const confirmPassword = confirmPasswordInput.value;
+        
+        // Check each requirement
+        const requirements = {
+            length: password.length >= 8,
+            uppercase: /[A-Z]/.test(password),
+            lowercase: /[a-z]/.test(password),
+            number: /\d/.test(password),
+            special: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+            match: password === confirmPassword && password.length > 0
+        };
+        
+        // Update visual indicators
+        Object.keys(requirements).forEach(req => {
+            const element = document.getElementById(`req-${req}`);
+            const icon = element?.querySelector('.requirement-icon');
+            
+            if (requirements[req]) {
+                element?.classList.add('valid');
+                if (icon) {
+                    icon.className = 'fas fa-check requirement-icon';
+                }
+            } else {
+                element?.classList.remove('valid');
+                if (icon) {
+                    icon.className = 'fas fa-times requirement-icon';
+                }
+            }
+        });
+        
+        // Enable/disable submit button
+        const allValid = Object.values(requirements).every(Boolean);
+        resetButton.disabled = !allValid;
+        
+        if (allValid) {
+            resetButton.style.opacity = '1';
+            resetButton.style.cursor = 'pointer';
+        } else {
+            resetButton.style.opacity = '0.6';
+            resetButton.style.cursor = 'not-allowed';
+        }
+    }
+    
+    newPasswordInput.addEventListener('input', validateAndUpdate);
+    confirmPasswordInput.addEventListener('input', validateAndUpdate);
+    
+    // Initial validation
+    validateAndUpdate();
+}
+
+function resetPasswordRequirements() {
+    const requirements = ['length', 'uppercase', 'lowercase', 'number', 'special', 'match'];
+    requirements.forEach(req => {
+        const element = document.getElementById(`req-${req}`);
+        const icon = element?.querySelector('.requirement-icon');
+        
+        element?.classList.remove('valid');
+        if (icon) {
+            icon.className = 'fas fa-times requirement-icon';
+        }
+    });
+    
+    const resetButton = document.getElementById('resetPasswordBtn');
+    if (resetButton) {
+        resetButton.disabled = true;
+        resetButton.style.opacity = '0.6';
+        resetButton.style.cursor = 'not-allowed';
+    }
+}
+
+// Password Toggle Function
+function togglePassword(inputId) {
+    const input = document.getElementById(inputId);
+    const toggleButton = input?.nextElementSibling?.querySelector('.fas');
+    
+    if (input && toggleButton) {
+        if (input.type === 'password') {
+            input.type = 'text';
+            toggleButton.className = 'fas fa-eye-slash';
+        } else {
+            input.type = 'password';
+            toggleButton.className = 'fas fa-eye';
+        }
+    }
+}
+
+// Password Strength Validation
+function validatePasswordStrength(password) {
+    return password.length >= 8 &&
+           /[A-Z]/.test(password) &&
+           /[a-z]/.test(password) &&
+           /\d/.test(password) &&
+           /[!@#$%^&*(),.?":{}|<>]/.test(password);
+}
+
+// Modal Helper Function
+function showModal(modalId) {
+    const modal = document.getElementById(modalId);
     if (modal) {
         modal.classList.add('active');
     }
 }
 
-function closeForgotPassword() {
-    const modal = document.getElementById('forgotPasswordModal');
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
     if (modal) {
         modal.classList.remove('active');
-        // Reset steps
-        document.getElementById('forgotStep1').style.display = 'block';
-        document.getElementById('forgotStep2').style.display = 'none';
-        document.getElementById('forgotStep3').style.display = 'none';
     }
-}
-
-async function handleForgotPassword(e) {
-    e.preventDefault();
-    
-    const submitButton = e.target.querySelector('button[type="submit"]');
-    showButtonLoading(submitButton);
-    
-    try {
-        const email = document.getElementById('forgotEmail').value;
-        await apiCall('sendOTP', { email });
-        
-        // Log OTP request (no user context since not logged in)
-        try {
-            await apiCall('logAction', {
-                user: JSON.stringify({ email: email }),
-                action: 'OTP_REQUEST',
-                description: 'User requested password reset OTP',
-                data: JSON.stringify({ email: email })
-            });
-        } catch (logError) {
-            console.error('Failed to log OTP request:', logError);
-        }
-        
-        document.getElementById('forgotStep1').style.display = 'none';
-        document.getElementById('forgotStep2').style.display = 'block';
-        
-        showNotification('OTP sent to your email', 'success');
-    } catch (error) {
-        showNotification('Failed to send OTP. Please check your email.', 'error');
-    } finally {
-        hideButtonLoading(submitButton);
-    }
-}
-
-async function handleOTPVerification(e) {
-    e.preventDefault();
-    
-    const submitButton = e.target.querySelector('button[type="submit"]');
-    showButtonLoading(submitButton);
-    
-    try {
-        const email = document.getElementById('forgotEmail').value;
-        const otp = document.getElementById('otpCode').value;
-        await apiCall('verifyOTP', { email, otp });
-        
-        // Log OTP verification
-        try {
-            await apiCall('logAction', {
-                user: JSON.stringify({ email: email }),
-                action: 'OTP_VERIFY',
-                description: 'User verified OTP successfully',
-                data: JSON.stringify({ email: email })
-            });
-        } catch (logError) {
-            console.error('Failed to log OTP verification:', logError);
-        }
-        
-        document.getElementById('forgotStep2').style.display = 'none';
-        document.getElementById('forgotStep3').style.display = 'block';
-        
-        showNotification('OTP verified successfully', 'success');
-    } catch (error) {
-        showNotification('Invalid OTP. Please try again.', 'error');
-    } finally {
-        hideButtonLoading(submitButton);
-    }
-}
-
-async function handleResetPassword(e) {
-    e.preventDefault();
-    
-    const submitButton = e.target.querySelector('button[type="submit"]');
-    showButtonLoading(submitButton);
-    
-    try {
-        const email = document.getElementById('forgotEmail').value;
-        const password = document.getElementById('newPassword').value;
-        const confirmPassword = document.getElementById('confirmPassword').value;
-        
-        if (password !== confirmPassword) {
-            throw new Error('Passwords do not match');
-        }
-        
-        // Validate password requirements
-        const passwordValidation = validatePasswordStrength(password);
-        if (!passwordValidation.isValid) {
-            const requirements = Object.entries(passwordValidation.requirements)
-                .filter(([key, value]) => !value)
-                .map(([key, value]) => {
-                    switch(key) {
-                        case 'length': return 'At least 8 characters';
-                        case 'uppercase': return 'One uppercase letter';
-                        case 'lowercase': return 'One lowercase letter';
-                        case 'number': return 'One number';
-                        case 'special': return 'One special character';
-                        default: return key;
-                    }
-                });
-            throw new Error(`Password requirements:\n• ${requirements.join('\n• ')}`);
-        }
-        
-        await apiCall('resetPassword', { email, password });
-        
-        // Log password reset
-        try {
-            await apiCall('logAction', {
-                user: JSON.stringify({ email: email }),
-                action: 'PASSWORD_RESET',
-                description: 'User reset password successfully',
-                data: JSON.stringify({ email: email })
-            });
-        } catch (logError) {
-            console.error('Failed to log password reset:', logError);
-        }
-        
-        closeForgotPassword();
-        showNotification('Password reset successfully', 'success');
-    } catch (error) {
-        showNotification(error.message, 'error');
-    } finally {
-        hideButtonLoading(submitButton);
-    }
-}
-
-function validatePasswordStrength(password) {
-    if (!password) {
-        return { isValid: false, requirements: { error: 'Password is required' } };
-    }
-    
-    const requirements = {
-        length: password.length >= 8,
-        uppercase: /[A-Z]/.test(password),
-        lowercase: /[a-z]/.test(password),
-        number: /\d/.test(password),
-        special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
-    };
-    
-    const isValid = Object.values(requirements).every(req => req);
-    return { isValid, requirements };
 }
 
 // Navigation functions
@@ -1432,29 +1546,7 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Utility functions for password toggle
-function togglePassword(inputId) {
-    const input = document.getElementById(inputId);
-    const icon = input?.nextElementSibling?.querySelector('i');
-    
-    if (input && icon) {
-        if (input.type === 'password') {
-            input.type = 'text';
-            icon.classList.replace('fa-eye', 'fa-eye-slash');
-        } else {
-            input.type = 'password';
-            icon.classList.replace('fa-eye-slash', 'fa-eye');
-        }
-    }
-}
-
-// Modal functions
-function closeModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) {
-        modal.classList.remove('active');
-    }
-}
+// Duplicate functions removed - using main definitions above
 
 // Edit player function
 function editPlayer(playerId) {

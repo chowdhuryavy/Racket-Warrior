@@ -55,56 +55,111 @@
         </div>
     </div>
 
-    <!-- Forgot Password Modal -->
+    <!-- Professional Forgot Password Modal -->
     <div id="forgotPasswordModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeForgotPassword()">&times;</span>
-            <h3>Reset Password</h3>
+            <h3>🔒 Reset Your Password</h3>
+            
+            <!-- Step 1: Email Input -->
             <div id="forgotStep1">
+                <div style="text-align: center; margin-bottom: 1.5rem; color: var(--text-secondary);">
+                    Enter your email address and we'll send you a verification code
+                </div>
                 <form id="forgotPasswordForm">
-                    <div class="form-group">
-                        <i class="fas fa-envelope"></i>
-                        <input type="email" id="forgotEmail" placeholder="Enter your email" required>
+                    <div class="form-group icon-email">
+                        <label>Email Address</label>
+                        <input type="email" id="forgotEmail" placeholder="Enter your email address" required>
                     </div>
-                    <button type="submit" class="btn btn-primary">Send OTP</button>
+                    <div class="form-actions" style="justify-content: center;">
+                        <button type="button" class="btn btn-secondary" onclick="closeForgotPassword()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Send Verification Code</button>
+                    </div>
                 </form>
             </div>
+            
+            <!-- Step 2: OTP Verification -->
             <div id="forgotStep2" style="display: none;">
+                <div style="text-align: center; margin-bottom: 1.5rem; color: var(--text-secondary);">
+                    We've sent a verification code to your email. Please enter it below.
+                </div>
                 <form id="otpVerificationForm">
-                    <div class="form-group">
-                        <i class="fas fa-key"></i>
-                        <input type="text" id="otpCode" placeholder="Enter OTP" required>
+                    <div class="form-group" style="position: relative;">
+                        <label>Verification Code</label>
+                        <input type="text" id="otpCode" placeholder="Enter 6-digit code" required style="padding-left: 3rem; text-align: center; font-size: 1.2rem; letter-spacing: 0.2rem;">
+                        <div style="position: absolute; left: 1rem; top: 3rem; color: #667eea; z-index: 1;">
+                            <i class="fas fa-key"></i>
+                        </div>
                     </div>
-                    <button type="submit" class="btn btn-primary">Verify OTP</button>
+                    <div class="form-actions" style="justify-content: center;">
+                        <button type="button" class="btn btn-secondary" onclick="showForgotStep(1)">Back</button>
+                        <button type="submit" class="btn btn-primary">Verify Code</button>
+                    </div>
                 </form>
             </div>
+            
+            <!-- Step 3: New Password -->
             <div id="forgotStep3" style="display: none;">
+                <div style="text-align: center; margin-bottom: 1.5rem; color: var(--text-secondary);">
+                    Create a strong new password for your account
+                </div>
                 <form id="resetPasswordForm">
-                    <div class="form-group">
-                        <i class="fas fa-lock"></i>
-                        <input type="password" id="newPassword" placeholder="New Password" required>
-                        <span class="toggle-password" onclick="togglePassword('newPassword')">
+                    <div class="form-group" style="position: relative;">
+                        <label>New Password</label>
+                        <input type="password" id="newPassword" placeholder="Enter new password" required style="padding-left: 3rem; padding-right: 3rem;">
+                        <div style="position: absolute; left: 1rem; top: 3rem; color: #667eea; z-index: 1;">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <span class="toggle-password" onclick="togglePassword('newPassword')" style="position: absolute; right: 1rem; top: 3rem; cursor: pointer; color: var(--text-secondary); z-index: 1;">
                             <i class="fas fa-eye"></i>
                         </span>
                     </div>
-                    <div class="form-group">
-                        <i class="fas fa-lock"></i>
-                        <input type="password" id="confirmPassword" placeholder="Confirm Password" required>
-                        <span class="toggle-password" onclick="togglePassword('confirmPassword')">
+                    <div class="form-group" style="position: relative;">
+                        <label>Confirm Password</label>
+                        <input type="password" id="confirmPassword" placeholder="Confirm new password" required style="padding-left: 3rem; padding-right: 3rem;">
+                        <div style="position: absolute; left: 1rem; top: 3rem; color: #667eea; z-index: 1;">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <span class="toggle-password" onclick="togglePassword('confirmPassword')" style="position: absolute; right: 1rem; top: 3rem; cursor: pointer; color: var(--text-secondary); z-index: 1;">
                             <i class="fas fa-eye"></i>
                         </span>
                     </div>
+                    
+                    <!-- Professional Password Requirements -->
                     <div class="password-requirements">
-                        <p>Password must contain:</p>
-                        <ul>
-                            <li id="req-length">At least 8 characters</li>
-                            <li id="req-uppercase">One uppercase letter</li>
-                            <li id="req-lowercase">One lowercase letter</li>
-                            <li id="req-number">One number</li>
-                            <li id="req-special">One special character</li>
-                        </ul>
+                        <div style="font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary);">Password Requirements:</div>
+                        <div class="requirements-grid">
+                            <div class="requirement-item" id="req-length">
+                                <i class="fas fa-times requirement-icon"></i>
+                                <span>At least 8 characters</span>
+                            </div>
+                            <div class="requirement-item" id="req-uppercase">
+                                <i class="fas fa-times requirement-icon"></i>
+                                <span>One uppercase letter</span>
+                            </div>
+                            <div class="requirement-item" id="req-lowercase">
+                                <i class="fas fa-times requirement-icon"></i>
+                                <span>One lowercase letter</span>
+                            </div>
+                            <div class="requirement-item" id="req-number">
+                                <i class="fas fa-times requirement-icon"></i>
+                                <span>One number</span>
+                            </div>
+                            <div class="requirement-item" id="req-special">
+                                <i class="fas fa-times requirement-icon"></i>
+                                <span>One special character</span>
+                            </div>
+                            <div class="requirement-item" id="req-match">
+                                <i class="fas fa-times requirement-icon"></i>
+                                <span>Passwords match</span>
+                            </div>
+                        </div>
                     </div>
-                    <button type="submit" class="btn btn-primary">Reset Password</button>
+                    
+                    <div class="form-actions" style="justify-content: center;">
+                        <button type="button" class="btn btn-secondary" onclick="showForgotStep(2)">Back</button>
+                        <button type="submit" class="btn btn-primary" id="resetPasswordBtn" disabled>Reset Password</button>
+                    </div>
                 </form>
             </div>
         </div>
