@@ -510,6 +510,389 @@ function handleAddPlayer(data) {
   }
 }
 
+function handleEditPlayer(data) {
+  try {
+    const { id, name, phone, email, status, joinDate, monthlyStatus } = data;
+    
+    if (!id || !name || !phone) {
+      return createErrorResponse('ID, name, and phone are required', 'MISSING_DATA');
+    }
+    
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const playersSheet = ss.getSheetByName(SHEETS.players.name);
+    
+    if (!playersSheet) {
+      return createErrorResponse('Players sheet not found', 'SHEET_NOT_FOUND');
+    }
+    
+    const players = playersSheet.getDataRange().getValues();
+    
+    // Find and update player
+    for (let i = 1; i < players.length; i++) {
+      if (players[i][0] === id) {
+        playersSheet.getRange(i + 1, 2).setValue(name);
+        playersSheet.getRange(i + 1, 3).setValue(phone);
+        playersSheet.getRange(i + 1, 4).setValue(email || '');
+        playersSheet.getRange(i + 1, 5).setValue(status || 'active');
+        playersSheet.getRange(i + 1, 6).setValue(joinDate || players[i][5]);
+        playersSheet.getRange(i + 1, 8).setValue(monthlyStatus || 'active');
+        
+        logAction(data.user, 'EDIT_PLAYER', `Updated player: ${name}`);
+        
+        return createSuccessResponse({ message: 'Player updated successfully' });
+      }
+    }
+    
+    return createErrorResponse('Player not found', 'PLAYER_NOT_FOUND');
+    
+  } catch (error) {
+    console.error('Edit player error:', error);
+    return createErrorResponse(`Failed to edit player: ${error.toString()}`, 'EDIT_PLAYER_ERROR');
+  }
+}
+
+function handleDeletePlayer(data) {
+  try {
+    const { id } = data;
+    
+    if (!id) {
+      return createErrorResponse('Player ID is required', 'MISSING_DATA');
+    }
+    
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const playersSheet = ss.getSheetByName(SHEETS.players.name);
+    
+    if (!playersSheet) {
+      return createErrorResponse('Players sheet not found', 'SHEET_NOT_FOUND');
+    }
+    
+    const players = playersSheet.getDataRange().getValues();
+    
+    // Find and delete player
+    for (let i = 1; i < players.length; i++) {
+      if (players[i][0] === id) {
+        const playerName = players[i][1];
+        playersSheet.deleteRow(i + 1);
+        
+        logAction(data.user, 'DELETE_PLAYER', `Deleted player: ${playerName}`);
+        
+        return createSuccessResponse({ message: 'Player deleted successfully' });
+      }
+    }
+    
+    return createErrorResponse('Player not found', 'PLAYER_NOT_FOUND');
+    
+  } catch (error) {
+    console.error('Delete player error:', error);
+    return createErrorResponse(`Failed to delete player: ${error.toString()}`, 'DELETE_PLAYER_ERROR');
+  }
+}
+
+// Income management
+function handleGetIncome(data) {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const incomeSheet = ss.getSheetByName(SHEETS.income.name);
+    
+    if (!incomeSheet) {
+      return createSuccessResponse([], 'Income sheet not found, returning empty list');
+    }
+    
+    const incomeData = incomeSheet.getDataRange().getValues();
+    const incomeList = [];
+    
+    for (let i = 1; i < incomeData.length; i++) {
+      const row = incomeData[i];
+      const income = {
+        id: row[0],
+        date: row[1],
+        playerId: row[2],
+        playerName: row[3],
+        amount: row[4],
+        description: row[5],
+        createdAt: row[6]
+      };
+      incomeList.push(income);
+    }
+    
+    return createSuccessResponse(incomeList);
+    
+  } catch (error) {
+    console.error('Get income error:', error);
+    return createErrorResponse(`Failed to get income: ${error.toString()}`, 'GET_INCOME_ERROR');
+  }
+}
+
+function handleAddIncome(data) {
+  try {
+    const { date, playerId, playerName, amount, description } = data;
+    
+    if (!date || !amount) {
+      return createErrorResponse('Date and amount are required', 'MISSING_DATA');
+    }
+    
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const incomeSheet = ss.getSheetByName(SHEETS.income.name);
+    
+    if (!incomeSheet) {
+      return createErrorResponse('Income sheet not found', 'SHEET_NOT_FOUND');
+    }
+    
+    const incomeId = generateId();
+    const timestamp = getCurrentTimestamp();
+    
+    incomeSheet.appendRow([
+      incomeId,
+      date,
+      playerId || '',
+      playerName || '',
+      parseFloat(amount),
+      description || '',
+      timestamp
+    ]);
+    
+    logAction(data.user, 'ADD_INCOME', `Added income: QAR ${amount} from ${playerName || 'N/A'}`);
+    
+    return createSuccessResponse({ 
+      id: incomeId,
+      message: 'Income added successfully' 
+    });
+    
+  } catch (error) {
+    console.error('Add income error:', error);
+    return createErrorResponse(`Failed to add income: ${error.toString()}`, 'ADD_INCOME_ERROR');
+  }
+}
+
+function handleEditIncome(data) {
+  try {
+    const { id, date, playerId, playerName, amount, description } = data;
+    
+    if (!id || !date || !amount) {
+      return createErrorResponse('ID, date, and amount are required', 'MISSING_DATA');
+    }
+    
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const incomeSheet = ss.getSheetByName(SHEETS.income.name);
+    
+    if (!incomeSheet) {
+      return createErrorResponse('Income sheet not found', 'SHEET_NOT_FOUND');
+    }
+    
+    const incomeData = incomeSheet.getDataRange().getValues();
+    
+    // Find and update income
+    for (let i = 1; i < incomeData.length; i++) {
+      if (incomeData[i][0] === id) {
+        incomeSheet.getRange(i + 1, 2).setValue(date);
+        incomeSheet.getRange(i + 1, 3).setValue(playerId || '');
+        incomeSheet.getRange(i + 1, 4).setValue(playerName || '');
+        incomeSheet.getRange(i + 1, 5).setValue(parseFloat(amount));
+        incomeSheet.getRange(i + 1, 6).setValue(description || '');
+        
+        logAction(data.user, 'EDIT_INCOME', `Updated income: QAR ${amount}`);
+        
+        return createSuccessResponse({ message: 'Income updated successfully' });
+      }
+    }
+    
+    return createErrorResponse('Income record not found', 'INCOME_NOT_FOUND');
+    
+  } catch (error) {
+    console.error('Edit income error:', error);
+    return createErrorResponse(`Failed to edit income: ${error.toString()}`, 'EDIT_INCOME_ERROR');
+  }
+}
+
+function handleDeleteIncome(data) {
+  try {
+    const { id } = data;
+    
+    if (!id) {
+      return createErrorResponse('Income ID is required', 'MISSING_DATA');
+    }
+    
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const incomeSheet = ss.getSheetByName(SHEETS.income.name);
+    
+    if (!incomeSheet) {
+      return createErrorResponse('Income sheet not found', 'SHEET_NOT_FOUND');
+    }
+    
+    const incomeData = incomeSheet.getDataRange().getValues();
+    
+    // Find and delete income
+    for (let i = 1; i < incomeData.length; i++) {
+      if (incomeData[i][0] === id) {
+        const amount = incomeData[i][4];
+        const playerName = incomeData[i][3];
+        incomeSheet.deleteRow(i + 1);
+        
+        logAction(data.user, 'DELETE_INCOME', `Deleted income: QAR ${amount} from ${playerName}`);
+        
+        return createSuccessResponse({ message: 'Income deleted successfully' });
+      }
+    }
+    
+    return createErrorResponse('Income record not found', 'INCOME_NOT_FOUND');
+    
+  } catch (error) {
+    console.error('Delete income error:', error);
+    return createErrorResponse(`Failed to delete income: ${error.toString()}`, 'DELETE_INCOME_ERROR');
+  }
+}
+
+// Expenses management
+function handleGetExpenses(data) {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const expensesSheet = ss.getSheetByName(SHEETS.expenses.name);
+    
+    if (!expensesSheet) {
+      return createSuccessResponse([], 'Expenses sheet not found, returning empty list');
+    }
+    
+    const expensesData = expensesSheet.getDataRange().getValues();
+    const expensesList = [];
+    
+    for (let i = 1; i < expensesData.length; i++) {
+      const row = expensesData[i];
+      const expense = {
+        id: row[0],
+        date: row[1],
+        category: row[2],
+        amount: row[3],
+        description: row[4],
+        createdAt: row[5]
+      };
+      expensesList.push(expense);
+    }
+    
+    return createSuccessResponse(expensesList);
+    
+  } catch (error) {
+    console.error('Get expenses error:', error);
+    return createErrorResponse(`Failed to get expenses: ${error.toString()}`, 'GET_EXPENSES_ERROR');
+  }
+}
+
+function handleAddExpense(data) {
+  try {
+    const { date, category, amount, description } = data;
+    
+    if (!date || !category || !amount) {
+      return createErrorResponse('Date, category, and amount are required', 'MISSING_DATA');
+    }
+    
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const expensesSheet = ss.getSheetByName(SHEETS.expenses.name);
+    
+    if (!expensesSheet) {
+      return createErrorResponse('Expenses sheet not found', 'SHEET_NOT_FOUND');
+    }
+    
+    const expenseId = generateId();
+    const timestamp = getCurrentTimestamp();
+    
+    expensesSheet.appendRow([
+      expenseId,
+      date,
+      category,
+      parseFloat(amount),
+      description || '',
+      timestamp
+    ]);
+    
+    logAction(data.user, 'ADD_EXPENSE', `Added expense: QAR ${amount} for ${category}`);
+    
+    return createSuccessResponse({ 
+      id: expenseId,
+      message: 'Expense added successfully' 
+    });
+    
+  } catch (error) {
+    console.error('Add expense error:', error);
+    return createErrorResponse(`Failed to add expense: ${error.toString()}`, 'ADD_EXPENSE_ERROR');
+  }
+}
+
+function handleEditExpense(data) {
+  try {
+    const { id, date, category, amount, description } = data;
+    
+    if (!id || !date || !category || !amount) {
+      return createErrorResponse('ID, date, category, and amount are required', 'MISSING_DATA');
+    }
+    
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const expensesSheet = ss.getSheetByName(SHEETS.expenses.name);
+    
+    if (!expensesSheet) {
+      return createErrorResponse('Expenses sheet not found', 'SHEET_NOT_FOUND');
+    }
+    
+    const expensesData = expensesSheet.getDataRange().getValues();
+    
+    // Find and update expense
+    for (let i = 1; i < expensesData.length; i++) {
+      if (expensesData[i][0] === id) {
+        expensesSheet.getRange(i + 1, 2).setValue(date);
+        expensesSheet.getRange(i + 1, 3).setValue(category);
+        expensesSheet.getRange(i + 1, 4).setValue(parseFloat(amount));
+        expensesSheet.getRange(i + 1, 5).setValue(description || '');
+        
+        logAction(data.user, 'EDIT_EXPENSE', `Updated expense: QAR ${amount} for ${category}`);
+        
+        return createSuccessResponse({ message: 'Expense updated successfully' });
+      }
+    }
+    
+    return createErrorResponse('Expense record not found', 'EXPENSE_NOT_FOUND');
+    
+  } catch (error) {
+    console.error('Edit expense error:', error);
+    return createErrorResponse(`Failed to edit expense: ${error.toString()}`, 'EDIT_EXPENSE_ERROR');
+  }
+}
+
+function handleDeleteExpense(data) {
+  try {
+    const { id } = data;
+    
+    if (!id) {
+      return createErrorResponse('Expense ID is required', 'MISSING_DATA');
+    }
+    
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const expensesSheet = ss.getSheetByName(SHEETS.expenses.name);
+    
+    if (!expensesSheet) {
+      return createErrorResponse('Expenses sheet not found', 'SHEET_NOT_FOUND');
+    }
+    
+    const expensesData = expensesSheet.getDataRange().getValues();
+    
+    // Find and delete expense
+    for (let i = 1; i < expensesData.length; i++) {
+      if (expensesData[i][0] === id) {
+        const amount = expensesData[i][3];
+        const category = expensesData[i][2];
+        expensesSheet.deleteRow(i + 1);
+        
+        logAction(data.user, 'DELETE_EXPENSE', `Deleted expense: QAR ${amount} for ${category}`);
+        
+        return createSuccessResponse({ message: 'Expense deleted successfully' });
+      }
+    }
+    
+    return createErrorResponse('Expense record not found', 'EXPENSE_NOT_FOUND');
+    
+  } catch (error) {
+    console.error('Delete expense error:', error);
+    return createErrorResponse(`Failed to delete expense: ${error.toString()}`, 'DELETE_EXPENSE_ERROR');
+  }
+}
+
 // Dashboard data
 function handleGetDashboardData(data) {
   try {
@@ -580,19 +963,230 @@ function handleGetDashboardData(data) {
   }
 }
 
-// Placeholder functions for other operations
-function handleEditPlayer(data) { return createErrorResponse('Edit player not implemented yet', 'NOT_IMPLEMENTED'); }
-function handleDeletePlayer(data) { return createErrorResponse('Delete player not implemented yet', 'NOT_IMPLEMENTED'); }
-function handleGetIncome(data) { return createSuccessResponse([], 'Income data not implemented yet'); }
-function handleAddIncome(data) { return createErrorResponse('Add income not implemented yet', 'NOT_IMPLEMENTED'); }
-function handleEditIncome(data) { return createErrorResponse('Edit income not implemented yet', 'NOT_IMPLEMENTED'); }
-function handleDeleteIncome(data) { return createErrorResponse('Delete income not implemented yet', 'NOT_IMPLEMENTED'); }
-function handleGetExpenses(data) { return createSuccessResponse([], 'Expenses data not implemented yet'); }
-function handleAddExpense(data) { return createErrorResponse('Add expense not implemented yet', 'NOT_IMPLEMENTED'); }
-function handleEditExpense(data) { return createErrorResponse('Edit expense not implemented yet', 'NOT_IMPLEMENTED'); }
-function handleDeleteExpense(data) { return createErrorResponse('Delete expense not implemented yet', 'NOT_IMPLEMENTED'); }
-function handleGetUsers(data) { return createErrorResponse('Get users not implemented yet', 'NOT_IMPLEMENTED'); }
-function handleAddUser(data) { return createErrorResponse('Add user not implemented yet', 'NOT_IMPLEMENTED'); }
-function handleEditUser(data) { return createErrorResponse('Edit user not implemented yet', 'NOT_IMPLEMENTED'); }
-function handleDeleteUser(data) { return createErrorResponse('Delete user not implemented yet', 'NOT_IMPLEMENTED'); }
-function handleGetLogs(data) { return createSuccessResponse([], 'Logs data not implemented yet'); }
+// User management (admin only)
+function handleGetUsers(data) {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const usersSheet = ss.getSheetByName(SHEETS.users.name);
+    
+    if (!usersSheet) {
+      return createSuccessResponse([], 'Users sheet not found, returning empty list');
+    }
+    
+    const usersData = usersSheet.getDataRange().getValues();
+    const usersList = [];
+    
+    for (let i = 1; i < usersData.length; i++) {
+      const row = usersData[i];
+      const user = {
+        email: row[0],
+        role: row[2],
+        name: row[3],
+        needsPasswordChange: row[4],
+        createdAt: row[5],
+        lastLogin: row[6],
+        status: row[7]
+      };
+      usersList.push(user);
+    }
+    
+    return createSuccessResponse(usersList);
+    
+  } catch (error) {
+    console.error('Get users error:', error);
+    return createErrorResponse(`Failed to get users: ${error.toString()}`, 'GET_USERS_ERROR');
+  }
+}
+
+function handleAddUser(data) {
+  try {
+    const { name, email, role, status } = data;
+    
+    if (!name || !email || !role) {
+      return createErrorResponse('Name, email, and role are required', 'MISSING_DATA');
+    }
+    
+    if (!validateEmail(email)) {
+      return createErrorResponse('Invalid email format', 'INVALID_EMAIL');
+    }
+    
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const usersSheet = ss.getSheetByName(SHEETS.users.name);
+    
+    if (!usersSheet) {
+      return createErrorResponse('Users sheet not found', 'SHEET_NOT_FOUND');
+    }
+    
+    // Check if user already exists
+    const users = usersSheet.getDataRange().getValues();
+    for (let i = 1; i < users.length; i++) {
+      if (users[i][0] === email) {
+        return createErrorResponse('User with this email already exists', 'USER_EXISTS');
+      }
+    }
+    
+    // Generate temporary password
+    const tempPassword = 'TempPass' + Math.floor(Math.random() * 1000) + '!';
+    const hashedPassword = hashPassword(tempPassword);
+    const timestamp = getCurrentTimestamp();
+    
+    usersSheet.appendRow([
+      email,
+      hashedPassword,
+      role,
+      name,
+      true, // needs_password_change
+      timestamp,
+      '', // last_login
+      status || 'active',
+      '', // resetToken
+      ''  // resetTokenExpiry
+    ]);
+    
+    // Send welcome email
+    try {
+      const subject = 'Welcome to Racket Warrior - Account Created';
+      const body = `
+        Hi ${name},
+        
+        Your account has been created in the Racket Warrior Badminton Management System.
+        
+        Login Details:
+        Email: ${email}
+        Temporary Password: ${tempPassword}
+        Role: ${role}
+        
+        Please login and change your password immediately for security.
+        
+        Best regards,
+        Racket Warrior Team
+      `;
+      
+      GmailApp.sendEmail(email, subject, body);
+    } catch (emailError) {
+      console.error('Failed to send welcome email:', emailError);
+    }
+    
+    logAction(data.user, 'ADD_USER', `Added user: ${name} (${email}) with role ${role}`);
+    
+    return createSuccessResponse({ 
+      message: 'User added successfully',
+      tempPassword: tempPassword
+    });
+    
+  } catch (error) {
+    console.error('Add user error:', error);
+    return createErrorResponse(`Failed to add user: ${error.toString()}`, 'ADD_USER_ERROR');
+  }
+}
+
+function handleEditUser(data) {
+  try {
+    const { email, name, role, status } = data;
+    
+    if (!email || !name || !role) {
+      return createErrorResponse('Email, name, and role are required', 'MISSING_DATA');
+    }
+    
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const usersSheet = ss.getSheetByName(SHEETS.users.name);
+    
+    if (!usersSheet) {
+      return createErrorResponse('Users sheet not found', 'SHEET_NOT_FOUND');
+    }
+    
+    const users = usersSheet.getDataRange().getValues();
+    
+    // Find and update user
+    for (let i = 1; i < users.length; i++) {
+      if (users[i][0] === email) {
+        usersSheet.getRange(i + 1, 3).setValue(role);
+        usersSheet.getRange(i + 1, 4).setValue(name);
+        usersSheet.getRange(i + 1, 8).setValue(status || 'active');
+        
+        logAction(data.user, 'EDIT_USER', `Updated user: ${name} (${email})`);
+        
+        return createSuccessResponse({ message: 'User updated successfully' });
+      }
+    }
+    
+    return createErrorResponse('User not found', 'USER_NOT_FOUND');
+    
+  } catch (error) {
+    console.error('Edit user error:', error);
+    return createErrorResponse(`Failed to edit user: ${error.toString()}`, 'EDIT_USER_ERROR');
+  }
+}
+
+function handleDeleteUser(data) {
+  try {
+    const { email } = data;
+    
+    if (!email) {
+      return createErrorResponse('Email is required', 'MISSING_DATA');
+    }
+    
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const usersSheet = ss.getSheetByName(SHEETS.users.name);
+    
+    if (!usersSheet) {
+      return createErrorResponse('Users sheet not found', 'SHEET_NOT_FOUND');
+    }
+    
+    const users = usersSheet.getDataRange().getValues();
+    
+    // Find and delete user
+    for (let i = 1; i < users.length; i++) {
+      if (users[i][0] === email) {
+        const userName = users[i][3];
+        usersSheet.deleteRow(i + 1);
+        
+        logAction(data.user, 'DELETE_USER', `Deleted user: ${userName} (${email})`);
+        
+        return createSuccessResponse({ message: 'User deleted successfully' });
+      }
+    }
+    
+    return createErrorResponse('User not found', 'USER_NOT_FOUND');
+    
+  } catch (error) {
+    console.error('Delete user error:', error);
+    return createErrorResponse(`Failed to delete user: ${error.toString()}`, 'DELETE_USER_ERROR');
+  }
+}
+
+// Logs management (admin only)
+function handleGetLogs(data) {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const logsSheet = ss.getSheetByName(SHEETS.logs.name);
+    
+    if (!logsSheet) {
+      return createSuccessResponse([], 'Logs sheet not found, returning empty list');
+    }
+    
+    const logsData = logsSheet.getDataRange().getValues();
+    const logsList = [];
+    
+    for (let i = 1; i < logsData.length; i++) {
+      const row = logsData[i];
+      const log = {
+        timestamp: row[0],
+        user: row[1],
+        role: row[2],
+        action: row[3],
+        details: row[4]
+      };
+      logsList.push(log);
+    }
+    
+    // Sort by timestamp descending (most recent first)
+    logsList.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    
+    return createSuccessResponse(logsList);
+    
+  } catch (error) {
+    console.error('Get logs error:', error);
+    return createErrorResponse(`Failed to get logs: ${error.toString()}`, 'GET_LOGS_ERROR');
+  }
+}
