@@ -29,6 +29,10 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initializeApp() {
+    // Set initial login mode
+    document.body.classList.add('login-mode');
+    document.body.classList.remove('app-mode');
+    
     // Check for existing session
     checkSession();
     
@@ -438,8 +442,6 @@ function hideLoading() {
         spinner.classList.remove('active');
     }
 }
-
-let notificationTimeout = null;
 
 function showNotification(message, type = 'info') {
     console.log('Showing notification:', message, type);

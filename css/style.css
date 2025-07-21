@@ -80,14 +80,16 @@ body {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     padding: 2rem;
     min-height: 100vh;
-    position: relative;
-    overflow: hidden;
-    width: 100%;
-    height: 100vh;
     position: fixed;
     top: 0;
     left: 0;
-    z-index: 1000;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    z-index: 10000;
+    box-sizing: border-box;
+    margin: 0;
+    border: none;
 }
 
 #loginPage.hidden {
@@ -96,7 +98,7 @@ body {
 }
 
 .app-container {
-    display: none;
+    display: none !important;
     width: 100%;
     height: 100vh;
     position: fixed;
@@ -104,11 +106,14 @@ body {
     left: 0;
     z-index: 999;
     flex-direction: row;
+    visibility: hidden;
+    opacity: 0;
 }
 
 .app-container.visible {
     display: flex !important;
     visibility: visible !important;
+    opacity: 1 !important;
 }
 
 /* Fallback styles for robust transitions */
@@ -150,6 +155,18 @@ body.login-mode .app-container {
     0%, 100% { transform: translateY(0px) rotate(0deg); }
     33% { transform: translateY(-30px) rotate(1deg); }
     66% { transform: translateY(-20px) rotate(-1deg); }
+}
+
+#loginPage::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    z-index: -1;
+    pointer-events: none;
 }
 
 .login-container {
@@ -1862,23 +1879,34 @@ html {
     #loginPage {
         padding: 1rem;
         min-height: 100vh;
-        align-items: flex-start;
-        padding-top: 2rem;
+        height: 100vh;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        overflow: hidden;
     }
     
     .login-container {
         max-width: 100%;
         width: 100%;
         padding: 0 15px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
     
     .login-card {
-        padding: 1.5rem;
+        padding: 2rem 1.5rem;
         margin: 0;
         border-radius: 16px;
         width: 100%;
+        max-width: 400px;
         box-sizing: border-box;
-        max-width: none;
+        position: relative;
+        z-index: 1;
     }
     
     .logo {
@@ -1889,10 +1917,17 @@ html {
     .login-card h2 {
         font-size: 1.75rem;
         margin-bottom: 0.5rem;
+        text-align: center;
     }
     
     .login-card p {
         font-size: 0.9rem;
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+    
+    .logo-container {
+        text-align: center;
         margin-bottom: 1.5rem;
     }
     
@@ -2811,5 +2846,92 @@ body.admin-user .nav-item.admin-only {
     
     .form-actions .btn {
         width: 100%;
+    }
+}
+
+/* Ensure clean login display */
+body:not(.app-mode) {
+    overflow: hidden;
+}
+
+body:not(.app-mode) .app-container,
+body:not(.app-mode) .sidebar,
+body:not(.app-mode) .main-content {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+
+/* Login page isolation */
+body.login-mode {
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+}
+
+body.login-mode * {
+    box-sizing: border-box;
+}
+
+body.login-mode .app-container {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* Extra small devices (phones, 480px and down) */
+@media (max-width: 480px) {
+    #loginPage {
+        padding: 0.5rem;
+    }
+    
+    .login-container {
+        padding: 0 10px;
+    }
+    
+    .login-card {
+        padding: 1.5rem 1rem;
+        margin: 10px 0;
+        border-radius: 12px;
+        min-height: auto;
+    }
+    
+    .login-card h2 {
+        font-size: 1.5rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .login-card p {
+        font-size: 0.85rem;
+        margin-bottom: 1.25rem;
+    }
+    
+    .logo {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    
+    .form-group input {
+        padding: 0.75rem;
+        font-size: 14px;
+    }
+    
+    .btn {
+        padding: 0.75rem 1rem;
+        font-size: 14px;
+    }
+    
+    .form-options {
+        margin-bottom: 1.25rem !important;
+    }
+    
+    .form-options label,
+    .form-options a {
+        font-size: 13px !important;
     }
 }
