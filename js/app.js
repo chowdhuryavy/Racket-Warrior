@@ -690,7 +690,7 @@ function setupUserPermissions() {
     console.log('Setting up permissions for user:', currentUser.role);
     
     // Add admin class to body for admin users
-    if (currentUser.role === 'admin') {
+    if (currentUser.role === 'admin' || currentUser.role === 'Admin') {
         document.body.classList.add('admin-user');
         console.log('Admin user detected - showing admin content');
     } else {
@@ -702,23 +702,27 @@ function setupUserPermissions() {
     const adminNavItems = document.querySelectorAll('.nav-item.admin-only');
     console.log('Found admin nav items:', adminNavItems.length);
     adminNavItems.forEach(item => {
-        if (currentUser.role === 'admin') {
-            item.style.display = 'flex !important';
+        if (currentUser.role === 'admin' || currentUser.role === 'Admin') {
+            item.style.display = 'flex';
             item.style.visibility = 'visible';
+            item.classList.remove('hidden');
             console.log('Showing admin nav item:', item);
         } else {
-            item.style.display = 'none !important';
+            item.style.display = 'none';
             item.style.visibility = 'hidden';
+            item.classList.add('hidden');
         }
     });
     
     // Show/hide admin-only pages
     const adminPages = document.querySelectorAll('.content-page.admin-only');
     adminPages.forEach(page => {
-        if (currentUser.role === 'admin') {
+        if (currentUser.role === 'admin' || currentUser.role === 'Admin') {
             page.classList.add('admin-accessible');
+            page.style.display = '';
         } else {
             page.classList.remove('admin-accessible');
+            page.style.display = 'none';
         }
     });
     

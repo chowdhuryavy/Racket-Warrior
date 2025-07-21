@@ -115,9 +115,13 @@
         <!-- Sidebar -->
                     <div id="sidebar" class="sidebar">
                 <div class="sidebar-header">
-                    <img src="https://i.imgur.com/04MGPFl.png" alt="Gym Logo" class="sidebar-logo">
-                    <h3>Racket Warrior</h3>
-                    <button class="close-sidebar" onclick="closeSidebar()" style="margin-left: auto; background: none; border: none; font-size: 1.25rem; color: var(--text-secondary); cursor: pointer;">×</button>
+                    <div class="sidebar-logo">
+                        <img src="https://i.imgur.com/04MGPFl.png" alt="Gym Logo" class="logo">
+                        <h1>Racket Warrior</h1>
+                    </div>
+                    <button class="close-sidebar" onclick="closeSidebar()">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
             <nav class="sidebar-nav">
                 <a href="#" class="nav-item active" onclick="handleNavClick('dashboard')">
@@ -317,32 +321,33 @@
                 <div class="form-container">
                     <form id="addPlayerForm" class="advanced-form">
                         <div class="form-grid">
-                            <div class="form-group">
-                                <label for="playerName">Full Name *</label>
-                                <input type="text" id="playerName" name="name" required>
+                            <div class="form-group icon-user required">
+                                <label for="playerName">Full Name</label>
+                                <input type="text" id="playerName" name="name" placeholder="Enter player's full name" required>
                             </div>
-                            <div class="form-group">
-                                <label for="playerPhone">Phone Number *</label>
-                                <input type="tel" id="playerPhone" name="phone" required>
+                            <div class="form-group icon-phone required">
+                                <label for="playerPhone">Phone Number</label>
+                                <input type="tel" id="playerPhone" name="phone" placeholder="Enter phone number" required>
                             </div>
-                            <div class="form-group">
-                                <label for="playerEmail">Email Address</label>
-                                <input type="email" id="playerEmail" name="email">
+                            <div class="form-group icon-email">
+                                <label for="playerEmail" class="optional">Email Address</label>
+                                <input type="email" id="playerEmail" name="email" placeholder="Enter email address (optional)">
                             </div>
-                            <div class="form-group">
-                                <label for="playerJoinDate">Join Date *</label>
+                            <div class="form-group icon-calendar required">
+                                <label for="playerJoinDate">Join Date</label>
                                 <input type="date" id="playerJoinDate" name="joinDate" required>
                             </div>
-                            <div class="form-group">
-                                <label for="playerStatus">Status *</label>
+                            <div class="form-group required">
+                                <label for="playerStatus">Status</label>
                                 <select id="playerStatus" name="status" required>
-                                    <option value="active">Active</option>
-                                    <option value="inactive">Inactive</option>
+                                    <option value="">Select Status</option>
+                                    <option value="active">🟢 Active</option>
+                                    <option value="inactive">🔴 Inactive</option>
                                 </select>
                             </div>
-                            <div class="form-group">
-                                <label for="playerNotes">Notes</label>
-                                <textarea id="playerNotes" name="notes" rows="3"></textarea>
+                            <div class="form-group icon-note full-width">
+                                <label for="playerNotes" class="optional">Notes</label>
+                                <textarea id="playerNotes" name="notes" rows="3" placeholder="Add any additional notes about the player..."></textarea>
                             </div>
                         </div>
                         <div class="form-actions">
@@ -700,35 +705,35 @@
     <div id="editPlayerModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeModal('editPlayerModal')">&times;</span>
-            <h3 id="editPlayerModalTitle">Edit Player</h3>
+            <h3 id="editPlayerModalTitle">✨ Edit Player Details</h3>
             <form id="editPlayerForm">
                 <input type="hidden" id="editPlayerId">
-                <div class="form-group">
-                    <label>Name</label>
-                    <input type="text" id="editPlayerName" required>
+                <div class="form-group icon-user">
+                    <label>Full Name</label>
+                    <input type="text" id="editPlayerName" placeholder="Enter player's full name" required>
                 </div>
-                <div class="form-group">
-                    <label>Phone</label>
-                    <input type="tel" id="editPlayerPhone" required>
+                <div class="form-group icon-phone">
+                    <label>Phone Number</label>
+                    <input type="tel" id="editPlayerPhone" placeholder="Enter phone number" required>
                 </div>
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" id="editPlayerEmail">
+                <div class="form-group icon-email">
+                    <label class="optional">Email Address</label>
+                    <input type="email" id="editPlayerEmail" placeholder="Enter email address (optional)">
                 </div>
-                <div class="form-group">
+                <div class="form-group icon-calendar">
                     <label>Join Date</label>
                     <input type="date" id="editPlayerJoinDate" required>
                 </div>
                 <div class="form-group">
                     <label>Status</label>
                     <select id="editPlayerStatus" required>
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
+                        <option value="active">🟢 Active</option>
+                        <option value="inactive">🔴 Inactive</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label>Notes</label>
-                    <textarea id="editPlayerNotes" rows="3"></textarea>
+                <div class="form-group icon-note">
+                    <label class="optional">Notes</label>
+                    <textarea id="editPlayerNotes" rows="3" placeholder="Add any additional notes..."></textarea>
                 </div>
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" onclick="closeModal('editPlayerModal')">Cancel</button>
