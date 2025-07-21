@@ -18,6 +18,10 @@ let cachedData = {
     users: [],
     logs: []
 };
+let notificationTimeout = null;
+let playersData = [];
+let collectionsData = [];
+let expensesData = [];
 
 // Initialize app
 document.addEventListener('DOMContentLoaded', function() {
@@ -36,6 +40,9 @@ function initializeApp() {
     
     // Set up mobile responsiveness
     setupMobileHandlers();
+    
+    // Set up edit form handlers
+    setupEditFormHandlers();
     
     console.log('Gym Management System initialized');
 }
@@ -1445,69 +1452,74 @@ function closeModal(modalId) {
     }
 }
 
-function showAddPlayerModal() {
-    const modal = document.getElementById('addPlayerModal');
-    const form = document.getElementById('playerForm');
-    const title = document.getElementById('playerModalTitle');
+// Edit player function
+function editPlayer(playerId) {
+    console.log('Edit player:', playerId);
     
-    if (modal && form && title) {
-        title.textContent = 'Add Player';
-        form.reset();
-        document.getElementById('playerId').value = '';
-        
-        // Set default join date to today
-        const joinDateInput = document.getElementById('playerJoinDate');
-        if (joinDateInput) {
-            joinDateInput.value = new Date().toISOString().split('T')[0];
-        }
-        
-        // Clear monthly status checkboxes
-        document.querySelectorAll('input[name="monthlyStatus"]').forEach(cb => {
-            cb.checked = false;
-        });
-        
-        modal.classList.add('active');
+    // Find player in current data
+    const player = cachedData.players.find(p => p.id === playerId || p.Id === playerId || p.ID === playerId);
+    if (!player) {
+        showNotification('Player not found', 'error');
+        return;
     }
+    
+    // Populate modal with player data
+    document.getElementById('editPlayerId').value = playerId;
+    document.getElementById('editPlayerName').value = player.name || player.Name || '';
+    document.getElementById('editPlayerPhone').value = player.phone || player.Phone || '';
+    document.getElementById('editPlayerEmail').value = player.email || player.Email || '';
+    document.getElementById('editPlayerJoinDate').value = player.joinDate || player.JoinDate || '';
+    document.getElementById('editPlayerStatus').value = player.status || player.Status || 'active';
+    document.getElementById('editPlayerNotes').value = player.notes || player.Notes || '';
+    
+    showModal('editPlayerModal');
 }
 
-function showAddCollectionModal() {
-    const modal = document.getElementById('addCollectionModal');
-    const form = document.getElementById('collectionForm');
-    const title = document.getElementById('collectionModalTitle');
+// Edit collection function
+function editCollection(collectionId) {
+    console.log('Edit collection:', collectionId);
     
-    if (modal && form && title) {
-        title.textContent = 'Add Collection';
-        form.reset();
-        document.getElementById('collectionId').value = '';
-        
-        // Set default date to today
-        const dateInput = document.getElementById('collectionDate');
-        if (dateInput) {
-            dateInput.value = new Date().toISOString().split('T')[0];
-        }
-        
-        modal.classList.add('active');
+    // Find collection in current data
+    const collection = cachedData.income.find(c => c.id === collectionId || c.Id === collectionId || c.ID === collectionId);
+    if (!collection) {
+        showNotification('Collection not found', 'error');
+        return;
     }
+    
+    // Populate modal with collection data
+    document.getElementById('editCollectionId').value = collectionId;
+    document.getElementById('editCollectionDate').value = collection.date || collection.Date || '';
+    document.getElementById('editCollectionPlayer').value = collection.player || collection.Player || '';
+    document.getElementById('editCollectionAmount').value = collection.amount || collection.Amount || '';
+    document.getElementById('editCollectionMethod').value = collection.method || collection.Method || 'cash';
+    document.getElementById('editCollectionDescription').value = collection.description || collection.Description || '';
+    
+    // Load players for dropdown
+    loadPlayersForDropdown('editCollectionPlayer');
+    
+    showModal('editCollectionModal');
 }
 
-function showAddExpenseModal() {
-    const modal = document.getElementById('addExpenseModal');
-    const form = document.getElementById('expenseForm');
-    const title = document.getElementById('expenseModalTitle');
+// Edit expense function
+function editExpense(expenseId) {
+    console.log('Edit expense:', expenseId);
     
-    if (modal && form && title) {
-        title.textContent = 'Add Expense';
-        form.reset();
-        document.getElementById('expenseId').value = '';
-        
-        // Set default date to today
-        const dateInput = document.getElementById('expenseDate');
-        if (dateInput) {
-            dateInput.value = new Date().toISOString().split('T')[0];
-        }
-        
-        modal.classList.add('active');
+    // Find expense in current data
+    const expense = cachedData.expenses.find(e => e.id === expenseId || e.Id === expenseId || e.ID === expenseId);
+    if (!expense) {
+        showNotification('Expense not found', 'error');
+        return;
     }
+    
+    // Populate modal with expense data
+    document.getElementById('editExpenseId').value = expenseId;
+    document.getElementById('editExpenseDate').value = expense.date || expense.Date || '';
+    document.getElementById('editExpenseCategory').value = expense.category || expense.Category || '';
+    document.getElementById('editExpenseAmount').value = expense.amount || expense.Amount || '';
+    document.getElementById('editExpenseVendor').value = expense.vendor || expense.Vendor || '';
+    document.getElementById('editExpenseDescription').value = expense.description || expense.Description || '';
+    
+    showModal('editExpenseModal');
 }
 
 function showAddUserModal() {
@@ -2174,7 +2186,7 @@ function renderPlayersTable(players) {
                 <i class="fas fa-users" style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 1rem;"></i>
                 <h3>No Players Found</h3>
                 <p>Start by adding your first player to the system.</p>
-                <button class="btn btn-primary" onclick="showAddPlayerModal()">
+                <button class="btn btn-primary" onclick="handleNavClick('players-add')">
                     <i class="fas fa-plus"></i>
                     Add First Player
                 </button>
@@ -2249,7 +2261,7 @@ function renderCollectionsTable(collections) {
                 <i class="fas fa-coins" style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 1rem;"></i>
                 <h3>No Collections Found</h3>
                 <p>Start by adding your first collection entry.</p>
-                <button class="btn btn-primary" onclick="showAddCollectionModal()">
+                <button class="btn btn-primary" onclick="handleNavClick('collections-add')">
                     <i class="fas fa-plus"></i>
                     Add First Collection
                 </button>
@@ -2317,7 +2329,7 @@ function renderExpensesTable(expenses) {
                 <i class="fas fa-receipt" style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 1rem;"></i>
                 <h3>No Expenses Found</h3>
                 <p>Start by adding your first expense entry.</p>
-                <button class="btn btn-primary" onclick="showAddExpenseModal()">
+                <button class="btn btn-primary" onclick="handleNavClick('expenses-add')">
                     <i class="fas fa-plus"></i>
                     Add First Expense
                 </button>
@@ -2361,4 +2373,115 @@ function renderExpensesTable(expenses) {
     
     tableHTML += '</tbody></table>';
     container.innerHTML = tableHTML;
+}
+
+// Show modal function
+function showModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.add('active');
+    }
+}
+
+// Edit form submission handlers
+function setupEditFormHandlers() {
+    // Edit Player Form
+    const editPlayerForm = document.getElementById('editPlayerForm');
+    if (editPlayerForm) {
+        editPlayerForm.onsubmit = async function(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const playerData = {
+                id: formData.get('editPlayerId'),
+                name: formData.get('editPlayerName'),
+                phone: formData.get('editPlayerPhone'),
+                email: formData.get('editPlayerEmail'),
+                joinDate: formData.get('editPlayerJoinDate'),
+                status: formData.get('editPlayerStatus'),
+                notes: formData.get('editPlayerNotes')
+            };
+            
+            try {
+                showLoading();
+                await apiCall('editPlayer', playerData);
+                await logUserAction('PLAYER_EDIT', `Updated player: ${playerData.name}`, playerData);
+                showNotification('Player updated successfully!', 'success');
+                closeModal('editPlayerModal');
+                if (currentPage === 'players-view') {
+                    loadPlayersData();
+                }
+            } catch (error) {
+                console.error('Failed to update player:', error);
+                showNotification('Failed to update player. Please try again.', 'error');
+            } finally {
+                hideLoading();
+            }
+        };
+    }
+
+    // Edit Collection Form
+    const editCollectionForm = document.getElementById('editCollectionForm');
+    if (editCollectionForm) {
+        editCollectionForm.onsubmit = async function(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const collectionData = {
+                id: formData.get('editCollectionId'),
+                date: formData.get('editCollectionDate'),
+                player: formData.get('editCollectionPlayer'),
+                amount: parseFloat(formData.get('editCollectionAmount')),
+                method: formData.get('editCollectionMethod'),
+                description: formData.get('editCollectionDescription')
+            };
+            
+            try {
+                showLoading();
+                await apiCall('editIncome', collectionData);
+                await logUserAction('COLLECTION_EDIT', `Updated collection: QAR ${collectionData.amount} from ${collectionData.player}`, collectionData);
+                showNotification('Collection updated successfully!', 'success');
+                closeModal('editCollectionModal');
+                if (currentPage === 'collections-view') {
+                    loadCollectionsData();
+                }
+            } catch (error) {
+                console.error('Failed to update collection:', error);
+                showNotification('Failed to update collection. Please try again.', 'error');
+            } finally {
+                hideLoading();
+            }
+        };
+    }
+
+    // Edit Expense Form
+    const editExpenseForm = document.getElementById('editExpenseForm');
+    if (editExpenseForm) {
+        editExpenseForm.onsubmit = async function(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const expenseData = {
+                id: formData.get('editExpenseId'),
+                date: formData.get('editExpenseDate'),
+                category: formData.get('editExpenseCategory'),
+                amount: parseFloat(formData.get('editExpenseAmount')),
+                vendor: formData.get('editExpenseVendor'),
+                description: formData.get('editExpenseDescription')
+            };
+            
+            try {
+                showLoading();
+                await apiCall('editExpense', expenseData);
+                await logUserAction('EXPENSE_EDIT', `Updated expense: QAR ${expenseData.amount} - ${expenseData.description}`, expenseData);
+                showNotification('Expense updated successfully!', 'success');
+                closeModal('editExpenseModal');
+                if (currentPage === 'expenses-view') {
+                    loadExpensesData();
+                }
+            } catch (error) {
+                console.error('Failed to update expense:', error);
+                showNotification('Failed to update expense. Please try again.', 'error');
+            } finally {
+                hideLoading();
+            }
+        };
+    }
 }

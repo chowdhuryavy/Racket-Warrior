@@ -695,116 +695,129 @@
         </div>
     </div>
 
-    <!-- Modals -->
-    <!-- Add Player Modal -->
-    <div id="addPlayerModal" class="modal">
+    <!-- Edit Modals (for editing existing data) -->
+    <!-- Edit Player Modal -->
+    <div id="editPlayerModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeModal('addPlayerModal')">&times;</span>
-            <h3 id="playerModalTitle">Add Player</h3>
-            <form id="playerForm">
-                <input type="hidden" id="playerId">
+            <span class="close" onclick="closeModal('editPlayerModal')">&times;</span>
+            <h3 id="editPlayerModalTitle">Edit Player</h3>
+            <form id="editPlayerForm">
+                <input type="hidden" id="editPlayerId">
                 <div class="form-group">
                     <label>Name</label>
-                    <input type="text" id="playerName" required>
+                    <input type="text" id="editPlayerName" required>
                 </div>
                 <div class="form-group">
                     <label>Phone</label>
-                    <input type="tel" id="playerPhone" required>
+                    <input type="tel" id="editPlayerPhone" required>
                 </div>
                 <div class="form-group">
                     <label>Email</label>
-                    <input type="email" id="playerEmail" required>
+                    <input type="email" id="editPlayerEmail">
                 </div>
                 <div class="form-group">
                     <label>Join Date</label>
-                    <input type="date" id="playerJoinDate" required>
+                    <input type="date" id="editPlayerJoinDate" required>
                 </div>
                 <div class="form-group">
                     <label>Status</label>
-                    <select id="playerStatus" required>
+                    <select id="editPlayerStatus" required>
                         <option value="active">Active</option>
                         <option value="inactive">Inactive</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Monthly Status</label>
-                    <div id="monthlyStatusContainer" class="monthly-status-grid"></div>
+                    <label>Notes</label>
+                    <textarea id="editPlayerNotes" rows="3"></textarea>
                 </div>
                 <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('addPlayerModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save Player</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('editPlayerModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Player</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Add Collection Modal -->
-    <div id="addCollectionModal" class="modal">
+    <!-- Edit Collection Modal -->
+    <div id="editCollectionModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeModal('addCollectionModal')">&times;</span>
-            <h3 id="collectionModalTitle">Add Collection</h3>
-            <form id="collectionForm">
-                <input type="hidden" id="collectionId">
+            <span class="close" onclick="closeModal('editCollectionModal')">&times;</span>
+            <h3 id="editCollectionModalTitle">Edit Collection</h3>
+            <form id="editCollectionForm">
+                <input type="hidden" id="editCollectionId">
                 <div class="form-group">
                     <label>Date</label>
-                    <input type="date" id="collectionDate" required>
+                    <input type="date" id="editCollectionDate" required>
                 </div>
                 <div class="form-group">
                     <label>Player</label>
-                    <select id="collectionPlayer" required>
+                    <select id="editCollectionPlayer" required>
                         <option value="">Select Player</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Amount</label>
-                    <input type="number" id="collectionAmount" min="0" step="0.01" required>
+                    <label>Amount (QAR)</label>
+                    <input type="number" id="editCollectionAmount" min="0" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label>Payment Method</label>
+                    <select id="editCollectionMethod">
+                        <option value="cash">Cash</option>
+                        <option value="card">Card</option>
+                        <option value="transfer">Bank Transfer</option>
+                        <option value="other">Other</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label>Description</label>
-                    <textarea id="collectionDescription" rows="3"></textarea>
+                    <textarea id="editCollectionDescription" rows="3"></textarea>
                 </div>
                 <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('addCollectionModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save Collection</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('editCollectionModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Collection</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Add Expense Modal -->
-    <div id="addExpenseModal" class="modal">
+    <!-- Edit Expense Modal -->
+    <div id="editExpenseModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeModal('addExpenseModal')">&times;</span>
-            <h3 id="expenseModalTitle">Add Expense</h3>
-            <form id="expenseForm">
-                <input type="hidden" id="expenseId">
+            <span class="close" onclick="closeModal('editExpenseModal')">&times;</span>
+            <h3 id="editExpenseModalTitle">Edit Expense</h3>
+            <form id="editExpenseForm">
+                <input type="hidden" id="editExpenseId">
                 <div class="form-group">
                     <label>Date</label>
-                    <input type="date" id="expenseDate" required>
+                    <input type="date" id="editExpenseDate" required>
                 </div>
                 <div class="form-group">
                     <label>Category</label>
-                    <select id="expenseCategory" required>
+                    <select id="editExpenseCategory" required>
                         <option value="">Select Category</option>
-                        <option value="Equipment">Equipment</option>
-                        <option value="Maintenance">Maintenance</option>
-                        <option value="Utilities">Utilities</option>
-                        <option value="Staff">Staff</option>
-                        <option value="Rent">Rent</option>
-                        <option value="Other">Other</option>
+                        <option value="equipment">Equipment</option>
+                        <option value="maintenance">Maintenance</option>
+                        <option value="utilities">Utilities</option>
+                        <option value="rent">Rent</option>
+                        <option value="marketing">Marketing</option>
+                        <option value="other">Other</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Amount</label>
-                    <input type="number" id="expenseAmount" min="0" step="0.01" required>
+                    <label>Amount (QAR)</label>
+                    <input type="number" id="editExpenseAmount" min="0" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label>Vendor/Supplier</label>
+                    <input type="text" id="editExpenseVendor">
                 </div>
                 <div class="form-group">
                     <label>Description</label>
-                    <textarea id="expenseDescription" rows="3"></textarea>
+                    <textarea id="editExpenseDescription" rows="3" required></textarea>
                 </div>
                 <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('addExpenseModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save Expense</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('editExpenseModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Expense</button>
                 </div>
             </form>
         </div>
