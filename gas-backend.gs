@@ -362,10 +362,12 @@ function handleSendOTP(data) {
     // Check if user exists
     const users = usersSheet.getDataRange().getValues();
     let userRowIndex = -1;
+    let userName = 'User';
     
     for (let i = 1; i < users.length; i++) {
       if (users[i][0] === email) {
         userRowIndex = i + 1;
+        userName = users[i][3] || 'User';
         break;
       }
     }
@@ -382,31 +384,87 @@ function handleSendOTP(data) {
     usersSheet.getRange(userRowIndex, 9).setValue(otp); // resetToken column
     usersSheet.getRange(userRowIndex, 10).setValue(expiry); // resetTokenExpiry column
     
-    // Get user name for personalization
-    const userName = users[userRowIndex - 1][3] || 'User';
+    console.log(`Generated OTP for ${email}: ${otp}, expires: ${expiry}`);
     
-    // Send email
-    const subject = 'OTP - Racket Warrior';
-    const body = `Hi ${userName},
-
-We received a request to reset the password for your account associated with this email.
-
-To proceed, please use the One-Time Password (OTP) below:
-
-🔐 OTP Code: ${otp}
-
-This OTP is valid for the next 10 minutes.
-
-If you did not request a password reset, please ignore this email or contact our support team immediately.
-
-Stay secure,
-
-Support Team
-Racket Warrior`;
+    // Send beautiful HTML email
+    const subject = 'Password Reset - Racket Warrior';
+    const htmlBody = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Reset - Racket Warrior</title>
+    <style>
+        body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f5f5; }
+        .container { max-width: 600px; margin: 0 auto; background-color: white; }
+        .header { background: linear-gradient(135deg, #4CAF50, #45a049); padding: 40px 20px; text-align: center; }
+        .logo { width: 80px; height: 80px; margin: 0 auto 20px; border-radius: 12px; }
+        .header h1 { color: white; margin: 0; font-size: 28px; font-weight: 600; }
+        .content { padding: 40px 30px; }
+        .greeting { font-size: 18px; color: #333; margin-bottom: 20px; font-weight: 500; }
+        .message { font-size: 16px; color: #666; line-height: 1.6; margin-bottom: 30px; }
+        .otp-container { background: linear-gradient(135deg, #ff6b35, #f7931e); padding: 25px; border-radius: 12px; text-align: center; margin: 30px 0; }
+        .otp-label { color: white; font-size: 16px; font-weight: 600; margin-bottom: 10px; }
+        .otp-code { background: white; color: #ff6b35; font-size: 32px; font-weight: bold; padding: 15px; border-radius: 8px; letter-spacing: 3px; margin: 10px 0; display: inline-block; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .validity { color: white; font-size: 14px; opacity: 0.9; }
+        .warning { background-color: #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 15px; border-radius: 8px; margin: 20px 0; font-size: 14px; }
+        .footer { background-color: #f8f9fa; padding: 25px; text-align: center; border-top: 1px solid #e9ecef; }
+        .footer-text { color: #6c757d; font-size: 14px; margin: 5px 0; }
+        .brand { color: #4CAF50; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="https://i.imgur.com/04MGPFl.png" alt="Racket Warrior" class="logo">
+            <h1>Racket Warrior</h1>
+        </div>
+        
+        <div class="content">
+            <div class="greeting">Hi ${userName},</div>
+            
+            <div class="message">
+                We received a request to reset the password for your account associated with this email.
+            </div>
+            
+            <div class="message">
+                To proceed, please use the One-Time Password (OTP) below:
+            </div>
+            
+            <div class="otp-container">
+                <div class="otp-label">🔐 OTP Code:</div>
+                <div class="otp-code">${otp}</div>
+                <div class="validity">This OTP is valid for the next 10 minutes.</div>
+            </div>
+            
+            <div class="warning">
+                <strong>⚠️ Security Notice:</strong><br>
+                If you did not request a password reset, please ignore this email or contact our support team immediately.
+            </div>
+            
+            <div class="message">
+                Stay secure,
+            </div>
+        </div>
+        
+        <div class="footer">
+            <div class="footer-text"><strong>Support Team</strong></div>
+            <div class="footer-text brand">Racket Warrior</div>
+        </div>
+    </div>
+</body>
+</html>`;
     
     try {
-      GmailApp.sendEmail(email, subject, body);
-      return createSuccessResponse({ message: 'OTP sent successfully' });
+      GmailApp.sendEmail(email, subject, '', {
+        htmlBody: htmlBody
+      });
+      
+      return createSuccessResponse({ 
+        message: 'OTP sent successfully',
+        debug: { otp: otp, expiry: expiry } // Remove this in production
+      });
     } catch (emailError) {
       console.error('Email sending error:', emailError);
       return createErrorResponse('Failed to send OTP email', 'EMAIL_SEND_ERROR');
@@ -423,6 +481,8 @@ function handleVerifyOTP(data) {
     const email = data && data.email ? data.email : null;
     const otp = data && data.otp ? data.otp : null;
     
+    console.log(`Verifying OTP for email: ${email}, OTP: ${otp}`);
+    
     if (!email || !otp) {
       return createErrorResponse('Email and OTP are required', 'MISSING_DATA');
     }
@@ -435,15 +495,33 @@ function handleVerifyOTP(data) {
     for (let i = 1; i < users.length; i++) {
       const row = users[i];
       if (row[0] === email) {
-        const storedOTP = row[8];
-        const expiry = new Date(row[9]);
+        const storedOTP = String(row[8]); // Convert to string for comparison
+        const expiryString = row[9];
         
-        if (storedOTP === otp && new Date() < expiry) {
+        console.log(`Found user. Stored OTP: ${storedOTP}, Input OTP: ${otp}, Expiry: ${expiryString}`);
+        
+        // Handle different expiry formats
+        let expiry;
+        try {
+          expiry = new Date(expiryString);
+        } catch (e) {
+          console.error('Invalid expiry date format:', expiryString);
+          return createErrorResponse('Invalid OTP expiry format', 'INVALID_EXPIRY');
+        }
+        
+        const now = new Date();
+        console.log(`Current time: ${now}, Expiry time: ${expiry}, Is expired: ${now >= expiry}`);
+        
+        if (now >= expiry) {
+          return createErrorResponse('OTP has expired. Please request a new one.', 'OTP_EXPIRED');
+        }
+        
+        if (storedOTP === String(otp)) {
+          console.log('OTP verification successful');
           return createSuccessResponse({ message: 'OTP verified successfully' });
-        } else if (new Date() >= expiry) {
-          return createErrorResponse('OTP has expired', 'OTP_EXPIRED');
         } else {
-          return createErrorResponse('Invalid OTP', 'INVALID_OTP');
+          console.log(`OTP mismatch. Expected: '${storedOTP}', Got: '${otp}'`);
+          return createErrorResponse('Invalid OTP. Please check and try again.', 'INVALID_OTP');
         }
       }
     }
@@ -462,6 +540,8 @@ function handleResetPassword(data) {
     const otp = data && data.otp ? data.otp : null;
     const newPassword = data && data.newPassword ? data.newPassword : null;
     
+    console.log(`Reset password attempt for email: ${email}, OTP: ${otp}`);
+    
     if (!email || !otp || !newPassword) {
       return createErrorResponse('Email, OTP, and new password are required', 'MISSING_DATA');
     }
@@ -479,10 +559,27 @@ function handleResetPassword(data) {
     for (let i = 1; i < users.length; i++) {
       const row = users[i];
       if (row[0] === email) {
-        const storedOTP = row[8];
-        const expiry = new Date(row[9]);
+        const storedOTP = String(row[8]);
+        const expiryString = row[9];
         
-        if (storedOTP === otp && new Date() < expiry) {
+        console.log(`Found user for reset. Stored OTP: ${storedOTP}, Input OTP: ${otp}, Expiry: ${expiryString}`);
+        
+        // Handle different expiry formats
+        let expiry;
+        try {
+          expiry = new Date(expiryString);
+        } catch (e) {
+          console.error('Invalid expiry date format:', expiryString);
+          return createErrorResponse('Invalid OTP expiry format', 'INVALID_EXPIRY');
+        }
+        
+        const now = new Date();
+        
+        if (now >= expiry) {
+          return createErrorResponse('OTP has expired. Please request a new one.', 'OTP_EXPIRED');
+        }
+        
+        if (storedOTP === String(otp)) {
           // Update password
           const hashedPassword = hashPassword(newPassword);
           usersSheet.getRange(i + 1, 2).setValue(hashedPassword);
@@ -494,8 +591,10 @@ function handleResetPassword(data) {
           const user = { email: email, role: row[2] };
           logAction(user, 'PASSWORD_RESET', 'Password reset successfully');
           
+          console.log('Password reset successful');
           return createSuccessResponse({ message: 'Password reset successfully' });
         } else {
+          console.log(`OTP mismatch in reset. Expected: '${storedOTP}', Got: '${otp}'`);
           return createErrorResponse('Invalid or expired OTP', 'INVALID_OTP');
         }
       }
