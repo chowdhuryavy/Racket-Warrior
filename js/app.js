@@ -290,52 +290,71 @@ function hideButtonLoading(button) {
     }
 }
 
-// API functions
-async function apiCall(action, data = {}) {
+// JSONP API call function to bypass CORS completely
+function apiCall(action, data = {}) {
     showLoading();
-    try {
-        const response = await fetch(CONFIG.SCRIPT_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                action: action,
-                ...data
-            })
+    
+    return new Promise((resolve, reject) => {
+        // Create unique callback name
+        const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
+        
+        // Create script element
+        const script = document.createElement('script');
+        
+        // Set up callback function
+        window[callbackName] = function(response) {
+            // Clean up
+            document.head.removeChild(script);
+            delete window[callbackName];
+            hideLoading();
+            
+            if (response && response.success) {
+                resolve(response.data);
+            } else {
+                reject(new Error(response ? response.message : 'Request failed'));
+            }
+        };
+        
+        // Handle script load errors
+        script.onerror = function() {
+            document.head.removeChild(script);
+            delete window[callbackName];
+            hideLoading();
+            reject(new Error('Network error or script load failed'));
+        };
+        
+        // Build URL with parameters
+        const params = new URLSearchParams();
+        params.append('callback', callbackName);
+        params.append('action', action);
+        
+        // Add all data as URL parameters
+        Object.keys(data).forEach(key => {
+            if (data[key] !== null && data[key] !== undefined) {
+                if (typeof data[key] === 'object') {
+                    params.append(key, JSON.stringify(data[key]));
+                } else {
+                    params.append(key, data[key]);
+                }
+            }
         });
         
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        // Set script source
+        script.src = `${CONFIG.SCRIPT_URL}?${params.toString()}`;
         
-        const result = await response.json();
+        // Add script to head
+        document.head.appendChild(script);
         
-        if (result.success) {
-            return result.data;
-        } else {
-            throw new Error(result.message || 'Request failed');
-        }
-    } catch (error) {
-        console.error('API call failed:', error);
-        
-        // Detailed CORS debugging
-        if (error.message.includes('CORS') || error.message.includes('Failed to fetch')) {
-            console.error('🚨 CORS Issue Detected:');
-            console.error('📍 Your Google Apps Script URL:', CONFIG.SCRIPT_URL);
-            console.error('❌ This means your Google Apps Script does NOT have CORS headers');
-            console.error('🔧 Solution: Redeploy your Google Apps Script with the updated gas-backend.gs code');
-            console.error('📖 Follow: GOOGLE_APPS_SCRIPT_DEPLOYMENT.md');
-        }
-        if (error.name === 'TypeError' && error.message.includes('fetch')) {
-            showNotification('Network error. Please check your connection.', 'error');
-        } else {
-            showNotification(error.message || 'Something went wrong', 'error');
-        }
-        throw error;
-    } finally {
-        hideLoading();
-    }
+        // Set timeout
+        setTimeout(() => {
+            if (window[callbackName]) {
+                document.head.removeChild(script);
+                delete window[callbackName];
+                hideLoading();
+                reject(new Error('Request timeout - please check your internet connection'));
+            }
+        }, 30000); // 30 second timeout
+    });
 }
 
 // Authentication functions

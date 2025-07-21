@@ -93,44 +93,100 @@ function createErrorResponse(message, code = 'ERROR') {
   };
 }
 
-// Fixed CORS response function for Google Apps Script compatibility
-function createResponseWithHeaders(response) {
-  const output = ContentService.createTextOutput(JSON.stringify(response));
-  output.setMimeType(ContentService.MimeType.JSON);
+// JSONP response function
+function createJsonpResponse(response, callback) {
+  const jsonpResponse = `${callback}(${JSON.stringify(response)});`;
+  return ContentService
+    .createTextOutput(jsonpResponse)
+    .setMimeType(ContentService.MimeType.JAVASCRIPT);
+}
+
+// Handle GET requests (JSONP)
+function doGet(e) {
+  console.log('doGet called with parameters:', e.parameter);
   
-  // Add CORS headers individually (Google Apps Script compatibility)
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS, GET',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Access-Control-Max-Age': '86400'
-  };
-  
-  // Set headers one by one for compatibility
-  for (const [key, value] of Object.entries(headers)) {
-    output.setHeader(key, value);
+  try {
+    const callback = e.parameter.callback;
+    if (!callback) {
+      return ContentService
+        .createTextOutput('Missing callback parameter')
+        .setMimeType(ContentService.MimeType.TEXT);
+    }
+    
+    // Extract request data from URL parameters
+    const requestData = {};
+    Object.keys(e.parameter).forEach(key => {
+      if (key !== 'callback') {
+        requestData[key] = e.parameter[key];
+      }
+    });
+    
+    console.log('Processing request data:', requestData);
+    
+    const action = requestData.action || 'unknown';
+    console.log(`Processing action: ${action}`);
+    
+    let response;
+    
+    switch (action) {
+      // Authentication
+      case 'login':
+        response = handleLogin(requestData);
+        break;
+      case 'sendOTP':
+        response = handleSendOTP(requestData);
+        break;
+      case 'verifyOTP':
+        response = handleVerifyOTP(requestData);
+        break;
+      case 'resetPassword':
+        response = handleResetPassword(requestData);
+        break;
+      
+      // Players management
+      case 'getPlayers':
+        response = handleGetPlayers(requestData);
+        break;
+      case 'addPlayer':
+        response = handleAddPlayer(requestData);
+        break;
+      case 'editPlayer':
+        response = handleEditPlayer(requestData);
+        break;
+      case 'deletePlayer':
+        response = handleDeletePlayer(requestData);
+        break;
+      
+      // Dashboard data
+      case 'getDashboardData':
+        response = handleGetDashboardData(requestData);
+        break;
+      
+      // Test endpoint
+      case 'test':
+        response = createSuccessResponse({ 
+          message: 'JSONP Backend is working!', 
+          timestamp: getCurrentTimestamp(),
+          method: 'GET'
+        });
+        break;
+      
+      default:
+        response = createErrorResponse(`Unknown action: ${action}`, 'UNKNOWN_ACTION');
+    }
+    
+    console.log('Sending JSONP response:', response);
+    return createJsonpResponse(response, callback);
+      
+  } catch (error) {
+    console.error('Error in doGet:', error);
+    const errorResponse = createErrorResponse(`Server error: ${error.toString()}`, 'SERVER_ERROR');
+    const callback = e.parameter.callback || 'callback';
+    return createJsonpResponse(errorResponse, callback);
   }
-  
-  return output;
 }
 
-// CRITICAL: Handle CORS preflight requests (Fixed for Google Apps Script)
-function doOptions(e) {
-  console.log('doOptions called - CORS preflight request');
-  
-  const output = ContentService.createTextOutput('');
-  output.setMimeType(ContentService.MimeType.TEXT);
-  
-  // Set CORS headers individually
-  output.setHeader('Access-Control-Allow-Origin', '*');
-  output.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS, GET');
-  output.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  output.setHeader('Access-Control-Max-Age', '86400');
-  
-  return output;
-}
-
-// Main handler function (Fixed parameter handling)
+// Keep doPost for backwards compatibility (but recommend using doGet/JSONP)
 function doPost(e) {
   console.log('doPost called, e:', e);
   
@@ -144,7 +200,7 @@ function doPost(e) {
         console.log('Parsed request data:', requestData);
       } catch (parseError) {
         console.error('Failed to parse request data:', parseError);
-        return createResponseWithHeaders(createErrorResponse('Invalid JSON in request', 'PARSE_ERROR'));
+        return createJsonpResponse(createErrorResponse('Invalid JSON in request', 'PARSE_ERROR'), 'callback');
       }
     } else {
       console.log('No postData found, using empty request');
@@ -199,12 +255,16 @@ function doPost(e) {
     }
     
     console.log('Sending response:', response);
-    return createResponseWithHeaders(response);
+    return ContentService
+      .createTextOutput(JSON.stringify(response))
+      .setMimeType(ContentService.MimeType.JSON);
       
   } catch (error) {
     console.error('Error in doPost:', error);
     const errorResponse = createErrorResponse(`Server error: ${error.toString()}`, 'SERVER_ERROR');
-    return createResponseWithHeaders(errorResponse);
+    return ContentService
+      .createTextOutput(JSON.stringify(errorResponse))
+      .setMimeType(ContentService.MimeType.JSON);
   }
 }
 
@@ -519,8 +579,15 @@ function handleAddPlayer(data) {
       monthlyStatus
     ]);
     
+    // Parse user data if provided as JSON string
+    let user = null;
     if (data && data.user) {
-      logAction(data.user, 'ADD_PLAYER', `Added player: ${name}`);
+      try {
+        user = typeof data.user === 'string' ? JSON.parse(data.user) : data.user;
+        logAction(user, 'ADD_PLAYER', `Added player: ${name}`);
+      } catch (e) {
+        console.log('Could not parse user data for logging');
+      }
     }
     
     return createSuccessResponse({ 
