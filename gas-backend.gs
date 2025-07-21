@@ -317,17 +317,27 @@ function handleSendOTP(data) {
     usersSheet.getRange(userRowIndex, 9).setValue(otp); // resetToken column
     usersSheet.getRange(userRowIndex, 10).setValue(expiry); // resetTokenExpiry column
     
+    // Get user name for personalization
+    const userName = users[userRowIndex - 1][3] || 'User';
+    
     // Send email
-    const subject = 'Password Reset OTP - Racket Warrior';
-    const body = `
-      Your OTP for password reset is: ${otp}
-      
-      This OTP will expire in 10 minutes.
-      
-      If you didn't request this, please ignore this email.
-      
-      Racket Warrior Badminton Management System
-    `;
+    const subject = 'OTP - Racket Warrior';
+    const body = `Hi ${userName},
+
+We received a request to reset the password for your account associated with this email.
+
+To proceed, please use the One-Time Password (OTP) below:
+
+🔐 OTP Code: ${otp}
+
+This OTP is valid for the next 10 minutes.
+
+If you did not request a password reset, please ignore this email or contact our support team immediately.
+
+Stay secure,
+
+Support Team
+Racket Warrior`;
     
     try {
       GmailApp.sendEmail(email, subject, body);
@@ -1045,22 +1055,21 @@ function handleAddUser(data) {
     
     // Send welcome email
     try {
-      const subject = 'Welcome to Racket Warrior - Account Created';
-      const body = `
-        Hi ${name},
-        
-        Your account has been created in the Racket Warrior Badminton Management System.
-        
-        Login Details:
-        Email: ${email}
-        Temporary Password: ${tempPassword}
-        Role: ${role}
-        
-        Please login and change your password immediately for security.
-        
-        Best regards,
-        Racket Warrior Team
-      `;
+      const subject = 'Welcome! RACKET WARRIOR';
+      const body = `Welcome to Racket Warrior!
+Your account has been successfully created.
+
+👤 Username: ${email}
+🔐 Temporary Password: ${tempPassword}
+
+⚠️ Please change your password after your first login for security purposes.
+
+If you need any help, feel free to reach out to our support team.
+
+Warm regards,
+
+Support Team
+Racket Warrior`;
       
       GmailApp.sendEmail(email, subject, body);
     } catch (emailError) {
