@@ -1,4 +1,4 @@
-// Google Apps Script Backend for Gym Management System
+// Google Apps Script Backend for Racket Warrior Badminton Management System
 // Replace YOUR_SPREADSHEET_ID with your actual spreadsheet ID
 const SPREADSHEET_ID = '1zJHUpcWaOBhKCzHS-uGPqaJepv_eZm019ElKtt249fg';
 
@@ -10,6 +10,14 @@ const SHEETS = {
   expenses: { name: 'Expenses', columns: ['ID', 'Date', 'Category', 'Amount', 'Description', 'CreatedAt'] },
   logs:     { name: 'Logs',     columns: ['timestamp', 'user', 'role', 'action', 'details'] },
   settings: { name: 'Settings', columns: ['key', 'value'] }
+};
+
+// CORS headers configuration
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS, GET',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Access-Control-Max-Age': '86400'
 };
 
 // Utility functions
@@ -34,60 +42,75 @@ function validatePassword(password) {
     special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
   };
   
-  return Object.values(requirements).every(req => req);
+  const isValid = Object.values(requirements).every(req => req);
+  return { isValid, requirements };
 }
 
-function generateOTP() {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+function validateEmail(email) {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
 }
 
-function getSpreadsheet() {
-  return SpreadsheetApp.openById(SPREADSHEET_ID);
-}
-
-function getSheet(sheetName) {
-  const spreadsheet = getSpreadsheet();
-  let sheet = spreadsheet.getSheetByName(sheetName);
-  
-  if (!sheet) {
-    sheet = spreadsheet.insertSheet(sheetName);
-    // Add headers
-    const sheetConfig = Object.values(SHEETS).find(s => s.name === sheetName);
-    if (sheetConfig) {
-      sheet.getRange(1, 1, 1, sheetConfig.columns.length).setValues([sheetConfig.columns]);
-    }
-  }
-  
-  return sheet;
-}
-
-function addLog(user, role, action, details) {
+function logAction(user, action, details = '') {
   try {
-    const sheet = getSheet(SHEETS.logs.name);
-    const logData = [getCurrentTimestamp(), user, role, action, details];
-    sheet.appendRow(logData);
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const logsSheet = ss.getSheetByName(SHEETS.logs.name);
+    
+    if (logsSheet) {
+      logsSheet.appendRow([
+        getCurrentTimestamp(),
+        user.email || 'Unknown',
+        user.role || 'Unknown',
+        action,
+        details
+      ]);
+    }
   } catch (error) {
-    console.error('Failed to add log:', error);
+    console.error('Failed to log action:', error);
   }
 }
 
-// Handle CORS preflight requests
+function createSuccessResponse(data, message = 'Success') {
+  return {
+    success: true,
+    message: message,
+    data: data,
+    timestamp: getCurrentTimestamp()
+  };
+}
+
+function createErrorResponse(message, code = 'ERROR') {
+  return {
+    success: false,
+    message: message,
+    code: code,
+    timestamp: getCurrentTimestamp()
+  };
+}
+
+function createResponseWithHeaders(response) {
+  return ContentService
+    .createTextOutput(JSON.stringify(response))
+    .setMimeType(ContentService.MimeType.JSON)
+    .setHeaders(CORS_HEADERS);
+}
+
+// CRITICAL: Handle CORS preflight requests
 function doOptions(e) {
   return ContentService
     .createTextOutput('')
     .setMimeType(ContentService.MimeType.TEXT)
-    .setHeaders({
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type'
-    });
+    .setHeaders(CORS_HEADERS);
 }
 
 // Main handler function
 function doPost(e) {
   try {
+    // Parse request data
     const requestData = JSON.parse(e.postData.contents);
     const action = requestData.action;
+    
+    console.log(`Processing action: ${action}`);
     
     let response;
     
@@ -106,90 +129,87 @@ function doPost(e) {
         response = handleResetPassword(requestData);
         break;
       
-      // Players
+      // Players management
       case 'getPlayers':
-        response = handleGetPlayers();
+        response = handleGetPlayers(requestData);
         break;
       case 'addPlayer':
         response = handleAddPlayer(requestData);
         break;
-      case 'updatePlayer':
-        response = handleUpdatePlayer(requestData);
+      case 'editPlayer':
+        response = handleEditPlayer(requestData);
         break;
       case 'deletePlayer':
         response = handleDeletePlayer(requestData);
         break;
       
-      // Income/Collections
+      // Income management
       case 'getIncome':
-        response = handleGetIncome();
+        response = handleGetIncome(requestData);
         break;
       case 'addIncome':
         response = handleAddIncome(requestData);
         break;
-      case 'updateIncome':
-        response = handleUpdateIncome(requestData);
+      case 'editIncome':
+        response = handleEditIncome(requestData);
         break;
       case 'deleteIncome':
         response = handleDeleteIncome(requestData);
         break;
       
-      // Expenses
+      // Expenses management
       case 'getExpenses':
-        response = handleGetExpenses();
+        response = handleGetExpenses(requestData);
         break;
       case 'addExpense':
         response = handleAddExpense(requestData);
         break;
-      case 'updateExpense':
-        response = handleUpdateExpense(requestData);
+      case 'editExpense':
+        response = handleEditExpense(requestData);
         break;
       case 'deleteExpense':
         response = handleDeleteExpense(requestData);
         break;
       
-      // Logs (Admin only)
-      case 'getLogs':
-        response = handleGetLogs();
+      // Dashboard data
+      case 'getDashboardData':
+        response = handleGetDashboardData(requestData);
         break;
       
-      // Users (Admin only)
+      // User management (admin only)
       case 'getUsers':
-        response = handleGetUsers();
+        response = handleGetUsers(requestData);
         break;
       case 'addUser':
         response = handleAddUser(requestData);
         break;
-      case 'updateUser':
-        response = handleUpdateUser(requestData);
+      case 'editUser':
+        response = handleEditUser(requestData);
         break;
       case 'deleteUser':
         response = handleDeleteUser(requestData);
         break;
       
+      // Logs (admin only)
+      case 'getLogs':
+        response = handleGetLogs(requestData);
+        break;
+      
+      // Test endpoint
+      case 'test':
+        response = createSuccessResponse({ message: 'Backend is working', timestamp: getCurrentTimestamp() });
+        break;
+      
       default:
-        response = { success: false, message: 'Unknown action' };
+        response = createErrorResponse(`Unknown action: ${action}`, 'UNKNOWN_ACTION');
     }
     
-    return ContentService
-      .createTextOutput(JSON.stringify(response))
-      .setMimeType(ContentService.MimeType.JSON)
-      .setHeaders({
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type'
-      });
+    return createResponseWithHeaders(response);
       
   } catch (error) {
     console.error('Error in doPost:', error);
-    return ContentService
-      .createTextOutput(JSON.stringify({ success: false, message: error.toString() }))
-      .setMimeType(ContentService.MimeType.JSON)
-      .setHeaders({
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type'
-      });
+    const errorResponse = createErrorResponse(`Server error: ${error.toString()}`, 'SERVER_ERROR');
+    return createResponseWithHeaders(errorResponse);
   }
 }
 
@@ -197,49 +217,87 @@ function doPost(e) {
 function handleLogin(data) {
   try {
     const { email, password } = data;
-    const sheet = getSheet(SHEETS.users.name);
-    const users = sheet.getDataRange().getValues();
+    
+    if (!email || !password) {
+      return createErrorResponse('Email and password are required', 'MISSING_CREDENTIALS');
+    }
+    
+    if (!validateEmail(email)) {
+      return createErrorResponse('Invalid email format', 'INVALID_EMAIL');
+    }
+    
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const usersSheet = ss.getSheetByName(SHEETS.users.name);
+    
+    if (!usersSheet) {
+      return createErrorResponse('Users sheet not found. Please set up your Google Sheet properly.', 'SHEET_NOT_FOUND');
+    }
+    
+    const users = usersSheet.getDataRange().getValues();
+    const headers = users[0];
     
     // Find user
     for (let i = 1; i < users.length; i++) {
-      const user = users[i];
-      if (user[0] === email && user[1] === hashPassword(password)) {
-        if (user[7] === 'inactive') {
-          return { success: false, message: 'Account is inactive' };
+      const row = users[i];
+      const userEmail = row[0];
+      const userPassword = row[1];
+      const userRole = row[2];
+      const userName = row[3];
+      const needsPasswordChange = row[4];
+      const userStatus = row[7];
+      
+      if (userEmail === email && userStatus === 'active') {
+        // Hash the input password to compare
+        const hashedInput = hashPassword(password);
+        
+        if (userPassword === hashedInput) {
+          // Update last login
+          usersSheet.getRange(i + 1, 7).setValue(getCurrentTimestamp());
+          
+          const user = {
+            email: userEmail,
+            role: userRole,
+            name: userName,
+            needsPasswordChange: needsPasswordChange
+          };
+          
+          logAction(user, 'LOGIN', `Successful login from ${email}`);
+          
+          return createSuccessResponse({
+            user: user,
+            message: 'Login successful'
+          });
         }
-        
-        // Update last login
-        sheet.getRange(i + 1, 7).setValue(getCurrentTimestamp());
-        
-        // Log login
-        addLog(user[3], user[2], 'login', 'User logged in');
-        
-        return {
-          success: true,
-          data: {
-            email: user[0],
-            role: user[2],
-            name: user[3],
-            needs_password_change: user[4]
-          }
-        };
       }
     }
     
-    return { success: false, message: 'Invalid credentials' };
+    return createErrorResponse('Invalid email or password', 'INVALID_CREDENTIALS');
+    
   } catch (error) {
-    return { success: false, message: error.toString() };
+    console.error('Login error:', error);
+    return createErrorResponse(`Login failed: ${error.toString()}`, 'LOGIN_ERROR');
   }
 }
 
 function handleSendOTP(data) {
   try {
     const { email } = data;
-    const sheet = getSheet(SHEETS.users.name);
-    const users = sheet.getDataRange().getValues();
     
-    // Find user
+    if (!email || !validateEmail(email)) {
+      return createErrorResponse('Valid email is required', 'INVALID_EMAIL');
+    }
+    
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const usersSheet = ss.getSheetByName(SHEETS.users.name);
+    
+    if (!usersSheet) {
+      return createErrorResponse('Users sheet not found', 'SHEET_NOT_FOUND');
+    }
+    
+    // Check if user exists
+    const users = usersSheet.getDataRange().getValues();
     let userRowIndex = -1;
+    
     for (let i = 1; i < users.length; i++) {
       if (users[i][0] === email) {
         userRowIndex = i + 1;
@@ -248,622 +306,293 @@ function handleSendOTP(data) {
     }
     
     if (userRowIndex === -1) {
-      return { success: false, message: 'Email not found' };
+      return createErrorResponse('Email not found', 'EMAIL_NOT_FOUND');
     }
     
-    // Generate OTP and expiry
-    const otp = generateOTP();
+    // Generate OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const expiry = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 minutes
     
-    // Update user with reset token
-    sheet.getRange(userRowIndex, 9).setValue(otp); // resetToken
-    sheet.getRange(userRowIndex, 10).setValue(expiry); // resetTokenExpiry
+    // Update user record with OTP
+    usersSheet.getRange(userRowIndex, 9).setValue(otp); // resetToken column
+    usersSheet.getRange(userRowIndex, 10).setValue(expiry); // resetTokenExpiry column
     
     // Send email
-    const subject = 'Password Reset OTP - Gym Management System';
+    const subject = 'Password Reset OTP - Racket Warrior';
     const body = `
-      Hi ${users[userRowIndex - 1][3]},
-      
-      Your password reset OTP is: ${otp}
+      Your OTP for password reset is: ${otp}
       
       This OTP will expire in 10 minutes.
       
       If you didn't request this, please ignore this email.
       
-      Best regards,
-      Gym Management Team
+      Racket Warrior Badminton Management System
     `;
     
-    GmailApp.sendEmail(email, subject, body);
+    try {
+      GmailApp.sendEmail(email, subject, body);
+      return createSuccessResponse({ message: 'OTP sent successfully' });
+    } catch (emailError) {
+      console.error('Email sending error:', emailError);
+      return createErrorResponse('Failed to send OTP email', 'EMAIL_SEND_ERROR');
+    }
     
-    addLog(email, 'user', 'otp_sent', 'Password reset OTP sent');
-    
-    return { success: true, data: { message: 'OTP sent successfully' } };
   } catch (error) {
-    return { success: false, message: error.toString() };
+    console.error('Send OTP error:', error);
+    return createErrorResponse(`Send OTP failed: ${error.toString()}`, 'OTP_ERROR');
   }
 }
 
 function handleVerifyOTP(data) {
   try {
     const { email, otp } = data;
-    const sheet = getSheet(SHEETS.users.name);
-    const users = sheet.getDataRange().getValues();
     
-    // Find user
+    if (!email || !otp) {
+      return createErrorResponse('Email and OTP are required', 'MISSING_DATA');
+    }
+    
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const usersSheet = ss.getSheetByName(SHEETS.users.name);
+    
+    const users = usersSheet.getDataRange().getValues();
+    
     for (let i = 1; i < users.length; i++) {
-      const user = users[i];
-      if (user[0] === email) {
-        const storedOTP = user[8];
-        const expiry = new Date(user[9]);
-        const now = new Date();
+      const row = users[i];
+      if (row[0] === email) {
+        const storedOTP = row[8];
+        const expiry = new Date(row[9]);
         
-        if (storedOTP === otp && now < expiry) {
-          addLog(email, 'user', 'otp_verified', 'Password reset OTP verified');
-          return { success: true, data: { message: 'OTP verified' } };
+        if (storedOTP === otp && new Date() < expiry) {
+          return createSuccessResponse({ message: 'OTP verified successfully' });
+        } else if (new Date() >= expiry) {
+          return createErrorResponse('OTP has expired', 'OTP_EXPIRED');
         } else {
-          return { success: false, message: 'Invalid or expired OTP' };
+          return createErrorResponse('Invalid OTP', 'INVALID_OTP');
         }
       }
     }
     
-    return { success: false, message: 'Email not found' };
+    return createErrorResponse('Email not found', 'EMAIL_NOT_FOUND');
+    
   } catch (error) {
-    return { success: false, message: error.toString() };
+    console.error('Verify OTP error:', error);
+    return createErrorResponse(`Verify OTP failed: ${error.toString()}`, 'VERIFY_ERROR');
   }
 }
 
 function handleResetPassword(data) {
   try {
-    const { email, password } = data;
+    const { email, otp, newPassword } = data;
     
-    if (!validatePassword(password)) {
-      return { success: false, message: 'Password does not meet requirements' };
+    if (!email || !otp || !newPassword) {
+      return createErrorResponse('Email, OTP, and new password are required', 'MISSING_DATA');
     }
     
-    const sheet = getSheet(SHEETS.users.name);
-    const users = sheet.getDataRange().getValues();
+    const passwordValidation = validatePassword(newPassword);
+    if (!passwordValidation.isValid) {
+      return createErrorResponse('Password does not meet requirements', 'WEAK_PASSWORD');
+    }
     
-    // Find user and update password
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const usersSheet = ss.getSheetByName(SHEETS.users.name);
+    
+    const users = usersSheet.getDataRange().getValues();
+    
     for (let i = 1; i < users.length; i++) {
-      const user = users[i];
-      if (user[0] === email) {
-        // Update password and clear reset tokens
-        sheet.getRange(i + 1, 2).setValue(hashPassword(password));
-        sheet.getRange(i + 1, 9).setValue(''); // Clear resetToken
-        sheet.getRange(i + 1, 10).setValue(''); // Clear resetTokenExpiry
+      const row = users[i];
+      if (row[0] === email) {
+        const storedOTP = row[8];
+        const expiry = new Date(row[9]);
         
-        addLog(email, 'user', 'password_reset', 'Password reset successfully');
-        
-        return { success: true, data: { message: 'Password reset successfully' } };
+        if (storedOTP === otp && new Date() < expiry) {
+          // Update password
+          const hashedPassword = hashPassword(newPassword);
+          usersSheet.getRange(i + 1, 2).setValue(hashedPassword);
+          
+          // Clear OTP
+          usersSheet.getRange(i + 1, 9).setValue('');
+          usersSheet.getRange(i + 1, 10).setValue('');
+          
+          const user = { email: email, role: row[2] };
+          logAction(user, 'PASSWORD_RESET', 'Password reset successfully');
+          
+          return createSuccessResponse({ message: 'Password reset successfully' });
+        } else {
+          return createErrorResponse('Invalid or expired OTP', 'INVALID_OTP');
+        }
       }
     }
     
-    return { success: false, message: 'Email not found' };
+    return createErrorResponse('Email not found', 'EMAIL_NOT_FOUND');
+    
   } catch (error) {
-    return { success: false, message: error.toString() };
+    console.error('Reset password error:', error);
+    return createErrorResponse(`Reset password failed: ${error.toString()}`, 'RESET_ERROR');
   }
 }
 
-// Players handlers
-function handleGetPlayers() {
+// Players management
+function handleGetPlayers(data) {
   try {
-    const sheet = getSheet(SHEETS.players.name);
-    const data = sheet.getDataRange().getValues();
-    const players = [];
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const playersSheet = ss.getSheetByName(SHEETS.players.name);
     
-    for (let i = 1; i < data.length; i++) {
-      const row = data[i];
-      players.push({
-        ID: row[0],
-        Name: row[1],
-        Phone: row[2],
-        Email: row[3],
-        Status: row[4],
-        JoinDate: row[5],
-        CreatedAt: row[6],
-        MonthlyStatus: row[7]
-      });
+    if (!playersSheet) {
+      return createSuccessResponse([], 'Players sheet not found, returning empty list');
     }
     
-    return { success: true, data: players };
+    const players = playersSheet.getDataRange().getValues();
+    const headers = players[0];
+    const playersList = [];
+    
+    for (let i = 1; i < players.length; i++) {
+      const row = players[i];
+      const player = {
+        id: row[0],
+        name: row[1],
+        phone: row[2],
+        email: row[3],
+        status: row[4],
+        joinDate: row[5],
+        createdAt: row[6],
+        monthlyStatus: row[7]
+      };
+      playersList.push(player);
+    }
+    
+    return createSuccessResponse(playersList);
+    
   } catch (error) {
-    return { success: false, message: error.toString() };
+    console.error('Get players error:', error);
+    return createErrorResponse(`Failed to get players: ${error.toString()}`, 'GET_PLAYERS_ERROR');
   }
 }
 
 function handleAddPlayer(data) {
   try {
-    const { name, phone, email, joinDate, status, monthlyStatus } = data;
-    const sheet = getSheet(SHEETS.players.name);
+    const { name, phone, email, status, joinDate, monthlyStatus } = data;
+    
+    if (!name || !phone) {
+      return createErrorResponse('Name and phone are required', 'MISSING_DATA');
+    }
+    
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const playersSheet = ss.getSheetByName(SHEETS.players.name);
+    
+    if (!playersSheet) {
+      return createErrorResponse('Players sheet not found', 'SHEET_NOT_FOUND');
+    }
     
     const playerId = generateId();
     const timestamp = getCurrentTimestamp();
     
-    const playerData = [
+    playersSheet.appendRow([
       playerId,
       name,
       phone,
-      email,
-      status,
-      joinDate,
+      email || '',
+      status || 'active',
+      joinDate || timestamp,
       timestamp,
-      monthlyStatus
-    ];
+      monthlyStatus || 'active'
+    ]);
     
-    sheet.appendRow(playerData);
+    logAction(data.user, 'ADD_PLAYER', `Added player: ${name}`);
     
-    addLog('system', 'user', 'add_player', `Added player: ${name}`);
-    
-    return { success: true, data: { id: playerId } };
-  } catch (error) {
-    return { success: false, message: error.toString() };
-  }
-}
-
-function handleUpdatePlayer(data) {
-  try {
-    const { id, name, phone, email, joinDate, status, monthlyStatus } = data;
-    const sheet = getSheet(SHEETS.players.name);
-    const players = sheet.getDataRange().getValues();
-    
-    // Find and update player
-    for (let i = 1; i < players.length; i++) {
-      if (players[i][0] === id) {
-        sheet.getRange(i + 1, 2, 1, 6).setValues([[name, phone, email, status, joinDate, players[i][6]]]);
-        sheet.getRange(i + 1, 8).setValue(monthlyStatus);
-        
-        addLog('system', 'user', 'update_player', `Updated player: ${name}`);
-        
-        return { success: true, data: { message: 'Player updated successfully' } };
-      }
-    }
-    
-    return { success: false, message: 'Player not found' };
-  } catch (error) {
-    return { success: false, message: error.toString() };
-  }
-}
-
-function handleDeletePlayer(data) {
-  try {
-    const { id } = data;
-    const sheet = getSheet(SHEETS.players.name);
-    const players = sheet.getDataRange().getValues();
-    
-    // Find and delete player
-    for (let i = 1; i < players.length; i++) {
-      if (players[i][0] === id) {
-        const playerName = players[i][1];
-        sheet.deleteRow(i + 1);
-        
-        addLog('system', 'user', 'delete_player', `Deleted player: ${playerName}`);
-        
-        return { success: true, data: { message: 'Player deleted successfully' } };
-      }
-    }
-    
-    return { success: false, message: 'Player not found' };
-  } catch (error) {
-    return { success: false, message: error.toString() };
-  }
-}
-
-// Income handlers
-function handleGetIncome() {
-  try {
-    const sheet = getSheet(SHEETS.income.name);
-    const data = sheet.getDataRange().getValues();
-    const income = [];
-    
-    for (let i = 1; i < data.length; i++) {
-      const row = data[i];
-      income.push({
-        ID: row[0],
-        Date: row[1],
-        PlayerId: row[2],
-        PlayerName: row[3],
-        Amount: row[4],
-        Description: row[5],
-        CreatedAt: row[6]
-      });
-    }
-    
-    return { success: true, data: income };
-  } catch (error) {
-    return { success: false, message: error.toString() };
-  }
-}
-
-function handleAddIncome(data) {
-  try {
-    const { date, playerId, playerName, amount, description } = data;
-    const sheet = getSheet(SHEETS.income.name);
-    
-    const incomeId = generateId();
-    const timestamp = getCurrentTimestamp();
-    
-    const incomeData = [
-      incomeId,
-      date,
-      playerId,
-      playerName,
-      amount,
-      description || '',
-      timestamp
-    ];
-    
-    sheet.appendRow(incomeData);
-    
-    addLog('system', 'user', 'add_income', `Added collection: ₹${amount} from ${playerName}`);
-    
-    return { success: true, data: { id: incomeId } };
-  } catch (error) {
-    return { success: false, message: error.toString() };
-  }
-}
-
-function handleUpdateIncome(data) {
-  try {
-    const { id, date, playerId, playerName, amount, description } = data;
-    const sheet = getSheet(SHEETS.income.name);
-    const income = sheet.getDataRange().getValues();
-    
-    // Find and update income
-    for (let i = 1; i < income.length; i++) {
-      if (income[i][0] === id) {
-        sheet.getRange(i + 1, 2, 1, 5).setValues([[date, playerId, playerName, amount, description || '']]);
-        
-        addLog('system', 'user', 'update_income', `Updated collection: ₹${amount} from ${playerName}`);
-        
-        return { success: true, data: { message: 'Collection updated successfully' } };
-      }
-    }
-    
-    return { success: false, message: 'Collection not found' };
-  } catch (error) {
-    return { success: false, message: error.toString() };
-  }
-}
-
-function handleDeleteIncome(data) {
-  try {
-    const { id } = data;
-    const sheet = getSheet(SHEETS.income.name);
-    const income = sheet.getDataRange().getValues();
-    
-    // Find and delete income
-    for (let i = 1; i < income.length; i++) {
-      if (income[i][0] === id) {
-        const amount = income[i][4];
-        const playerName = income[i][3];
-        sheet.deleteRow(i + 1);
-        
-        addLog('system', 'user', 'delete_income', `Deleted collection: ₹${amount} from ${playerName}`);
-        
-        return { success: true, data: { message: 'Collection deleted successfully' } };
-      }
-    }
-    
-    return { success: false, message: 'Collection not found' };
-  } catch (error) {
-    return { success: false, message: error.toString() };
-  }
-}
-
-// Expenses handlers
-function handleGetExpenses() {
-  try {
-    const sheet = getSheet(SHEETS.expenses.name);
-    const data = sheet.getDataRange().getValues();
-    const expenses = [];
-    
-    for (let i = 1; i < data.length; i++) {
-      const row = data[i];
-      expenses.push({
-        ID: row[0],
-        Date: row[1],
-        Category: row[2],
-        Amount: row[3],
-        Description: row[4],
-        CreatedAt: row[5]
-      });
-    }
-    
-    return { success: true, data: expenses };
-  } catch (error) {
-    return { success: false, message: error.toString() };
-  }
-}
-
-function handleAddExpense(data) {
-  try {
-    const { date, category, amount, description } = data;
-    const sheet = getSheet(SHEETS.expenses.name);
-    
-    const expenseId = generateId();
-    const timestamp = getCurrentTimestamp();
-    
-    const expenseData = [
-      expenseId,
-      date,
-      category,
-      amount,
-      description || '',
-      timestamp
-    ];
-    
-    sheet.appendRow(expenseData);
-    
-    addLog('system', 'user', 'add_expense', `Added expense: ₹${amount} for ${category}`);
-    
-    return { success: true, data: { id: expenseId } };
-  } catch (error) {
-    return { success: false, message: error.toString() };
-  }
-}
-
-function handleUpdateExpense(data) {
-  try {
-    const { id, date, category, amount, description } = data;
-    const sheet = getSheet(SHEETS.expenses.name);
-    const expenses = sheet.getDataRange().getValues();
-    
-    // Find and update expense
-    for (let i = 1; i < expenses.length; i++) {
-      if (expenses[i][0] === id) {
-        sheet.getRange(i + 1, 2, 1, 4).setValues([[date, category, amount, description || '']]);
-        
-        addLog('system', 'user', 'update_expense', `Updated expense: ₹${amount} for ${category}`);
-        
-        return { success: true, data: { message: 'Expense updated successfully' } };
-      }
-    }
-    
-    return { success: false, message: 'Expense not found' };
-  } catch (error) {
-    return { success: false, message: error.toString() };
-  }
-}
-
-function handleDeleteExpense(data) {
-  try {
-    const { id } = data;
-    const sheet = getSheet(SHEETS.expenses.name);
-    const expenses = sheet.getDataRange().getValues();
-    
-    // Find and delete expense
-    for (let i = 1; i < expenses.length; i++) {
-      if (expenses[i][0] === id) {
-        const amount = expenses[i][3];
-        const category = expenses[i][2];
-        sheet.deleteRow(i + 1);
-        
-        addLog('system', 'user', 'delete_expense', `Deleted expense: ₹${amount} for ${category}`);
-        
-        return { success: true, data: { message: 'Expense deleted successfully' } };
-      }
-    }
-    
-    return { success: false, message: 'Expense not found' };
-  } catch (error) {
-    return { success: false, message: error.toString() };
-  }
-}
-
-// Logs handlers (Admin only)
-function handleGetLogs() {
-  try {
-    const sheet = getSheet(SHEETS.logs.name);
-    const data = sheet.getDataRange().getValues();
-    const logs = [];
-    
-    for (let i = 1; i < data.length; i++) {
-      const row = data[i];
-      logs.push({
-        timestamp: row[0],
-        user: row[1],
-        role: row[2],
-        action: row[3],
-        details: row[4]
-      });
-    }
-    
-    // Sort by timestamp descending
-    logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-    
-    return { success: true, data: logs };
-  } catch (error) {
-    return { success: false, message: error.toString() };
-  }
-}
-
-// Users handlers (Admin only)
-function handleGetUsers() {
-  try {
-    const sheet = getSheet(SHEETS.users.name);
-    const data = sheet.getDataRange().getValues();
-    const users = [];
-    
-    for (let i = 1; i < data.length; i++) {
-      const row = data[i];
-      users.push({
-        email: row[0],
-        role: row[2],
-        name: row[3],
-        needs_password_change: row[4],
-        created_at: row[5],
-        last_login: row[6],
-        status: row[7]
-      });
-    }
-    
-    return { success: true, data: users };
-  } catch (error) {
-    return { success: false, message: error.toString() };
-  }
-}
-
-function handleAddUser(data) {
-  try {
-    const { name, email, role, status } = data;
-    const sheet = getSheet(SHEETS.users.name);
-    
-    // Check if user already exists
-    const users = sheet.getDataRange().getValues();
-    for (let i = 1; i < users.length; i++) {
-      if (users[i][0] === email) {
-        return { success: false, message: 'User already exists' };
-      }
-    }
-    
-    // Generate temporary password
-    const tempPassword = 'TempPass123!';
-    const timestamp = getCurrentTimestamp();
-    
-    const userData = [
-      email,
-      hashPassword(tempPassword),
-      role,
-      name,
-      true, // needs_password_change
-      timestamp,
-      '', // last_login
-      status,
-      '', // resetToken
-      ''  // resetTokenExpiry
-    ];
-    
-    sheet.appendRow(userData);
-    
-    // Send welcome email
-    const subject = 'Welcome to Gym Management System';
-    const body = `
-      Hi ${name},
-      
-      Your account has been created in the Gym Management System.
-      
-      Login Details:
-      Email: ${email}
-      Temporary Password: ${tempPassword}
-      
-      Please login and change your password immediately.
-      
-      Best regards,
-      Gym Management Team
-    `;
-    
-    GmailApp.sendEmail(email, subject, body);
-    
-    addLog('system', 'admin', 'add_user', `Added user: ${name} (${email})`);
-    
-    return { success: true, data: { message: 'User added successfully' } };
-  } catch (error) {
-    return { success: false, message: error.toString() };
-  }
-}
-
-function handleUpdateUser(data) {
-  try {
-    const { id, name, email, role, status } = data;
-    const sheet = getSheet(SHEETS.users.name);
-    const users = sheet.getDataRange().getValues();
-    
-    // Find and update user
-    for (let i = 1; i < users.length; i++) {
-      if (users[i][0] === id) {
-        sheet.getRange(i + 1, 3, 1, 2).setValues([[role, name]]);
-        sheet.getRange(i + 1, 8).setValue(status);
-        
-        addLog('system', 'admin', 'update_user', `Updated user: ${name} (${email})`);
-        
-        return { success: true, data: { message: 'User updated successfully' } };
-      }
-    }
-    
-    return { success: false, message: 'User not found' };
-  } catch (error) {
-    return { success: false, message: error.toString() };
-  }
-}
-
-function handleDeleteUser(data) {
-  try {
-    const { email } = data;
-    const sheet = getSheet(SHEETS.users.name);
-    const users = sheet.getDataRange().getValues();
-    
-    // Find and delete user
-    for (let i = 1; i < users.length; i++) {
-      if (users[i][0] === email) {
-        const userName = users[i][3];
-        sheet.deleteRow(i + 1);
-        
-        addLog('system', 'admin', 'delete_user', `Deleted user: ${userName} (${email})`);
-        
-        return { success: true, data: { message: 'User deleted successfully' } };
-      }
-    }
-    
-    return { success: false, message: 'User not found' };
-  } catch (error) {
-    return { success: false, message: error.toString() };
-  }
-}
-
-// Initialize function to set up the spreadsheet with sample data
-function initializeSpreadsheet() {
-  try {
-    console.log('Initializing spreadsheet...');
-    
-    // Create all sheets if they don't exist
-    Object.values(SHEETS).forEach(sheetConfig => {
-      getSheet(sheetConfig.name);
+    return createSuccessResponse({ 
+      id: playerId,
+      message: 'Player added successfully' 
     });
     
-    // Add sample admin user if no users exist
-    const usersSheet = getSheet(SHEETS.users.name);
-    const userData = usersSheet.getDataRange().getValues();
-    
-    if (userData.length <= 1) { // Only headers exist
-      const adminData = [
-        'admin@gym.com',
-        hashPassword('Admin123!'),
-        'admin',
-        'System Administrator',
-        false,
-        getCurrentTimestamp(),
-        '',
-        'active',
-        '',
-        ''
-      ];
-      
-      usersSheet.appendRow(adminData);
-      console.log('Sample admin user created: admin@gym.com / Admin123!');
-    }
-    
-    console.log('Spreadsheet initialized successfully');
   } catch (error) {
-    console.error('Error initializing spreadsheet:', error);
+    console.error('Add player error:', error);
+    return createErrorResponse(`Failed to add player: ${error.toString()}`, 'ADD_PLAYER_ERROR');
   }
 }
 
-// Test function
-function testBackend() {
-  console.log('Testing backend...');
-  
-  // Test login
-  const loginResult = handleLogin({
-    email: 'admin@gym.com',
-    password: 'Admin123!'
-  });
-  
-  console.log('Login test result:', loginResult);
-  
-  // Test get players
-  const playersResult = handleGetPlayers();
-  console.log('Get players test result:', playersResult);
-  
-  console.log('Backend test completed');
+// Dashboard data
+function handleGetDashboardData(data) {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const playersSheet = ss.getSheetByName(SHEETS.players.name);
+    const incomeSheet = ss.getSheetByName(SHEETS.income.name);
+    const expensesSheet = ss.getSheetByName(SHEETS.expenses.name);
+    
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    
+    let dashboardData = {
+      activePlayersCount: 0,
+      totalCollection: 0,
+      totalExpenses: 0,
+      totalBalance: 0,
+      recentPlayers: [],
+      recentTransactions: []
+    };
+    
+    // Count active players
+    if (playersSheet) {
+      const players = playersSheet.getDataRange().getValues();
+      for (let i = 1; i < players.length; i++) {
+        if (players[i][4] === 'active') {
+          dashboardData.activePlayersCount++;
+        }
+      }
+      
+      // Get recent players (last 5)
+      const recentPlayers = players.slice(-6, -1).map(row => ({
+        name: row[1],
+        joinDate: row[5],
+        status: row[4]
+      }));
+      dashboardData.recentPlayers = recentPlayers;
+    }
+    
+    // Calculate monthly collection
+    if (incomeSheet) {
+      const income = incomeSheet.getDataRange().getValues();
+      for (let i = 1; i < income.length; i++) {
+        const date = new Date(income[i][1]);
+        if (date.getMonth() === currentMonth && date.getFullYear() === currentYear) {
+          dashboardData.totalCollection += parseFloat(income[i][4]) || 0;
+        }
+      }
+    }
+    
+    // Calculate monthly expenses
+    if (expensesSheet) {
+      const expenses = expensesSheet.getDataRange().getValues();
+      for (let i = 1; i < expenses.length; i++) {
+        const date = new Date(expenses[i][1]);
+        if (date.getMonth() === currentMonth && date.getFullYear() === currentYear) {
+          dashboardData.totalExpenses += parseFloat(expenses[i][3]) || 0;
+        }
+      }
+    }
+    
+    dashboardData.totalBalance = dashboardData.totalCollection - dashboardData.totalExpenses;
+    
+    return createSuccessResponse(dashboardData);
+    
+  } catch (error) {
+    console.error('Get dashboard data error:', error);
+    return createErrorResponse(`Failed to get dashboard data: ${error.toString()}`, 'DASHBOARD_ERROR');
+  }
 }
+
+// Placeholder functions for other operations
+function handleEditPlayer(data) { return createErrorResponse('Edit player not implemented yet', 'NOT_IMPLEMENTED'); }
+function handleDeletePlayer(data) { return createErrorResponse('Delete player not implemented yet', 'NOT_IMPLEMENTED'); }
+function handleGetIncome(data) { return createSuccessResponse([], 'Income data not implemented yet'); }
+function handleAddIncome(data) { return createErrorResponse('Add income not implemented yet', 'NOT_IMPLEMENTED'); }
+function handleEditIncome(data) { return createErrorResponse('Edit income not implemented yet', 'NOT_IMPLEMENTED'); }
+function handleDeleteIncome(data) { return createErrorResponse('Delete income not implemented yet', 'NOT_IMPLEMENTED'); }
+function handleGetExpenses(data) { return createSuccessResponse([], 'Expenses data not implemented yet'); }
+function handleAddExpense(data) { return createErrorResponse('Add expense not implemented yet', 'NOT_IMPLEMENTED'); }
+function handleEditExpense(data) { return createErrorResponse('Edit expense not implemented yet', 'NOT_IMPLEMENTED'); }
+function handleDeleteExpense(data) { return createErrorResponse('Delete expense not implemented yet', 'NOT_IMPLEMENTED'); }
+function handleGetUsers(data) { return createErrorResponse('Get users not implemented yet', 'NOT_IMPLEMENTED'); }
+function handleAddUser(data) { return createErrorResponse('Add user not implemented yet', 'NOT_IMPLEMENTED'); }
+function handleEditUser(data) { return createErrorResponse('Edit user not implemented yet', 'NOT_IMPLEMENTED'); }
+function handleDeleteUser(data) { return createErrorResponse('Delete user not implemented yet', 'NOT_IMPLEMENTED'); }
+function handleGetLogs(data) { return createSuccessResponse([], 'Logs data not implemented yet'); }
