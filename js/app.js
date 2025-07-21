@@ -36,6 +36,9 @@ function initializeApp() {
     // Check for existing session
     checkSession();
     
+    // Load initial data to populate from Google Sheets
+    loadInitialData();
+    
     // Set up event listeners
     setupEventListeners();
     
@@ -343,8 +346,10 @@ async function handleCollectionFormSubmit(e) {
         description: formData.get('description')
     };
     
+    const submitButton = e.target.querySelector('button[type="submit"]');
+    showButtonLoading(submitButton, 'Saving Collection...');
+    
     try {
-        showLoading();
         await apiCall('addIncome', collectionData);
         await logUserAction('COLLECTION_ADD', `Added collection: QAR ${collectionData.amount} from ${collectionData.player}`, collectionData);
         showNotification('Collection added successfully!', 'success');
@@ -358,7 +363,7 @@ async function handleCollectionFormSubmit(e) {
         console.error('Failed to add collection:', error);
         showNotification('Failed to add collection. Please try again.', 'error');
     } finally {
-        hideLoading();
+        hideButtonLoading(submitButton);
     }
 }
 
@@ -374,8 +379,10 @@ async function handleExpenseFormSubmit(e) {
         description: formData.get('description')
     };
     
+    const submitButton = e.target.querySelector('button[type="submit"]');
+    showButtonLoading(submitButton, 'Saving Expense...');
+    
     try {
-        showLoading();
         await apiCall('addExpense', expenseData);
         await logUserAction('EXPENSE_ADD', `Added expense: QAR ${expenseData.amount} - ${expenseData.description}`, expenseData);
         showNotification('Expense added successfully!', 'success');
@@ -389,7 +396,7 @@ async function handleExpenseFormSubmit(e) {
         console.error('Failed to add expense:', error);
         showNotification('Failed to add expense. Please try again.', 'error');
     } finally {
-        hideLoading();
+        hideButtonLoading(submitButton);
     }
 }
 
@@ -1040,14 +1047,8 @@ function showPage(pageName) {
             targetPage.classList.add('active');
         }
         
-        // Update navigation
-        document.querySelectorAll('.nav-item, .nav-sub-item').forEach(item => {
-            item.classList.remove('active');
-        });
-        const activeNavItem = document.querySelector(`[onclick*="'${pageName}'"]`);
-        if (activeNavItem) {
-            activeNavItem.classList.add('active');
-        }
+        // Update navigation highlighting
+        updateNavigationHighlighting(pageName);
         
         currentPage = pageName;
         
@@ -2536,6 +2537,7 @@ function setupUserFormHandlers() {
             const userData = {
                 name: formData.get('addUserName') || document.getElementById('addUserName').value,
                 email: formData.get('addUserEmail') || document.getElementById('addUserEmail').value,
+                password: document.getElementById('addUserPassword').value, // Optional - if blank, auto-generated
                 role: formData.get('addUserRole') || document.getElementById('addUserRole').value,
                 status: formData.get('addUserStatus') || document.getElementById('addUserStatus').value
             };
@@ -2824,4 +2826,108 @@ async function refreshUsersData() {
 async function refreshLogsData() {
     await loadLogsData();
     showNotification('Logs data refreshed', 'success');
+}
+
+// Enhanced navigation highlighting
+function updateNavigationHighlighting(pageName) {
+    console.log('Updating navigation highlighting for:', pageName);
+    
+    // Remove all active states
+    document.querySelectorAll('.nav-item, .nav-sub-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    
+    // Handle different page types
+    let sectionToExpand = null;
+    let itemToActivate = null;
+    
+    if (pageName === 'dashboard') {
+        itemToActivate = document.querySelector('.nav-item[onclick*="dashboard"]');
+    } else if (pageName.startsWith('players-')) {
+        sectionToExpand = 'playersSection';
+        itemToActivate = document.querySelector('.nav-sub-item[onclick*="' + pageName + '"]');
+    } else if (pageName.startsWith('collections-')) {
+        sectionToExpand = 'collectionsSection';
+        itemToActivate = document.querySelector('.nav-sub-item[onclick*="' + pageName + '"]');
+    } else if (pageName.startsWith('expenses-')) {
+        sectionToExpand = 'expensesSection';
+        itemToActivate = document.querySelector('.nav-sub-item[onclick*="' + pageName + '"]');
+    } else if (pageName === 'logs') {
+        itemToActivate = document.querySelector('.nav-item[onclick*="logs"]');
+    } else if (pageName === 'admin') {
+        itemToActivate = document.querySelector('.nav-item[onclick*="admin"]');
+    }
+    
+    // Expand the section if needed
+    if (sectionToExpand) {
+        const section = document.getElementById(sectionToExpand);
+        if (section) {
+            section.classList.remove('collapsed');
+            localStorage.setItem(`nav_${sectionToExpand}`, 'expanded');
+        }
+    }
+    
+    // Activate the item
+    if (itemToActivate) {
+        itemToActivate.classList.add('active');
+        console.log('Activated navigation item:', itemToActivate);
+    } else {
+        console.warn('Could not find navigation item for page:', pageName);
+    }
+}
+
+// Load initial data from Google Sheets
+async function loadInitialData() {
+    console.log('Loading initial data from Google Sheets...');
+    
+    try {
+        // Test connectivity first
+        await apiCall('test');
+        console.log('Backend connection successful');
+        
+        // Load users data if admin
+        if (currentUser && (currentUser.role === 'admin' || currentUser.role === 'Admin')) {
+            try {
+                const users = await apiCall('getUsers');
+                console.log('Initial users data loaded:', users);
+                cachedData.users = users || [];
+            } catch (error) {
+                console.warn('Could not load users data:', error);
+                cachedData.users = [];
+            }
+        }
+        
+        // Load players data
+        try {
+            const players = await apiCall('getPlayers');
+            console.log('Initial players data loaded:', players);
+            cachedData.players = players || [];
+        } catch (error) {
+            console.warn('Could not load players data:', error);
+            cachedData.players = [];
+        }
+        
+        // Load collections data
+        try {
+            const collections = await apiCall('getIncome');
+            console.log('Initial collections data loaded:', collections);
+            cachedData.income = collections || [];
+        } catch (error) {
+            console.warn('Could not load collections data:', error);
+            cachedData.income = [];
+        }
+        
+        // Load expenses data
+        try {
+            const expenses = await apiCall('getExpenses');
+            console.log('Initial expenses data loaded:', expenses);
+            cachedData.expenses = expenses || [];
+        } catch (error) {
+            console.warn('Could not load expenses data:', error);
+            cachedData.expenses = [];
+        }
+        
+    } catch (error) {
+        console.warn('Could not connect to backend for initial data load:', error);
+    }
 }

@@ -538,15 +538,26 @@ body.login-mode .app-container {
 
 .logout-btn {
     width: 100%;
-    background: var(--medium-gray);
-    color: var(--text-primary);
-    font-size: 0.75rem;
-    padding: 0.5rem;
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: white;
+    font-size: 0.85rem;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
 }
 
 .logout-btn:hover {
-    background: var(--dark-gray);
-    color: var(--white);
+    background: linear-gradient(135deg, #dc3545, #a71d2a);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(231, 76, 60, 0.6);
+    color: #ffffff;
 }
 
 /* Main Content */
@@ -1281,18 +1292,19 @@ body.login-mode .app-container {
     background: var(--info-blue);
 }
 
-/* Loading Spinner */
+/* Beautiful Loading Spinner */
 .loading-spinner {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
     display: none;
     align-items: center;
     justify-content: center;
-    z-index: 3000;
+    z-index: 99999;
 }
 
 .loading-spinner.active {
@@ -1300,17 +1312,43 @@ body.login-mode .app-container {
 }
 
 .spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid var(--border-color);
-    border-top: 4px solid var(--primary-green);
+    width: 60px;
+    height: 60px;
+    border: 4px solid rgba(255, 255, 255, 0.2);
+    border-top: 4px solid #667eea;
+    border-right: 4px solid #764ba2;
     border-radius: 50%;
-    animation: spin 1s linear infinite;
+    animation: spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+    position: relative;
+}
+
+.spinner::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    animation: pulse 1.5s ease-in-out infinite;
 }
 
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+    0%, 100% { 
+        transform: translate(-50%, -50%) scale(0.8);
+        opacity: 0.7;
+    }
+    50% { 
+        transform: translate(-50%, -50%) scale(1.2);
+        opacity: 1;
+    }
 }
 
 /* Responsive Design */
@@ -3550,8 +3588,10 @@ body.login-mode .app-container {
     }
 
     .logout-btn:hover {
+        background: linear-gradient(135deg, #dc3545, #a71d2a);
         transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+        box-shadow: 0 6px 20px rgba(231, 76, 60, 0.6);
+        color: #ffffff;
     }
 
     /* Main content adjustments for mobile */

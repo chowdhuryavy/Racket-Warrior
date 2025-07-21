@@ -1320,9 +1320,21 @@ function handleAddUser(data) {
       }
     }
     
-    // Generate temporary password
-    const tempPassword = 'TempPass' + Math.floor(Math.random() * 1000) + '!';
-    const hashedPassword = hashPassword(tempPassword);
+    // Handle password - use provided password or generate temporary one
+    const providedPassword = data && data.password ? data.password.trim() : '';
+    let tempPassword;
+    let hashedPassword;
+    
+    if (providedPassword) {
+      // User provided a password
+      tempPassword = providedPassword;
+      hashedPassword = hashPassword(providedPassword);
+    } else {
+      // Generate temporary password
+      tempPassword = 'TempPass' + Math.floor(Math.random() * 1000) + '!';
+      hashedPassword = hashPassword(tempPassword);
+    }
+    
     const timestamp = getCurrentTimestamp();
     
     usersSheet.appendRow([
