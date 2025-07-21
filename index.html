@@ -124,18 +124,62 @@
                     <i class="fas fa-tachometer-alt"></i>
                     <span>Dashboard</span>
                 </a>
-                <a href="#" class="nav-item" onclick="handleNavClick('players')">
-                    <i class="fas fa-users"></i>
-                    <span>Players</span>
-                </a>
-                <a href="#" class="nav-item" onclick="handleNavClick('collections')">
-                    <i class="fas fa-money-bill-wave"></i>
-                    <span>Collections</span>
-                </a>
-                <a href="#" class="nav-item" onclick="handleNavClick('expenses')">
-                    <i class="fas fa-receipt"></i>
-                    <span>Expenses</span>
-                </a>
+                
+                <!-- Players Section -->
+                <div class="nav-section">
+                    <div class="nav-section-header">
+                        <i class="fas fa-users"></i>
+                        <span>Players</span>
+                    </div>
+                    <div class="nav-sub-items">
+                        <a href="#" class="nav-sub-item" onclick="handleNavClick('players-add')">
+                            <i class="fas fa-plus"></i>
+                            <span>Add Player</span>
+                        </a>
+                        <a href="#" class="nav-sub-item" onclick="handleNavClick('players-view')">
+                            <i class="fas fa-list"></i>
+                            <span>View Players</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Collections Section -->
+                <div class="nav-section">
+                    <div class="nav-section-header">
+                        <i class="fas fa-money-bill-wave"></i>
+                        <span>Collections</span>
+                    </div>
+                    <div class="nav-sub-items">
+                        <a href="#" class="nav-sub-item" onclick="handleNavClick('collections-add')">
+                            <i class="fas fa-plus"></i>
+                            <span>Add Collection</span>
+                        </a>
+                        <a href="#" class="nav-sub-item" onclick="handleNavClick('collections-view')">
+                            <i class="fas fa-list"></i>
+                            <span>View Collections</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Expenses Section -->
+                <div class="nav-section">
+                    <div class="nav-section-header">
+                        <i class="fas fa-receipt"></i>
+                        <span>Expenses</span>
+                    </div>
+                    <div class="nav-sub-items">
+                        <a href="#" class="nav-sub-item" onclick="handleNavClick('expenses-add')">
+                            <i class="fas fa-plus"></i>
+                            <span>Add Expense</span>
+                        </a>
+                        <a href="#" class="nav-sub-item" onclick="handleNavClick('expenses-view')">
+                            <i class="fas fa-list"></i>
+                            <span>View Expenses</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Admin Only Sections -->
                 <a href="#" class="nav-item admin-only" onclick="handleNavClick('logs')">
                     <i class="fas fa-clipboard-list"></i>
                     <span>Logs</span>
@@ -250,21 +294,86 @@
                 </div>
             </div>
 
-            <!-- Players Management Page -->
-            <div id="playersPage" class="content-page">
+            <!-- Players Add Page -->
+            <div id="players-addPage" class="content-page">
                 <div class="page-header">
                     <div>
-                        <h1>Players Management</h1>
-                        <p>Manage your gym members and their information</p>
+                        <h1>Add New Player</h1>
+                        <p>Add a new player to the system</p>
                     </div>
                     <div class="action-buttons">
-                        <button class="btn btn-primary" onclick="showAddPlayerModal()">
-                            <i class="fas fa-plus"></i>
-                            Add Player
+                        <button class="btn btn-secondary" onclick="handleNavClick('dashboard')">
+                            <i class="fas fa-home"></i>
+                            Back to Dashboard
                         </button>
-                        <button class="btn btn-secondary" onclick="refreshPlayersData()">
-                            <i class="fas fa-sync"></i>
-                            View All
+                        <button class="btn btn-secondary" onclick="handleNavClick('players-view')">
+                            <i class="fas fa-arrow-left"></i>
+                            Back to Players
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Add Player Form -->
+                <div class="form-container">
+                    <form id="addPlayerForm" class="advanced-form">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="playerName">Full Name *</label>
+                                <input type="text" id="playerName" name="name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="playerPhone">Phone Number *</label>
+                                <input type="tel" id="playerPhone" name="phone" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="playerEmail">Email Address</label>
+                                <input type="email" id="playerEmail" name="email">
+                            </div>
+                            <div class="form-group">
+                                <label for="playerJoinDate">Join Date *</label>
+                                <input type="date" id="playerJoinDate" name="joinDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="playerStatus">Status *</label>
+                                <select id="playerStatus" name="status" required>
+                                    <option value="active">Active</option>
+                                    <option value="inactive">Inactive</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="playerNotes">Notes</label>
+                                <textarea id="playerNotes" name="notes" rows="3"></textarea>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i>
+                                Save Player
+                            </button>
+                            <button type="reset" class="btn btn-secondary">
+                                <i class="fas fa-undo"></i>
+                                Reset Form
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Players View Page -->
+            <div id="players-viewPage" class="content-page">
+                <div class="page-header">
+                    <div>
+                        <h1>View Players</h1>
+                        <p>Manage all players in the system</p>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-secondary" onclick="handleNavClick('dashboard')">
+                            <i class="fas fa-home"></i>
+                            Back to Dashboard
+                        </button>
+                        <button class="btn btn-primary" onclick="handleNavClick('players-add')">
+                            <i class="fas fa-plus"></i>
+                            Add New Player
                         </button>
                     </div>
                 </div>
@@ -283,27 +392,92 @@
 
                 <!-- Players Content -->
                 <div class="players-content">
-                    <div id="playersTable" class="table-container">
+                    <div id="playersViewTable" class="table-container">
                         <!-- Players table will be populated here -->
                     </div>
                 </div>
             </div>
 
-            <!-- Collections Management Page -->
-            <div id="collectionsPage" class="content-page">
+            <!-- Collections Add Page -->
+            <div id="collections-addPage" class="content-page">
                 <div class="page-header">
                     <div>
-                        <h1>Collections Management</h1>
-                        <p>Track and manage all income collections</p>
+                        <h1>Add New Collection</h1>
+                        <p>Record a new payment collection</p>
                     </div>
                     <div class="action-buttons">
-                        <button class="btn btn-primary" onclick="showAddCollectionModal()">
-                            <i class="fas fa-plus"></i>
-                            Add Collection
+                        <button class="btn btn-secondary" onclick="handleNavClick('dashboard')">
+                            <i class="fas fa-home"></i>
+                            Back to Dashboard
                         </button>
-                        <button class="btn btn-secondary" onclick="refreshCollectionsData()">
-                            <i class="fas fa-sync"></i>
-                            View All
+                        <button class="btn btn-secondary" onclick="handleNavClick('collections-view')">
+                            <i class="fas fa-arrow-left"></i>
+                            Back to Collections
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Add Collection Form -->
+                <div class="form-container">
+                    <form id="addCollectionForm" class="advanced-form">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="collectionDate">Collection Date *</label>
+                                <input type="date" id="collectionDate" name="date" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="collectionPlayer">Player *</label>
+                                <select id="collectionPlayer" name="player" required>
+                                    <option value="">Select Player</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="collectionAmount">Amount (QAR) *</label>
+                                <input type="number" id="collectionAmount" name="amount" step="0.01" min="0" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="collectionMethod">Payment Method</label>
+                                <select id="collectionMethod" name="method">
+                                    <option value="cash">Cash</option>
+                                    <option value="card">Card</option>
+                                    <option value="transfer">Bank Transfer</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="collectionDescription">Description</label>
+                                <textarea id="collectionDescription" name="description" rows="3"></textarea>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i>
+                                Save Collection
+                            </button>
+                            <button type="reset" class="btn btn-secondary">
+                                <i class="fas fa-undo"></i>
+                                Reset Form
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Collections View Page -->
+            <div id="collections-viewPage" class="content-page">
+                <div class="page-header">
+                    <div>
+                        <h1>View Collections</h1>
+                        <p>Track all payment collections</p>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-secondary" onclick="handleNavClick('dashboard')">
+                            <i class="fas fa-home"></i>
+                            Back to Dashboard
+                        </button>
+                        <button class="btn btn-primary" onclick="handleNavClick('collections-add')">
+                            <i class="fas fa-plus"></i>
+                            Add New Collection
                         </button>
                     </div>
                 </div>
@@ -315,32 +489,101 @@
                         <select id="collectionMonthFilter" class="filter-select">
                             <option value="">All Months</option>
                         </select>
+                        <select id="collectionPlayerFilter" class="filter-select">
+                            <option value="">All Players</option>
+                        </select>
                     </div>
                 </div>
 
                 <!-- Collections Content -->
                 <div class="collections-content">
-                    <div id="collectionsTable" class="table-container">
+                    <div id="collectionsViewTable" class="table-container">
                         <!-- Collections table will be populated here -->
                     </div>
                 </div>
             </div>
 
-            <!-- Expenses Management Page -->
-            <div id="expensesPage" class="content-page">
+            <!-- Expenses Add Page -->
+            <div id="expenses-addPage" class="content-page">
                 <div class="page-header">
                     <div>
-                        <h1>Expenses Management</h1>
-                        <p>Track and manage all business expenses</p>
+                        <h1>Add New Expense</h1>
+                        <p>Record a new business expense</p>
                     </div>
                     <div class="action-buttons">
-                        <button class="btn btn-primary" onclick="showAddExpenseModal()">
-                            <i class="fas fa-plus"></i>
-                            Add Expense
+                        <button class="btn btn-secondary" onclick="handleNavClick('dashboard')">
+                            <i class="fas fa-home"></i>
+                            Back to Dashboard
                         </button>
-                        <button class="btn btn-secondary" onclick="refreshExpensesData()">
-                            <i class="fas fa-sync"></i>
-                            View All
+                        <button class="btn btn-secondary" onclick="handleNavClick('expenses-view')">
+                            <i class="fas fa-arrow-left"></i>
+                            Back to Expenses
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Add Expense Form -->
+                <div class="form-container">
+                    <form id="addExpenseForm" class="advanced-form">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="expenseDate">Expense Date *</label>
+                                <input type="date" id="expenseDate" name="date" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="expenseCategory">Category *</label>
+                                <select id="expenseCategory" name="category" required>
+                                    <option value="">Select Category</option>
+                                    <option value="equipment">Equipment</option>
+                                    <option value="maintenance">Maintenance</option>
+                                    <option value="utilities">Utilities</option>
+                                    <option value="rent">Rent</option>
+                                    <option value="marketing">Marketing</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="expenseAmount">Amount (QAR) *</label>
+                                <input type="number" id="expenseAmount" name="amount" step="0.01" min="0" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="expenseVendor">Vendor/Supplier</label>
+                                <input type="text" id="expenseVendor" name="vendor">
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="expenseDescription">Description *</label>
+                                <textarea id="expenseDescription" name="description" rows="3" required></textarea>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i>
+                                Save Expense
+                            </button>
+                            <button type="reset" class="btn btn-secondary">
+                                <i class="fas fa-undo"></i>
+                                Reset Form
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Expenses View Page -->
+            <div id="expenses-viewPage" class="content-page">
+                <div class="page-header">
+                    <div>
+                        <h1>View Expenses</h1>
+                        <p>Track all business expenses</p>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-secondary" onclick="handleNavClick('dashboard')">
+                            <i class="fas fa-home"></i>
+                            Back to Dashboard
+                        </button>
+                        <button class="btn btn-primary" onclick="handleNavClick('expenses-add')">
+                            <i class="fas fa-plus"></i>
+                            Add New Expense
                         </button>
                     </div>
                 </div>
@@ -352,12 +595,21 @@
                         <select id="expenseMonthFilter" class="filter-select">
                             <option value="">All Months</option>
                         </select>
+                        <select id="expenseCategoryFilter" class="filter-select">
+                            <option value="">All Categories</option>
+                            <option value="equipment">Equipment</option>
+                            <option value="maintenance">Maintenance</option>
+                            <option value="utilities">Utilities</option>
+                            <option value="rent">Rent</option>
+                            <option value="marketing">Marketing</option>
+                            <option value="other">Other</option>
+                        </select>
                     </div>
                 </div>
 
                 <!-- Expenses Content -->
                 <div class="expenses-content">
-                    <div id="expensesTable" class="table-container">
+                    <div id="expensesViewTable" class="table-container">
                         <!-- Expenses table will be populated here -->
                     </div>
                 </div>

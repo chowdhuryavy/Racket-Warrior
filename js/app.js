@@ -224,11 +224,180 @@ function debounce(func, wait) {
     };
 }
 
+// Form Initialization Functions
+function initializePlayerForm() {
+    console.log('Initializing player form...');
+    
+    // Set default date to today
+    const today = new Date().toISOString().split('T')[0];
+    const joinDateInput = document.getElementById('playerJoinDate');
+    if (joinDateInput) {
+        joinDateInput.value = today;
+    }
+    
+    // Setup form submission
+    const form = document.getElementById('addPlayerForm');
+    if (form) {
+        form.onsubmit = handlePlayerFormSubmit;
+    }
+}
+
+function initializeCollectionForm() {
+    console.log('Initializing collection form...');
+    
+    // Set default date to today
+    const today = new Date().toISOString().split('T')[0];
+    const dateInput = document.getElementById('collectionDate');
+    if (dateInput) {
+        dateInput.value = today;
+    }
+    
+    // Load players for dropdown
+    loadPlayersForDropdown('collectionPlayer');
+    
+    // Setup form submission
+    const form = document.getElementById('addCollectionForm');
+    if (form) {
+        form.onsubmit = handleCollectionFormSubmit;
+    }
+}
+
+function initializeExpenseForm() {
+    console.log('Initializing expense form...');
+    
+    // Set default date to today
+    const today = new Date().toISOString().split('T')[0];
+    const dateInput = document.getElementById('expenseDate');
+    if (dateInput) {
+        dateInput.value = today;
+    }
+    
+    // Setup form submission
+    const form = document.getElementById('addExpenseForm');
+    if (form) {
+        form.onsubmit = handleExpenseFormSubmit;
+    }
+}
+
+// Form Submission Handlers
+async function handlePlayerFormSubmit(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const playerData = {
+        name: formData.get('name'),
+        phone: formData.get('phone'),
+        email: formData.get('email'),
+        joinDate: formData.get('joinDate'),
+        status: formData.get('status'),
+        notes: formData.get('notes')
+    };
+    
+    try {
+        showLoading();
+        await apiCall('addPlayer', playerData);
+        await logUserAction('PLAYER_ADD', `Added new player: ${playerData.name}`, playerData);
+        showNotification('Player added successfully!', 'success');
+        
+        // Reset form and redirect
+        e.target.reset();
+        initializePlayerForm();
+        handleNavClick('players-view');
+        
+    } catch (error) {
+        console.error('Failed to add player:', error);
+        showNotification('Failed to add player. Please try again.', 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+async function handleCollectionFormSubmit(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const collectionData = {
+        date: formData.get('date'),
+        player: formData.get('player'),
+        amount: parseFloat(formData.get('amount')),
+        method: formData.get('method'),
+        description: formData.get('description')
+    };
+    
+    try {
+        showLoading();
+        await apiCall('addIncome', collectionData);
+        await logUserAction('COLLECTION_ADD', `Added collection: QAR ${collectionData.amount} from ${collectionData.player}`, collectionData);
+        showNotification('Collection added successfully!', 'success');
+        
+        // Reset form and redirect
+        e.target.reset();
+        initializeCollectionForm();
+        handleNavClick('collections-view');
+        
+    } catch (error) {
+        console.error('Failed to add collection:', error);
+        showNotification('Failed to add collection. Please try again.', 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+async function handleExpenseFormSubmit(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const expenseData = {
+        date: formData.get('date'),
+        category: formData.get('category'),
+        amount: parseFloat(formData.get('amount')),
+        vendor: formData.get('vendor'),
+        description: formData.get('description')
+    };
+    
+    try {
+        showLoading();
+        await apiCall('addExpense', expenseData);
+        await logUserAction('EXPENSE_ADD', `Added expense: QAR ${expenseData.amount} - ${expenseData.description}`, expenseData);
+        showNotification('Expense added successfully!', 'success');
+        
+        // Reset form and redirect
+        e.target.reset();
+        initializeExpenseForm();
+        handleNavClick('expenses-view');
+        
+    } catch (error) {
+        console.error('Failed to add expense:', error);
+        showNotification('Failed to add expense. Please try again.', 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+// Utility function to load players for dropdown
+async function loadPlayersForDropdown(selectId) {
+    try {
+        const players = await apiCall('getPlayers');
+        const select = document.getElementById(selectId);
+        if (select && players) {
+            // Clear existing options except the first one
+            select.innerHTML = '<option value="">Select Player</option>';
+            
+            players.forEach(player => {
+                const option = document.createElement('option');
+                option.value = player.name || player.Name;
+                option.textContent = player.name || player.Name;
+                select.appendChild(option);
+            });
+        }
+    } catch (error) {
+        console.error('Failed to load players for dropdown:', error);
+    }
+}
+
+// Update currency formatting
 function formatCurrency(amount) {
-    return new Intl.NumberFormat('en-IN', {
-        style: 'currency',
-        currency: 'INR'
-    }).format(amount);
+    return `QAR ${parseFloat(amount || 0).toFixed(2)}`;
 }
 
 function formatDate(dateString) {
@@ -523,13 +692,17 @@ function setupUserPermissions() {
         console.log('Non-admin user - hiding admin content');
     }
     
-    // Show/hide admin-only navigation items
+    // Show/hide admin-only navigation items  
     const adminNavItems = document.querySelectorAll('.nav-item.admin-only');
+    console.log('Found admin nav items:', adminNavItems.length);
     adminNavItems.forEach(item => {
         if (currentUser.role === 'admin') {
-            item.style.display = 'flex';
+            item.style.display = 'flex !important';
+            item.style.visibility = 'visible';
+            console.log('Showing admin nav item:', item);
         } else {
-            item.style.display = 'none';
+            item.style.display = 'none !important';
+            item.style.visibility = 'hidden';
         }
     });
     
@@ -858,7 +1031,7 @@ function showPage(pageName) {
         }
         
         // Update navigation
-        document.querySelectorAll('.nav-item').forEach(item => {
+        document.querySelectorAll('.nav-item, .nav-sub-item').forEach(item => {
             item.classList.remove('active');
         });
         const activeNavItem = document.querySelector(`[onclick*="'${pageName}'"]`);
@@ -876,13 +1049,22 @@ function showPage(pageName) {
             case 'dashboard':
                 loadDashboardData();
                 break;
-            case 'players':
+            case 'players-add':
+                initializePlayerForm();
+                break;
+            case 'players-view':
                 loadPlayersData();
                 break;
-            case 'collections':
+            case 'collections-add':
+                initializeCollectionForm();
+                break;
+            case 'collections-view':
                 loadCollectionsData();
                 break;
-            case 'expenses':
+            case 'expenses-add':
+                initializeExpenseForm();
+                break;
+            case 'expenses-view':
                 loadExpensesData();
                 break;
             case 'logs':
@@ -1941,9 +2123,9 @@ function renderDashboardData(data) {
     const totalBalanceEl = document.getElementById('totalBalanceAmount');
     
     if (activePlayersEl) activePlayersEl.textContent = data.activePlayersCount || '0';
-    if (totalCollectionEl) totalCollectionEl.textContent = `₹${data.totalCollection || '0.00'}`;
-    if (totalExpenseEl) totalExpenseEl.textContent = `₹${data.totalExpense || '0.00'}`;
-    if (totalBalanceEl) totalBalanceEl.textContent = `₹${data.totalBalance || '0.00'}`;
+    if (totalCollectionEl) totalCollectionEl.textContent = `QAR ${data.totalCollection || '0.00'}`;
+    if (totalExpenseEl) totalExpenseEl.textContent = `QAR ${data.totalExpense || '0.00'}`;
+    if (totalBalanceEl) totalBalanceEl.textContent = `QAR ${data.totalBalance || '0.00'}`;
     
     // Update monthly summary
     const monthlyCollectionEl = document.getElementById('monthlyCollection');
@@ -1983,7 +2165,7 @@ async function loadPlayersData() {
 }
 
 function renderPlayersTable(players) {
-    const container = document.getElementById('playersTable');
+    const container = document.getElementById('playersViewTable');
     if (!container) return;
     
     if (!players || players.length === 0) {
@@ -2058,7 +2240,7 @@ async function loadCollectionsData() {
 }
 
 function renderCollectionsTable(collections) {
-    const container = document.getElementById('collectionsTable');
+    const container = document.getElementById('collectionsViewTable');
     if (!container) return;
     
     if (!collections || collections.length === 0) {
@@ -2095,7 +2277,7 @@ function renderCollectionsTable(collections) {
             <tr>
                 <td>${formatDate(collection.date) || 'N/A'}</td>
                 <td>${escapeHtml(collection.player || 'N/A')}</td>
-                <td>₹${collection.amount || '0.00'}</td>
+                <td>QAR ${collection.amount || '0.00'}</td>
                 <td>${escapeHtml(collection.description || 'N/A')}</td>
                 <td>
                     <button class="btn btn-sm btn-secondary" onclick="editCollection('${collection.id}')">
@@ -2126,7 +2308,7 @@ async function loadExpensesData() {
 }
 
 function renderExpensesTable(expenses) {
-    const container = document.getElementById('expensesTable');
+    const container = document.getElementById('expensesViewTable');
     if (!container) return;
     
     if (!expenses || expenses.length === 0) {
@@ -2163,7 +2345,7 @@ function renderExpensesTable(expenses) {
             <tr>
                 <td>${formatDate(expense.date) || 'N/A'}</td>
                 <td>${escapeHtml(expense.category || 'N/A')}</td>
-                <td>₹${expense.amount || '0.00'}</td>
+                <td>QAR ${expense.amount || '0.00'}</td>
                 <td>${escapeHtml(expense.description || 'N/A')}</td>
                 <td>
                     <button class="btn btn-sm btn-secondary" onclick="editExpense('${expense.id}')">

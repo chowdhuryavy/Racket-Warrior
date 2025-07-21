@@ -2536,11 +2536,20 @@ body.desktop-view .sidebar-overlay {
 
 /* Admin Only Content */
 .admin-only {
-    display: none;
+    display: none !important;
 }
 
 body.admin-user .admin-only {
-    display: block;
+    display: block !important;
+}
+
+/* Admin navigation items */
+.nav-item.admin-only {
+    display: none !important;
+}
+
+body.admin-user .nav-item.admin-only {
+    display: flex !important;
 }
 
 /* Month Filter */
@@ -2651,4 +2660,156 @@ body.admin-user .admin-only {
 .btn-danger:hover {
     background: #dc2626;
     transform: translateY(-1px);
+}
+
+/* Navigation Sections */
+.nav-section {
+    margin-bottom: 1rem;
+}
+
+.nav-section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1.5rem;
+    color: var(--text-primary);
+    font-weight: 600;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--light-gray);
+}
+
+.nav-section-header i {
+    width: 20px;
+    text-align: center;
+    font-size: 1.1rem;
+}
+
+.nav-sub-items {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+.nav-sub-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 2rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: none;
+    background: none;
+    width: 100%;
+    cursor: pointer;
+    font-size: 0.875rem;
+}
+
+.nav-sub-item:hover {
+    background: var(--light-gray);
+    color: var(--text-primary);
+    transform: translateX(5px);
+}
+
+.nav-sub-item.active {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+}
+
+.nav-sub-item i {
+    width: 16px;
+    text-align: center;
+    font-size: 1rem;
+}
+
+/* Advanced Form Styling */
+.form-container {
+    background: var(--white);
+    padding: 2rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.advanced-form {
+    max-width: 800px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 0.875rem;
+    transition: border-color 0.3s ease;
+    box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+}
+
+/* Currency Updates - Change to QAR */
+.dashboard-card .card-value {
+    /* QAR will be added via JavaScript */
+}
+
+.summary-value {
+    /* QAR will be added via JavaScript */
+}
+
+/* Mobile Form Responsiveness */
+@media (max-width: 768px) {
+    .form-container {
+        padding: 1.5rem;
+    }
+    
+    .form-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .form-actions .btn {
+        width: 100%;
+    }
 }
