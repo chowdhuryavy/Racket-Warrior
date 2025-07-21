@@ -264,16 +264,35 @@ function hideLoading() {
 }
 
 function showNotification(message, type = 'info') {
-    const notification = document.getElementById('notification');
-    if (notification) {
-        notification.textContent = message;
-        notification.className = `notification ${type} show`;
-        
-        // Auto hide after 5 seconds
-        setTimeout(() => {
-            notification.classList.remove('show');
-        }, 5000);
-    }
+    // Remove any existing notifications
+    document.querySelectorAll('.notification').forEach(n => n.remove());
+    
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+        <span>${message}</span>
+        <button onclick="this.parentElement.remove()" style="margin-left: auto; background: none; border: none; color: inherit; cursor: pointer; font-size: 1.2rem; padding: 0 5px;">&times;</button>
+    `;
+    
+    // Add flexbox styling
+    notification.style.display = 'flex';
+    notification.style.alignItems = 'center';
+    notification.style.gap = '10px';
+    
+    document.body.appendChild(notification);
+    
+    // Auto remove after 5 seconds with slide out animation
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.style.animation = 'slideOutRight 0.3s ease-in forwards';
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, 300);
+        }
+    }, 5000);
 }
 
 function showButtonLoading(button) {
@@ -373,7 +392,9 @@ async function handleLogin(e) {
         }
         
         const result = await apiCall('login', { email, password });
-        currentUser = result;
+        currentUser = result.user || result; // Handle both response formats
+        
+        console.log('Login successful, user:', currentUser);
         
         // Store user session
         localStorage.setItem('gymUser', JSON.stringify(currentUser));
@@ -593,8 +614,22 @@ async function handleResetPassword(e) {
             throw new Error('Passwords do not match');
         }
         
-        if (!validatePassword(password)) {
-            throw new Error('Password does not meet requirements');
+        // Validate password requirements
+        const passwordValidation = validatePasswordStrength(password);
+        if (!passwordValidation.isValid) {
+            const requirements = Object.entries(passwordValidation.requirements)
+                .filter(([key, value]) => !value)
+                .map(([key, value]) => {
+                    switch(key) {
+                        case 'length': return 'At least 8 characters';
+                        case 'uppercase': return 'One uppercase letter';
+                        case 'lowercase': return 'One lowercase letter';
+                        case 'number': return 'One number';
+                        case 'special': return 'One special character';
+                        default: return key;
+                    }
+                });
+            throw new Error(`Password requirements:\n• ${requirements.join('\n• ')}`);
         }
         
         await apiCall('resetPassword', { email, password });
@@ -606,6 +641,23 @@ async function handleResetPassword(e) {
     } finally {
         hideButtonLoading(submitButton);
     }
+}
+
+function validatePasswordStrength(password) {
+    if (!password) {
+        return { isValid: false, requirements: { error: 'Password is required' } };
+    }
+    
+    const requirements = {
+        length: password.length >= 8,
+        uppercase: /[A-Z]/.test(password),
+        lowercase: /[a-z]/.test(password),
+        number: /\d/.test(password),
+        special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+    };
+    
+    const isValid = Object.values(requirements).every(req => req);
+    return { isValid, requirements };
 }
 
 // Navigation functions
