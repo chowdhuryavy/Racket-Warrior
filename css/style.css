@@ -82,6 +82,53 @@ body {
     min-height: 100vh;
     position: relative;
     overflow: hidden;
+    width: 100%;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+}
+
+#loginPage.hidden {
+    display: none !important;
+    visibility: hidden !important;
+}
+
+.app-container {
+    display: none;
+    width: 100%;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 999;
+}
+
+.app-container.visible {
+    display: flex !important;
+    visibility: visible !important;
+}
+
+/* Fallback styles for robust transitions */
+body.app-mode #loginPage {
+    display: none !important;
+    transform: translateX(-100vw);
+}
+
+body.app-mode .app-container {
+    display: flex !important;
+    transform: translateX(0);
+}
+
+body.login-mode #loginPage {
+    display: flex !important;
+    transform: translateX(0);
+}
+
+body.login-mode .app-container {
+    display: none !important;
+    transform: translateX(100vw);
 }
 
 #loginPage::before {

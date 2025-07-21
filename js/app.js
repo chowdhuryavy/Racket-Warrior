@@ -264,35 +264,45 @@ function hideLoading() {
 }
 
 function showNotification(message, type = 'info') {
-    // Remove any existing notifications
-    document.querySelectorAll('.notification').forEach(n => n.remove());
-    
-    const notification = document.createElement('div');
-    notification.className = `notification notification-${type}`;
-    notification.innerHTML = `
-        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-        <span>${message}</span>
-        <button onclick="this.parentElement.remove()" style="margin-left: auto; background: none; border: none; color: inherit; cursor: pointer; font-size: 1.2rem; padding: 0 5px;">&times;</button>
-    `;
-    
-    // Add flexbox styling
-    notification.style.display = 'flex';
-    notification.style.alignItems = 'center';
-    notification.style.gap = '10px';
-    
-    document.body.appendChild(notification);
-    
-    // Auto remove after 5 seconds with slide out animation
-    setTimeout(() => {
-        if (notification.parentElement) {
-            notification.style.animation = 'slideOutRight 0.3s ease-in forwards';
-            setTimeout(() => {
-                if (notification.parentElement) {
-                    notification.remove();
-                }
-            }, 300);
+    // Remove any existing notifications first
+    const existingNotifications = document.querySelectorAll('.notification');
+    existingNotifications.forEach(n => {
+        if (n.parentElement) {
+            n.remove();
         }
-    }, 5000);
+    });
+    
+    // Wait a moment before showing new notification
+    setTimeout(() => {
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.innerHTML = `
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+            <span>${message}</span>
+            <button onclick="this.parentElement.remove()" style="margin-left: auto; background: none; border: none; color: inherit; cursor: pointer; font-size: 1.2rem; padding: 0 5px;">&times;</button>
+        `;
+        
+        // Add flexbox styling
+        notification.style.display = 'flex';
+        notification.style.alignItems = 'center';
+        notification.style.gap = '10px';
+        notification.style.position = 'fixed';
+        notification.style.zIndex = '10001';
+        
+        document.body.appendChild(notification);
+        
+        // Auto remove after 5 seconds with slide out animation
+        setTimeout(() => {
+            if (notification && notification.parentElement) {
+                notification.style.animation = 'slideOutRight 0.3s ease-in forwards';
+                setTimeout(() => {
+                    if (notification && notification.parentElement) {
+                        notification.remove();
+                    }
+                }, 300);
+            }
+        }, 5000);
+    }, 100);
 }
 
 function showButtonLoading(button) {
@@ -403,14 +413,10 @@ async function handleLogin(e) {
         const loginPage = document.getElementById('loginPage');
         const appContainer = document.getElementById('appContainer');
         
-        if (loginPage && appContainer) {
-            console.log('Hiding login page and showing app container');
-            loginPage.style.display = 'none';
-            appContainer.style.display = 'flex';
-        } else {
-            console.error('Could not find login page or app container elements');
-            if (!loginPage) console.error('loginPage element not found');
-            if (!appContainer) console.error('appContainer element not found');
+        // Use robust transition function
+        if (!transitionToApp()) {
+            console.error('Failed to transition to app');
+            return;
         }
         
         // Set user info
@@ -485,12 +491,8 @@ async function logout() {
     localStorage.removeItem('gymUser');
     currentUser = null;
     
-    // Reset UI
-    const loginPage = document.getElementById('loginPage');
-    const appContainer = document.getElementById('appContainer');
-    
-    if (loginPage) loginPage.style.display = 'flex';
-    if (appContainer) appContainer.style.display = 'none';
+    // Reset UI using robust transition
+    transitionToLogin();
     
     // Clear forms
     const loginForm = document.getElementById('loginForm');
@@ -535,14 +537,10 @@ function checkSession() {
             const loginPage = document.getElementById('loginPage');
             const appContainer = document.getElementById('appContainer');
             
-            if (loginPage && appContainer) {
-                console.log('Session check: Hiding login page and showing app container');
-                loginPage.style.display = 'none';
-                appContainer.style.display = 'flex';
-            } else {
-                console.error('Session check: Could not find login page or app container elements');
-                if (!loginPage) console.error('loginPage element not found');
-                if (!appContainer) console.error('appContainer element not found');
+            // Use robust transition function
+            if (!transitionToApp()) {
+                console.error('Session check: Failed to transition to app');
+                return;
             }
             
             // Set user info
@@ -1571,8 +1569,8 @@ async function deletePlayer(playerId) {
     
     try {
         // Get player name before deletion for logging
-        const player = playersData.find(p => p.id === playerId);
-        const playerName = player ? player.name : `ID: ${playerId}`;
+        const player = cachedData.players.find(p => p.ID === playerId);
+        const playerName = player ? player.Name : `ID: ${playerId}`;
         
         await apiCall('deletePlayer', { id: playerId });
         await logUserAction('PLAYER_DELETE', `Deleted player: ${playerName}`, { id: playerId, name: playerName });
@@ -1581,6 +1579,80 @@ async function deletePlayer(playerId) {
     } catch (error) {
         showNotification('Failed to delete player', 'error');
     }
+}
+
+// Robust page transition function
+function transitionToApp() {
+    console.log('Starting transition to app...');
+    
+    const loginPage = document.getElementById('loginPage');
+    const appContainer = document.getElementById('appContainer');
+    
+    if (!loginPage || !appContainer) {
+        console.error('Missing required elements for transition');
+        return false;
+    }
+    
+    // Method 1: Direct style manipulation
+    loginPage.style.cssText = 'display: none !important; visibility: hidden !important; opacity: 0 !important;';
+    appContainer.style.cssText = 'display: flex !important; visibility: visible !important; opacity: 1 !important;';
+    
+    // Method 2: Class manipulation
+    document.body.classList.add('app-mode');
+    document.body.classList.remove('login-mode');
+    loginPage.classList.add('hidden');
+    loginPage.classList.remove('active');
+    appContainer.classList.add('visible');
+    
+    // Method 3: Force DOM update
+    requestAnimationFrame(() => {
+        loginPage.style.pointerEvents = 'none';
+        appContainer.style.pointerEvents = 'auto';
+        
+        // Final verification
+        const loginDisplay = window.getComputedStyle(loginPage).display;
+        const appDisplay = window.getComputedStyle(appContainer).display;
+        
+        console.log('Final states - Login:', loginDisplay, 'App:', appDisplay);
+        
+        if (loginDisplay !== 'none' || appDisplay === 'none') {
+            console.warn('Transition may have failed, applying fallback');
+            // Fallback method
+            document.body.style.overflow = 'hidden';
+            loginPage.style.transform = 'translateX(-100vw)';
+            appContainer.style.transform = 'translateX(0)';
+        }
+    });
+    
+    return true;
+}
+
+function transitionToLogin() {
+    console.log('Starting transition to login...');
+    
+    const loginPage = document.getElementById('loginPage');
+    const appContainer = document.getElementById('appContainer');
+    
+    if (!loginPage || !appContainer) {
+        console.error('Missing required elements for transition');
+        return false;
+    }
+    
+    // Reset any transformations
+    loginPage.style.transform = 'translateX(0)';
+    appContainer.style.transform = 'translateX(100vw)';
+    
+    // Show login, hide app
+    loginPage.style.cssText = 'display: flex !important; visibility: visible !important; opacity: 1 !important;';
+    appContainer.style.cssText = 'display: none !important; visibility: hidden !important; opacity: 0 !important;';
+    
+    document.body.classList.add('login-mode');
+    document.body.classList.remove('app-mode');
+    loginPage.classList.remove('hidden');
+    loginPage.classList.add('active');
+    appContainer.classList.remove('visible');
+    
+    return true;
 }
 
 // Global error handler
