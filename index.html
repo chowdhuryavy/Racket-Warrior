@@ -177,355 +177,267 @@
                 <div class="page-header">
                     <div>
                         <h1>Dashboard</h1>
-                        <p class="page-subtitle">Racket Warrior Management Overview</p>
+                        <p>Racket Warrior Management Overview</p>
                     </div>
-                    <div class="page-actions">
-                        <div class="month-filter">
-                            <i class="fas fa-calendar"></i>
-                            <select id="dashboardMonthFilter">
-                                <option value="">July 2025</option>
-                            </select>
-                        </div>
+                    <div class="month-filter">
+                        <label for="monthFilter">Month:</label>
+                        <select id="monthFilter" onchange="filterByMonth()">
+                            <option value="">All Months</option>
+                        </select>
                     </div>
                 </div>
 
                 <!-- Dashboard Cards -->
                 <div class="dashboard-cards">
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-icon">
-                                <i class="fas fa-users"></i>
-                            </div>
-                            <p class="card-title">Active Players</p>
+                    <div class="dashboard-card">
+                        <div class="card-icon" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
+                            <i class="fas fa-users"></i>
                         </div>
-                        <h2 class="card-value" id="activePlayersCount">24</h2>
-                        <div class="card-trend up">
-                            <i class="fas fa-arrow-up"></i>
-                            <span>+2 from last month</span>
+                        <div class="card-content">
+                            <h3>Active Players</h3>
+                            <p class="card-value" id="activePlayersCount">0</p>
+                            <small class="card-label">Total Active</small>
                         </div>
                     </div>
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-icon">
-                                <i class="fas fa-chart-line"></i>
-                            </div>
-                            <p class="card-title">Monthly Collection</p>
+
+                    <div class="dashboard-card">
+                        <div class="card-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
+                            <i class="fas fa-coins"></i>
                         </div>
-                        <h2 class="card-value" id="totalCollection">QAR 1,200</h2>
-                        <div class="card-trend up">
-                            <i class="fas fa-arrow-up"></i>
-                            <span>+15% from last month</span>
+                        <div class="card-content">
+                            <h3>Total Collection</h3>
+                            <p class="card-value" id="totalCollectionAmount">₹0.00</p>
+                            <small class="card-label">This Month</small>
                         </div>
                     </div>
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-icon">
-                                <i class="fas fa-chart-line-down"></i>
-                            </div>
-                            <p class="card-title">Monthly Expenses</p>
+
+                    <div class="dashboard-card">
+                        <div class="card-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                            <i class="fas fa-receipt"></i>
                         </div>
-                        <h2 class="card-value" id="totalExpense">QAR 800</h2>
-                        <div class="card-trend down">
-                            <i class="fas fa-arrow-down"></i>
-                            <span>-5% from last month</span>
+                        <div class="card-content">
+                            <h3>Total Expense</h3>
+                            <p class="card-value" id="totalExpenseAmount">₹0.00</p>
+                            <small class="card-label">This Month</small>
                         </div>
                     </div>
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-icon">
-                                <i class="fas fa-wallet"></i>
-                            </div>
-                            <p class="card-title">Current Balance</p>
+
+                    <div class="dashboard-card">
+                        <div class="card-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                            <i class="fas fa-chart-line"></i>
                         </div>
-                        <h2 class="card-value" id="totalBalance">QAR 550</h2>
-                        <div class="card-trend up">
-                            <i class="fas fa-arrow-up"></i>
-                            <span>Healthy balance</span>
+                        <div class="card-content">
+                            <h3>Total Balance</h3>
+                            <p class="card-value" id="totalBalanceAmount">₹0.00</p>
+                            <small class="card-label">Current</small>
                         </div>
                     </div>
                 </div>
 
                 <!-- Monthly Summary -->
                 <div class="monthly-summary">
-                    <h3>Monthly Summary</h3>
-                    <div class="summary-item">
-                        <span class="summary-label">Collection for July 2025</span>
-                        <span class="summary-value positive">QAR 1,200</span>
+                    <h2>Monthly Summary</h2>
+                    <div class="summary-cards">
+                        <div class="summary-item">
+                            <span class="summary-label">Collection for <span id="currentMonth">Current Month</span></span>
+                            <span class="summary-value positive" id="monthlyCollection">QAR 1,200</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Expenses for <span id="currentMonthExpense">Current Month</span></span>
+                            <span class="summary-value negative" id="monthlyExpenses">QAR 800</span>
+                        </div>
                     </div>
-                    <div class="summary-item">
-                        <span class="summary-label">Expenses for July 2025</span>
-                        <span class="summary-value negative">QAR 800</span>
-                    </div>
-                    <div class="summary-item">
-                        <span class="summary-label">Carry Forward from Previous Month</span>
-                        <span class="summary-value neutral">QAR 150</span>
-                    </div>
-                    <div class="total-balance">
-                        <span>Total Balance</span>
-                        <span id="totalBalanceFooter">QAR 550</span>
-                    </div>
-                </div>
-
-                <!-- Action Buttons -->
-                <div class="action-buttons">
-                    <a href="#" class="action-btn-large green" onclick="showAddCollectionModal()">
-                        <i class="fas fa-chart-line"></i>
-                        <span>Add Collection</span>
-                    </a>
-                    <a href="#" class="action-btn-large red" onclick="showAddExpenseModal()">
-                        <i class="fas fa-chart-line-down"></i>
-                        <span>Add Expense</span>
-                    </a>
-                    <a href="#" class="action-btn-large blue" onclick="showAddPlayerModal()">
-                        <i class="fas fa-users"></i>
-                        <span>Add Player</span>
-                    </a>
                 </div>
             </div>
 
-            <!-- Players Page -->
+            <!-- Players Management Page -->
             <div id="playersPage" class="content-page">
                 <div class="page-header">
                     <div>
-                        <h1>Players</h1>
-                        <p class="page-subtitle">2 active players in July 2025</p>
+                        <h1>Players Management</h1>
+                        <p>Manage your gym members and their information</p>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="showAddPlayerModal()">
+                            <i class="fas fa-plus"></i>
+                            Add Player
+                        </button>
+                        <button class="btn btn-secondary" onclick="refreshPlayersData()">
+                            <i class="fas fa-sync"></i>
+                            View All
+                        </button>
                     </div>
                 </div>
 
-                <!-- Filters Section -->
+                <!-- Players Filters -->
                 <div class="filters-section">
-                    <input type="text" class="search-input" id="playersSearch" placeholder="Search players...">
-                    <div class="month-filter">
-                        <i class="fas fa-calendar"></i>
-                        <select id="playersMonthFilter">
-                            <option value="">July 2025</option>
+                    <div class="filter-group">
+                        <input type="text" id="playerSearchInput" placeholder="Search players..." class="search-input">
+                        <select id="playerStatusFilter" class="filter-select">
+                            <option value="">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
                         </select>
                     </div>
-                    <select id="playersStatusFilter" class="filter-select">
-                        <option value="">All Status</option>
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                    </select>
                 </div>
 
-                <!-- Players Grid -->
-                <div class="players-grid" id="playersGrid">
-                    <!-- Player Card 1 -->
-                    <div class="player-card">
-                        <div class="player-header">
-                            <div class="player-avatar">A</div>
-                            <div>
-                                <h4 class="player-name">Ahmed Al-Rashid</h4>
-                                <span class="player-status active">Active</span>
-                            </div>
-                        </div>
-                        <div class="player-info">
-                            <p><strong>Phone:</strong> +974 5555 1234</p>
-                            <p><strong>Email:</strong> ahmed@example.com</p>
-                            <p><strong>Joined:</strong> 1/15/2024</p>
-                        </div>
-                        <div style="margin-bottom: 1rem;">
-                            <p style="font-weight: 500; margin-bottom: 0.5rem;">Status for Jul 2025</p>
-                            <select class="filter-select" style="width: 100%;">
-                                <option selected>Active</option>
-                                <option>Inactive</option>
-                            </select>
-                        </div>
-                        <div class="player-actions">
-                            <button class="action-btn edit">
-                                <i class="fas fa-edit"></i>
-                                Edit
-                            </button>
-                            <button class="action-btn delete">
-                                <i class="fas fa-trash"></i>
-                                Delete
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Player Card 2 -->
-                    <div class="player-card">
-                        <div class="player-header">
-                            <div class="player-avatar">M</div>
-                            <div>
-                                <h4 class="player-name">Mohammed Hassan</h4>
-                                <span class="player-status active">Active</span>
-                            </div>
-                        </div>
-                        <div class="player-info">
-                            <p><strong>Phone:</strong> +974 5555 5678</p>
-                            <p><strong>Email:</strong> mohammed@example.com</p>
-                            <p><strong>Joined:</strong> 2/1/2024</p>
-                        </div>
-                        <div style="margin-bottom: 1rem;">
-                            <p style="font-weight: 500; margin-bottom: 0.5rem;">Status for Jul 2025</p>
-                            <select class="filter-select" style="width: 100%;">
-                                <option selected>Active</option>
-                                <option>Inactive</option>
-                            </select>
-                        </div>
-                        <div class="player-actions">
-                            <button class="action-btn edit">
-                                <i class="fas fa-edit"></i>
-                                Edit
-                            </button>
-                            <button class="action-btn delete">
-                                <i class="fas fa-trash"></i>
-                                Delete
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Player Card 3 -->
-                    <div class="player-card">
-                        <div class="player-header">
-                            <div class="player-avatar">O</div>
-                            <div>
-                                <h4 class="player-name">Omar Abdullah</h4>
-                                <span class="player-status inactive">Inactive</span>
-                            </div>
-                        </div>
-                        <div class="player-info">
-                            <p><strong>Phone:</strong> +974 5555 9012</p>
-                            <p><strong>Email:</strong> omar@example.com</p>
-                            <p><strong>Joined:</strong> 3/10/2024</p>
-                        </div>
-                        <div style="margin-bottom: 1rem;">
-                            <p style="font-weight: 500; margin-bottom: 0.5rem;">Status for Jul 2025</p>
-                            <select class="filter-select" style="width: 100%;">
-                                <option>Active</option>
-                                <option selected>Inactive</option>
-                            </select>
-                        </div>
-                        <div class="player-actions">
-                            <button class="action-btn edit">
-                                <i class="fas fa-edit"></i>
-                                Edit
-                            </button>
-                            <button class="action-btn delete">
-                                <i class="fas fa-trash"></i>
-                                Delete
-                            </button>
-                        </div>
+                <!-- Players Content -->
+                <div class="players-content">
+                    <div id="playersTable" class="table-container">
+                        <!-- Players table will be populated here -->
                     </div>
                 </div>
             </div>
 
-            <!-- Collections Page -->
+            <!-- Collections Management Page -->
             <div id="collectionsPage" class="content-page">
                 <div class="page-header">
-                    <h1>Collections</h1>
-                    <div class="page-actions">
-                        <div class="filters">
-                            <select id="collectionsMonthFilter">
-                                <option value="">All Months</option>
-                            </select>
-                            <select id="collectionsPlayerFilter">
-                                <option value="">All Players</option>
-                            </select>
-                        </div>
-                        <button class="btn btn-primary" onclick="showAddCollectionModal()" id="addCollectionBtn">
+                    <div>
+                        <h1>Collections Management</h1>
+                        <p>Track and manage all income collections</p>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="showAddCollectionModal()">
                             <i class="fas fa-plus"></i>
                             Add Collection
                         </button>
-                    </div>
-                </div>
-                <div class="table-container">
-                    <table id="collectionsTable" class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Player</th>
-                                <th>Amount</th>
-                                <th>Description</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Expenses Page -->
-            <div id="expensesPage" class="content-page">
-                <div class="page-header">
-                    <h1>Expenses</h1>
-                    <div class="page-actions">
-                        <div class="filters">
-                            <select id="expensesMonthFilter">
-                                <option value="">All Months</option>
-                            </select>
-                        </div>
-                        <button class="btn btn-primary" onclick="showAddExpenseModal()" id="addExpenseBtn">
-                            <i class="fas fa-plus"></i>
-                            Add Expense
+                        <button class="btn btn-secondary" onclick="refreshCollectionsData()">
+                            <i class="fas fa-sync"></i>
+                            View All
                         </button>
                     </div>
                 </div>
-                <div class="table-container">
-                    <table id="expensesTable" class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Category</th>
-                                <th>Amount</th>
-                                <th>Description</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
+
+                <!-- Collections Filters -->
+                <div class="filters-section">
+                    <div class="filter-group">
+                        <input type="text" id="collectionSearchInput" placeholder="Search collections..." class="search-input">
+                        <select id="collectionMonthFilter" class="filter-select">
+                            <option value="">All Months</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Collections Content -->
+                <div class="collections-content">
+                    <div id="collectionsTable" class="table-container">
+                        <!-- Collections table will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Expenses Management Page -->
+            <div id="expensesPage" class="content-page">
+                <div class="page-header">
+                    <div>
+                        <h1>Expenses Management</h1>
+                        <p>Track and manage all business expenses</p>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="showAddExpenseModal()">
+                            <i class="fas fa-plus"></i>
+                            Add Expense
+                        </button>
+                        <button class="btn btn-secondary" onclick="refreshExpensesData()">
+                            <i class="fas fa-sync"></i>
+                            View All
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Expenses Filters -->
+                <div class="filters-section">
+                    <div class="filter-group">
+                        <input type="text" id="expenseSearchInput" placeholder="Search expenses..." class="search-input">
+                        <select id="expenseMonthFilter" class="filter-select">
+                            <option value="">All Months</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Expenses Content -->
+                <div class="expenses-content">
+                    <div id="expensesTable" class="table-container">
+                        <!-- Expenses table will be populated here -->
+                    </div>
                 </div>
             </div>
 
             <!-- Logs Page (Admin Only) -->
-            <div id="logsPage" class="content-page">
+            <div id="logsPage" class="content-page admin-only">
                 <div class="page-header">
-                    <h1>System Logs</h1>
-                    <div class="page-actions">
-                        <input type="text" id="logsSearch" placeholder="Search logs..." class="search-input">
+                    <div>
+                        <h1>System Logs</h1>
+                        <p>Track all system activities and user actions</p>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-secondary" onclick="refreshLogsData()">
+                            <i class="fas fa-sync"></i>
+                            Refresh Logs
+                        </button>
                     </div>
                 </div>
-                <div class="table-container">
-                    <table id="logsTable" class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Timestamp</th>
-                                <th>User</th>
-                                <th>Role</th>
-                                <th>Action</th>
-                                <th>Details</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
+
+                <!-- Logs Filters -->
+                <div class="filters-section">
+                    <div class="filter-group">
+                        <input type="text" id="logsSearchInput" placeholder="Search logs..." class="search-input">
+                        <select id="logsActionFilter" class="filter-select">
+                            <option value="">All Actions</option>
+                            <option value="LOGIN">Login</option>
+                            <option value="LOGOUT">Logout</option>
+                            <option value="PLAYER_ADD">Player Added</option>
+                            <option value="COLLECTION_ADD">Collection Added</option>
+                            <option value="EXPENSE_ADD">Expense Added</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Logs Content -->
+                <div class="logs-content">
+                    <div id="logsTable" class="table-container">
+                        <!-- Logs table will be populated here -->
+                    </div>
                 </div>
             </div>
 
-            <!-- Admin Page (Admin Only) -->
-            <div id="adminPage" class="content-page">
+            <!-- Admin Panel Page (Admin Only) -->
+            <div id="adminPage" class="content-page admin-only">
                 <div class="page-header">
-                    <h1>Admin Panel</h1>
-                    <button class="btn btn-primary" onclick="showAddUserModal()">
-                        <i class="fas fa-user-plus"></i>
-                        Add User
-                    </button>
+                    <div>
+                        <h1>Admin Panel</h1>
+                        <p>Manage users and system settings</p>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="showAddUserModal()">
+                            <i class="fas fa-user-plus"></i>
+                            Add User
+                        </button>
+                        <button class="btn btn-secondary" onclick="refreshUsersData()">
+                            <i class="fas fa-sync"></i>
+                            View All Users
+                        </button>
+                    </div>
                 </div>
-                <div class="table-container">
-                    <table id="usersTable" class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Role</th>
-                                <th>Status</th>
-                                <th>Created At</th>
-                                <th>Last Login</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
+
+                <!-- Users Filters -->
+                <div class="filters-section">
+                    <div class="filter-group">
+                        <input type="text" id="usersSearchInput" placeholder="Search users..." class="search-input">
+                        <select id="usersRoleFilter" class="filter-select">
+                            <option value="">All Roles</option>
+                            <option value="admin">Admin</option>
+                            <option value="user">User</option>
+                            <option value="view">View Only</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Users Content -->
+                <div class="users-content">
+                    <div id="usersTable" class="table-container">
+                        <!-- Users table will be populated here -->
+                    </div>
                 </div>
             </div>
         </div>

@@ -297,9 +297,12 @@ function showNotification(message, type = 'info') {
         align-items: center;
         gap: 10px;
         position: fixed;
+        top: 20px;
+        right: 20px;
         z-index: 99999;
-        visibility: visible;
-        opacity: 1;
+        visibility: visible !important;
+        opacity: 1 !important;
+        transform: translateX(0) !important;
     `;
     
     // Add to DOM
@@ -370,10 +373,11 @@ function apiCall(action, data = {}) {
         
         // Handle script load errors
         script.onerror = function() {
+            console.error('Script load failed for URL:', script.src);
             document.head.removeChild(script);
             delete window[callbackName];
             hideLoading();
-            reject(new Error('Network error or script load failed'));
+            reject(new Error('Backend connection failed. Please check your internet connection and backend URL.'));
         };
         
         // Build URL with parameters
@@ -434,15 +438,7 @@ async function handleLogin(e) {
             throw new Error('Please enter both email and password');
         }
         
-        // Test backend connectivity first
-        console.log('Testing backend connectivity...');
-        try {
-            const testResult = await apiCall('test');
-            console.log('Backend test result:', testResult);
-        } catch (testError) {
-            console.error('Backend connectivity test failed:', testError);
-            throw new Error('Cannot connect to server. Please check your internet connection.');
-        }
+        // Skip connectivity test for now to avoid blocking login
         
         console.log('Making API call to login...');
         const result = await apiCall('login', { email, password });
@@ -511,32 +507,56 @@ async function handleLogin(e) {
 }
 
 function setupUserPermissions() {
-    if (!currentUser) return;
+    if (!currentUser) {
+        console.log('No current user found for permissions setup');
+        return;
+    }
     
     console.log('Setting up permissions for user:', currentUser.role);
     
-    // Show/hide admin-only items
-    const adminItems = document.querySelectorAll('.admin-only');
-    adminItems.forEach(item => {
-        item.style.display = currentUser.role === 'admin' ? 'block' : 'none';
+    // Add admin class to body for admin users
+    if (currentUser.role === 'admin') {
+        document.body.classList.add('admin-user');
+        console.log('Admin user detected - showing admin content');
+    } else {
+        document.body.classList.remove('admin-user');
+        console.log('Non-admin user - hiding admin content');
+    }
+    
+    // Show/hide admin-only navigation items
+    const adminNavItems = document.querySelectorAll('.nav-item.admin-only');
+    adminNavItems.forEach(item => {
+        if (currentUser.role === 'admin') {
+            item.style.display = 'flex';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+    
+    // Show/hide admin-only pages
+    const adminPages = document.querySelectorAll('.content-page.admin-only');
+    adminPages.forEach(page => {
+        if (currentUser.role === 'admin') {
+            page.classList.add('admin-accessible');
+        } else {
+            page.classList.remove('admin-accessible');
+        }
     });
     
     // Update user info in sidebar
-    const userInfo = document.querySelector('.user-info');
-    if (userInfo) {
-        userInfo.innerHTML = `
-            <div class="user-details">
-                <span class="user-name">${escapeHtml(currentUser.name || currentUser.email)}</span>
-                <span class="user-role">${escapeHtml(currentUser.role || 'User')}</span>
-            </div>
-        `;
-    }
+    const userNameEl = document.getElementById('currentUserName');
+    const userRoleEl = document.getElementById('currentUserRole');
+    
+    if (userNameEl) userNameEl.textContent = currentUser.name || currentUser.email;
+    if (userRoleEl) userRoleEl.textContent = currentUser.role || 'User';
     
     // Set view-only restrictions
     if (currentUser.role === 'view') {
-        const addButtons = document.querySelectorAll('#addPlayerBtn, #addCollectionBtn, #addExpenseBtn');
+        const addButtons = document.querySelectorAll('button[onclick*="showAdd"], .btn-primary');
         addButtons.forEach(btn => {
-            if (btn) btn.style.display = 'none';
+            if (btn && btn.textContent.includes('Add')) {
+                btn.style.display = 'none';
+            }
         });
         
         const actionButtons = document.querySelectorAll('.action-btn');
@@ -544,6 +564,8 @@ function setupUserPermissions() {
             if (btn) btn.style.display = 'none';
         });
     }
+    
+    console.log('Permissions setup complete for:', currentUser.role);
 }
 
 async function logout() {
@@ -1844,4 +1866,317 @@ function initializeSidebar() {
     
     // Reset body overflow
     document.body.style.overflow = '';
+}
+
+// Refresh Data Functions
+function refreshPlayersData() {
+    console.log('Refreshing players data...');
+    loadPlayersData();
+    showNotification('Players data refreshed', 'info');
+}
+
+function refreshCollectionsData() {
+    console.log('Refreshing collections data...');
+    loadCollectionsData();
+    showNotification('Collections data refreshed', 'info');
+}
+
+function refreshExpensesData() {
+    console.log('Refreshing expenses data...');
+    loadExpensesData();
+    showNotification('Expenses data refreshed', 'info');
+}
+
+function refreshLogsData() {
+    console.log('Refreshing logs data...');
+    loadLogsData();
+    showNotification('Logs data refreshed', 'info');
+}
+
+function refreshUsersData() {
+    console.log('Refreshing users data...');
+    loadUsersData();
+    showNotification('Users data refreshed', 'info');
+}
+
+// Month Filter Function
+function filterByMonth() {
+    const selectedMonth = document.getElementById('monthFilter').value;
+    console.log('Filtering by month:', selectedMonth);
+    // Implementation will depend on your data structure
+    loadDashboardData(selectedMonth);
+}
+
+// Enhanced Load Functions with Fallback Data
+async function loadDashboardData(month = '') {
+    try {
+        showLoading();
+        console.log('Loading dashboard data...');
+        
+        // Try to load real data
+        const dashboardData = await apiCall('getDashboardData', { month });
+        console.log('Dashboard data loaded:', dashboardData);
+        
+        // Update dashboard with real data
+        renderDashboardData(dashboardData);
+        
+    } catch (error) {
+        console.error('Failed to load dashboard data:', error);
+        showNotification('Failed to load dashboard data', 'error');
+        
+        // Show demo data as fallback
+        renderDemoDashboardData();
+    } finally {
+        hideLoading();
+    }
+}
+
+function renderDashboardData(data) {
+    if (!data) return;
+    
+    // Update dashboard cards
+    const activePlayersEl = document.getElementById('activePlayersCount');
+    const totalCollectionEl = document.getElementById('totalCollectionAmount');
+    const totalExpenseEl = document.getElementById('totalExpenseAmount');
+    const totalBalanceEl = document.getElementById('totalBalanceAmount');
+    
+    if (activePlayersEl) activePlayersEl.textContent = data.activePlayersCount || '0';
+    if (totalCollectionEl) totalCollectionEl.textContent = `₹${data.totalCollection || '0.00'}`;
+    if (totalExpenseEl) totalExpenseEl.textContent = `₹${data.totalExpense || '0.00'}`;
+    if (totalBalanceEl) totalBalanceEl.textContent = `₹${data.totalBalance || '0.00'}`;
+    
+    // Update monthly summary
+    const monthlyCollectionEl = document.getElementById('monthlyCollection');
+    const monthlyExpensesEl = document.getElementById('monthlyExpenses');
+    
+    if (monthlyCollectionEl) monthlyCollectionEl.textContent = `QAR ${data.monthlyCollection || '0'}`;
+    if (monthlyExpensesEl) monthlyExpensesEl.textContent = `QAR ${data.monthlyExpenses || '0'}`;
+}
+
+function renderDemoDashboardData() {
+    console.log('Rendering demo dashboard data...');
+    
+    // Show demo data
+    const demoData = {
+        activePlayersCount: '24',
+        totalCollection: '12,500.00',
+        totalExpense: '8,200.00',
+        totalBalance: '4,300.00',
+        monthlyCollection: '1,200',
+        monthlyExpenses: '800'
+    };
+    
+    renderDashboardData(demoData);
+    showNotification('Showing demo data - backend not connected', 'info');
+}
+
+async function loadPlayersData() {
+    try {
+        console.log('Loading players data...');
+        const playersData = await apiCall('getPlayers');
+        renderPlayersTable(playersData);
+    } catch (error) {
+        console.error('Failed to load players data:', error);
+        showNotification('Failed to load players data', 'error');
+        renderPlayersTable([]); // Show empty table
+    }
+}
+
+function renderPlayersTable(players) {
+    const container = document.getElementById('playersTable');
+    if (!container) return;
+    
+    if (!players || players.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-users" style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 1rem;"></i>
+                <h3>No Players Found</h3>
+                <p>Start by adding your first player to the system.</p>
+                <button class="btn btn-primary" onclick="showAddPlayerModal()">
+                    <i class="fas fa-plus"></i>
+                    Add First Player
+                </button>
+            </div>
+        `;
+        return;
+    }
+    
+    let tableHTML = `
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th>Join Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    players.forEach(player => {
+        tableHTML += `
+            <tr>
+                <td>${escapeHtml(player.name || 'N/A')}</td>
+                <td>${escapeHtml(player.phone || 'N/A')}</td>
+                <td>${escapeHtml(player.email || 'N/A')}</td>
+                <td>
+                    <span class="status-badge ${player.status === 'active' ? 'active' : 'inactive'}">
+                        ${player.status || 'Unknown'}
+                    </span>
+                </td>
+                <td>${formatDate(player.joinDate) || 'N/A'}</td>
+                <td>
+                    <button class="btn btn-sm btn-secondary" onclick="editPlayer('${player.id}')">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="deletePlayer('${player.id}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+    
+    tableHTML += '</tbody></table>';
+    container.innerHTML = tableHTML;
+}
+
+// Similar functions for collections, expenses, etc.
+async function loadCollectionsData() {
+    try {
+        console.log('Loading collections data...');
+        const collectionsData = await apiCall('getIncome');
+        renderCollectionsTable(collectionsData);
+    } catch (error) {
+        console.error('Failed to load collections data:', error);
+        showNotification('Failed to load collections data', 'error');
+        renderCollectionsTable([]);
+    }
+}
+
+function renderCollectionsTable(collections) {
+    const container = document.getElementById('collectionsTable');
+    if (!container) return;
+    
+    if (!collections || collections.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-coins" style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 1rem;"></i>
+                <h3>No Collections Found</h3>
+                <p>Start by adding your first collection entry.</p>
+                <button class="btn btn-primary" onclick="showAddCollectionModal()">
+                    <i class="fas fa-plus"></i>
+                    Add First Collection
+                </button>
+            </div>
+        `;
+        return;
+    }
+    
+    let tableHTML = `
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Player</th>
+                    <th>Amount</th>
+                    <th>Description</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    collections.forEach(collection => {
+        tableHTML += `
+            <tr>
+                <td>${formatDate(collection.date) || 'N/A'}</td>
+                <td>${escapeHtml(collection.player || 'N/A')}</td>
+                <td>₹${collection.amount || '0.00'}</td>
+                <td>${escapeHtml(collection.description || 'N/A')}</td>
+                <td>
+                    <button class="btn btn-sm btn-secondary" onclick="editCollection('${collection.id}')">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteCollection('${collection.id}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+    
+    tableHTML += '</tbody></table>';
+    container.innerHTML = tableHTML;
+}
+
+async function loadExpensesData() {
+    try {
+        console.log('Loading expenses data...');
+        const expensesData = await apiCall('getExpenses');
+        renderExpensesTable(expensesData);
+    } catch (error) {
+        console.error('Failed to load expenses data:', error);
+        showNotification('Failed to load expenses data', 'error');
+        renderExpensesTable([]);
+    }
+}
+
+function renderExpensesTable(expenses) {
+    const container = document.getElementById('expensesTable');
+    if (!container) return;
+    
+    if (!expenses || expenses.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-receipt" style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 1rem;"></i>
+                <h3>No Expenses Found</h3>
+                <p>Start by adding your first expense entry.</p>
+                <button class="btn btn-primary" onclick="showAddExpenseModal()">
+                    <i class="fas fa-plus"></i>
+                    Add First Expense
+                </button>
+            </div>
+        `;
+        return;
+    }
+    
+    let tableHTML = `
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Category</th>
+                    <th>Amount</th>
+                    <th>Description</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    expenses.forEach(expense => {
+        tableHTML += `
+            <tr>
+                <td>${formatDate(expense.date) || 'N/A'}</td>
+                <td>${escapeHtml(expense.category || 'N/A')}</td>
+                <td>₹${expense.amount || '0.00'}</td>
+                <td>${escapeHtml(expense.description || 'N/A')}</td>
+                <td>
+                    <button class="btn btn-sm btn-secondary" onclick="editExpense('${expense.id}')">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteExpense('${expense.id}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+    
+    tableHTML += '</tbody></table>';
+    container.innerHTML = tableHTML;
 }
