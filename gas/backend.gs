@@ -63,6 +63,10 @@ function doGet(e) {
         result = initializeApplication();
         break;
       
+      case 'debug_users':
+        result = debugUsers();
+        break;
+      
       // Authentication
       case 'login': result = handleLogin(e.parameter); break;
       case 'logout': result = handleLogout(e.parameter); break;
@@ -248,6 +252,11 @@ function handleLogin(params) {
     
     const usersSheet = getSheet(SHEETS.users.name);
     const users = getSheetData(usersSheet);
+    
+    // Debug logging
+    Logger.log('Login attempt for email: ' + email);
+    Logger.log('Users found in sheet: ' + users.length);
+    Logger.log('All users: ' + JSON.stringify(users));
     
     // Find user by email
     const user = users.find(u => u.email === email);
@@ -2048,6 +2057,37 @@ function initializeApplication() {
     return {
       success: false,
       message: 'Failed to initialize application: ' + error.toString()
+    };
+  }
+}
+
+/**
+ * Debug function to check users data
+ */
+function debugUsers() {
+  try {
+    const usersSheet = getSheet(SHEETS.users.name);
+    const rawData = usersSheet.getDataRange().getValues();
+    const users = getSheetData(usersSheet);
+    
+    Logger.log('Raw sheet data: ' + JSON.stringify(rawData));
+    Logger.log('Processed users: ' + JSON.stringify(users));
+    
+    return {
+      success: true,
+      data: {
+        sheetName: SHEETS.users.name,
+        rawData: rawData,
+        processedUsers: users,
+        userCount: users.length,
+        expectedColumns: SHEETS.users.columns
+      }
+    };
+  } catch (error) {
+    Logger.log('Debug users error: ' + error.toString());
+    return {
+      success: false,
+      message: 'Debug failed: ' + error.toString()
     };
   }
 }

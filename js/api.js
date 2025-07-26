@@ -339,6 +339,19 @@ const API = {
             Logger.error('Application initialization failed:', error);
             return { success: false, message: 'Initialization failed: ' + error.message };
         }
+    },
+
+    // Debug users data
+    debugUsers: async function() {
+        try {
+            Logger.info('Debugging users data...');
+            const result = await this.makeRequest('debug_users');
+            Logger.info('Debug users result:', result);
+            return result;
+        } catch (error) {
+            Logger.error('Debug users failed:', error);
+            return { success: false, message: 'Debug failed: ' + error.message };
+        }
     }
 };
 
