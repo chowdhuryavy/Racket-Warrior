@@ -73,6 +73,10 @@ function doGet(e) {
       case 'initialize_app':
         result = initializeApplication();
         break;
+        
+      case 'create_admin':
+        result = createAdminUser();
+        break;
       
 
       
@@ -259,39 +263,42 @@ function doPost(e) {
  */
 function handleLogin(params) {
   try {
+    // Add detailed logging to debug the issue
+    Logger.log('=== LOGIN DEBUG START ===');
+    Logger.log('Received params: ' + JSON.stringify(params));
+    
     // Safety check for params
     if (!params) {
+      Logger.log('ERROR: No parameters provided');
       return { success: false, message: 'No login parameters provided' };
     }
     
     const { username, password } = params;
     const email = username; // Frontend sends 'username' but it's actually email
     
+    Logger.log('Login attempt - Email: ' + email + ', Password length: ' + (password ? password.length : 0));
+    
     if (!username || !password) {
+      Logger.log('ERROR: Missing username or password');
       return { success: false, message: 'Email and password are required' };
     }
     
-    // HARDCODED ADMIN LOGIN - TEMPORARY FIX
-    if (email === 'chowdhuryavy@gmail.com' && password === 'Doha@2580') {
-      return {
-        success: true,
-        message: 'Login successful',
-        user: {
-          id: '1',
-          email: 'chowdhuryavy@gmail.com',
-          name: 'Avy Chowdhury',
-          role: 'admin',
-          photo_url: 'https://ui-avatars.com/api/?name=Avy+Chowdhury&background=667eea&color=fff&size=128'
-        },
-        token: 'temp_token_' + Date.now()
-      };
+    // Get users from sheet
+    Logger.log('Attempting to access Users sheet...');
+    const usersSheet = getSheet(SHEETS.users.name);
+    Logger.log('Users sheet accessed successfully');
+    
+    let users = getSheetData(usersSheet);
+    Logger.log('Users data retrieved - Count: ' + users.length);
+    
+    if (users.length > 0) {
+      Logger.log('First user sample: ' + JSON.stringify(users[0]));
+      Logger.log('All user emails: ' + users.map(u => u.email).join(', '));
     }
     
-    const usersSheet = getSheet(SHEETS.users.name);
-    let users = getSheetData(usersSheet);
-    
     // Auto-create admin user if sheet is empty or user doesn't exist
-    if (users.length === 0 || !users.find(u => String(u.email).toLowerCase() === email.toLowerCase())) {
+    if (users.length === 0) {
+      Logger.log('No users found, creating admin user...');
       if (email === 'chowdhuryavy@gmail.com') {
         // Create the admin user automatically
         usersSheet.appendRow([
@@ -307,47 +314,81 @@ function handleLogin(params) {
           '', 
           'https://ui-avatars.com/api/?name=Avy+Chowdhury&background=667eea&color=fff&size=128'
         ]);
+        Logger.log('Admin user created in sheet');
         // Reload users data
         users = getSheetData(usersSheet);
+        Logger.log('Users data reloaded - Count: ' + users.length);
       }
     }
     
     // Find user by email (case insensitive)
-    const user = users.find(u => String(u.email).toLowerCase() === email.toLowerCase());
+    Logger.log('Looking for user with email: ' + email);
+    const user = users.find(u => {
+      const userEmail = String(u.email || '').toLowerCase().trim();
+      const loginEmail = String(email || '').toLowerCase().trim();
+      Logger.log('Comparing: "' + userEmail + '" vs "' + loginEmail + '"');
+      return userEmail === loginEmail;
+    });
     
     if (!user) {
+      Logger.log('ERROR: User not found in sheet');
+      Logger.log('Available emails: ' + users.map(u => '"' + u.email + '"').join(', '));
       return { success: false, message: 'Invalid email or password' };
     }
     
+    Logger.log('User found: ' + JSON.stringify(user));
+    
     // Check password (convert to string and trim)
-    if (String(user.password).trim() !== String(password).trim()) {
+    const storedPassword = String(user.password || '').trim();
+    const inputPassword = String(password || '').trim();
+    
+    Logger.log('Password check - Stored: "' + storedPassword + '", Input: "' + inputPassword + '"');
+    
+    if (storedPassword !== inputPassword) {
+      Logger.log('ERROR: Password mismatch');
       return { success: false, message: 'Invalid email or password' };
     }
     
     // Check if user is active
+    Logger.log('Checking user status: ' + user.status);
     if (user.status !== 'active') {
+      Logger.log('ERROR: User account is disabled');
       return { success: false, message: 'Account is disabled. Contact administrator.' };
     }
     
     // Update last login
-    updateUserLastLogin(email);
+    Logger.log('Updating last login...');
+    try {
+      const userIndex = users.indexOf(user) + 2; // +2 for header and 0-based index
+      usersSheet.getRange(userIndex, 7).setValue(new Date().toISOString());
+      Logger.log('Last login updated successfully');
+    } catch (updateError) {
+      Logger.log('Warning: Could not update last login: ' + updateError.toString());
+    }
     
     // Generate token
-    const token = generateAuthToken(user.email);
+    const token = generateToken(user.email);
+    Logger.log('Token generated: ' + token.substring(0, 20) + '...');
     
     // Log successful login
     addLog('LOGIN', `User logged in successfully`, user.email, user.role);
     
+    // Prepare user response data
+    const userData = {
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      needs_password_change: user.needs_password_change === 'TRUE',
+      photo_url: user.photo_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.name) + '&background=667eea&color=fff&size=128'
+    };
+    
+    Logger.log('Login successful - returning user data: ' + JSON.stringify(userData));
+    Logger.log('=== LOGIN DEBUG END ===');
+    
     return {
       success: true,
       message: 'Login successful',
-      user: {
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        needs_password_change: user.needs_password_change === 'TRUE',
-        photo_url: user.photo_url || ''
-      },
+      user: userData,
       token: token
     };
     
@@ -2043,6 +2084,69 @@ ${CONFIG.APP_NAME} Team
 /**
  * Initialize application with default data
  */
+/**
+ * Create admin user manually
+ */
+function createAdminUser() {
+  try {
+    Logger.log('=== CREATING ADMIN USER ===');
+    
+    const usersSheet = getSheet(SHEETS.users.name);
+    const users = getSheetData(usersSheet);
+    
+    Logger.log('Current users count: ' + users.length);
+    
+    // Check if admin already exists
+    const existingAdmin = users.find(u => String(u.email).toLowerCase() === 'chowdhuryavy@gmail.com');
+    
+    if (existingAdmin) {
+      Logger.log('Admin user already exists: ' + JSON.stringify(existingAdmin));
+      return {
+        success: true,
+        message: 'Admin user already exists',
+        user: existingAdmin
+      };
+    }
+    
+    // Create admin user
+    Logger.log('Creating new admin user...');
+    usersSheet.appendRow([
+      'chowdhuryavy@gmail.com',
+      'Doha@2580',
+      'admin',
+      'Avy Chowdhury',
+      'FALSE',
+      new Date().toISOString(),
+      '',
+      'active',
+      '',
+      '',
+      'https://ui-avatars.com/api/?name=Avy+Chowdhury&background=667eea&color=fff&size=128'
+    ]);
+    
+    Logger.log('Admin user created successfully');
+    
+    // Verify creation
+    const updatedUsers = getSheetData(usersSheet);
+    const newAdmin = updatedUsers.find(u => String(u.email).toLowerCase() === 'chowdhuryavy@gmail.com');
+    
+    Logger.log('Verification - New admin user: ' + JSON.stringify(newAdmin));
+    
+    return {
+      success: true,
+      message: 'Admin user created successfully',
+      user: newAdmin
+    };
+    
+  } catch (error) {
+    Logger.log('Error creating admin user: ' + error.toString());
+    return {
+      success: false,
+      message: 'Failed to create admin user: ' + error.toString()
+    };
+  }
+}
+
 function initializeApplication() {
   try {
     Logger.log('Starting application initialization...');
