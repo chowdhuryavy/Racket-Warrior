@@ -1,7 +1,7 @@
 // Application Configuration
 const CONFIG = {
     // API Configuration
-    API_BASE_URL: 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec', // Replace with your actual Apps Script URL
+    API_BASE_URL: 'https://script.google.com/macros/s/AKfycbxTErlOO4L97LY9jiAIBhcIk5cWPcHEvRwhc_xMR4GDCdcEKK4H9yzzUsSwfNinx8CAHw/exec', // Replace with your actual Apps Script URL
     
     // Application Info
     APP_NAME: 'Racket Warrior',
@@ -57,7 +57,7 @@ const CONFIG = {
     // Default Settings
     DEFAULTS: {
         USER_PHOTO: 'https://ui-avatars.com/api/?name=User&background=667eea&color=fff&size=128',
-        LOGO: 'assets/logo.png',
+        LOGO: 'https://i.imgur.com/04MGPFl.png',
         CURRENCY: 'QAR',
         DATE_FORMAT: 'DD/MM/YYYY',
         PAGE_SIZE: 10

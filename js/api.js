@@ -25,12 +25,17 @@ const API = {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), this.timeout);
             
-            const response = await fetch(url, {
-                method: method,
+            // For Google Apps Script, we need to use GET with query parameters
+            const urlWithParams = new URL(url);
+            Object.keys(requestData).forEach(key => {
+                urlWithParams.searchParams.append(key, requestData[key]);
+            });
+            
+            const response = await fetch(urlWithParams.toString(), {
+                method: 'GET',
                 headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Accept': 'application/json',
                 },
-                body: new URLSearchParams(requestData),
                 signal: controller.signal
             });
             
@@ -535,7 +540,7 @@ const MockAPI = {
 };
 
 // Use mock API in development mode
-if (CONFIG.DEBUG && (CONFIG.API_BASE_URL.includes('YOUR_SCRIPT_ID') || window.location.hostname === 'localhost')) {
+if (CONFIG.DEBUG && CONFIG.API_BASE_URL.includes('YOUR_SCRIPT_ID')) {
     Logger.info('Using Mock API for development');
     Object.setPrototypeOf(API, MockAPI);
 }

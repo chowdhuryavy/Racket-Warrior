@@ -5,9 +5,9 @@
 
 // Configuration
 const CONFIG = {
-  SHEET_ID: 'YOUR_GOOGLE_SHEET_ID_HERE', // Replace with your actual Google Sheet ID
-  EMAIL_FROM: 'your-email@gmail.com', // Replace with your Gmail address
-  BASE_URL: 'YOUR_WEB_APP_URL_HERE', // Will be auto-generated after deployment
+  SHEET_ID: '1zJHUpcWaOBhKCzHS-uGPqaJepv_eZm019ElKtt249fg', // Your Google Sheet ID
+  EMAIL_FROM: 'chowdhuryavy@gmail.com', // Your Gmail address
+  BASE_URL: 'https://script.google.com/macros/s/AKfycbxTErlOO4L97LY9jiAIBhcIk5cWPcHEvRwhc_xMR4GDCdcEKK4H9yzzUsSwfNinx8CAHw/exec',
   OTP_EXPIRY_MINUTES: 10,
   TOKEN_EXPIRY_HOURS: 24,
   DEFAULT_PASSWORD: 'RacketWarrior123!'
@@ -47,19 +47,80 @@ const SHEETS = {
 function doGet(e) {
   const action = e.parameter.action;
   
-  switch (action) {
-    case 'health_check':
-      return ContentService.createTextOutput(JSON.stringify({
-        success: true,
-        message: 'Racket Warrior API is running',
-        timestamp: new Date().toISOString()
-      })).setMimeType(ContentService.MimeType.JSON);
+  try {
+    let result = { success: false, message: 'Invalid action' };
     
-    default:
-      return ContentService.createTextOutput(JSON.stringify({
-        success: false,
-        message: 'GET method not supported for this action'
-      })).setMimeType(ContentService.MimeType.JSON);
+    switch (action) {
+      case 'health_check':
+        result = {
+          success: true,
+          message: 'Racket Warrior API is running',
+          timestamp: new Date().toISOString()
+        };
+        break;
+      
+      // Authentication
+      case 'login': result = handleLogin(e.parameter); break;
+      case 'logout': result = handleLogout(e.parameter); break;
+      case 'forgot_password': result = handleForgotPassword(e.parameter); break;
+      case 'verify_otp': result = handleVerifyOTP(e.parameter); break;
+      case 'reset_password': result = handleResetPassword(e.parameter); break;
+      case 'change_password': result = handleChangePassword(e.parameter); break;
+      
+      // Dashboard
+      case 'get_dashboard_stats': result = handleGetDashboardStats(e.parameter); break;
+      
+      // Players
+      case 'get_players': result = handleGetPlayers(e.parameter); break;
+      case 'add_player': result = handleAddPlayer(e.parameter); break;
+      case 'update_player': result = handleUpdatePlayer(e.parameter); break;
+      case 'delete_player': result = handleDeletePlayer(e.parameter); break;
+      
+      // Income/Collections
+      case 'get_income': result = handleGetIncome(e.parameter); break;
+      case 'add_income': result = handleAddIncome(e.parameter); break;
+      case 'update_income': result = handleUpdateIncome(e.parameter); break;
+      case 'delete_income': result = handleDeleteIncome(e.parameter); break;
+      
+      // Expenses
+      case 'get_expenses': result = handleGetExpenses(e.parameter); break;
+      case 'add_expense': result = handleAddExpense(e.parameter); break;
+      case 'update_expense': result = handleUpdateExpense(e.parameter); break;
+      case 'delete_expense': result = handleDeleteExpense(e.parameter); break;
+      
+      // Users Management
+      case 'get_users': result = handleGetUsers(e.parameter); break;
+      case 'add_user': result = handleAddUser(e.parameter); break;
+      case 'update_user': result = handleUpdateUser(e.parameter); break;
+      case 'delete_user': result = handleDeleteUser(e.parameter); break;
+      
+      // Reports
+      case 'get_monthly_report': result = handleGetMonthlyReport(e.parameter); break;
+      
+      // Logs
+      case 'get_logs': result = handleGetLogs(e.parameter); break;
+      case 'add_log': result = handleAddLog(e.parameter); break;
+      
+      // Settings
+      case 'get_settings': result = handleGetSettings(e.parameter); break;
+      case 'update_settings': result = handleUpdateSettings(e.parameter); break;
+      
+      // File Upload
+      case 'upload_photo': result = handleUploadPhoto(e.parameter); break;
+      
+      default:
+        result = { success: false, message: 'Unknown action: ' + action };
+    }
+    
+    return ContentService.createTextOutput(JSON.stringify(result))
+      .setMimeType(ContentService.MimeType.JSON);
+      
+  } catch (error) {
+    Logger.log('doGet Error: ' + error.toString());
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false,
+      message: 'Server error: ' + error.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
   }
 }
 
@@ -156,6 +217,7 @@ function doPost(e) {
 function handleLogin(params) {
   try {
     const { username, password } = params;
+    const email = username; // Frontend sends 'username' but it's actually email
     
     if (!username || !password) {
       return { success: false, message: 'Username and password are required' };
@@ -165,7 +227,7 @@ function handleLogin(params) {
     const users = getSheetData(usersSheet);
     
     // Find user by email
-    const user = users.find(u => u.email === username);
+    const user = users.find(u => u.email === email);
     
     if (!user) {
       addLog('LOGIN_FAILED', `Failed login attempt for ${username}`, 'SYSTEM', 'unknown');
@@ -184,7 +246,7 @@ function handleLogin(params) {
     }
     
     // Update last login
-    updateUserLastLogin(user.email);
+    updateUserLastLogin(email);
     
     // Generate token
     const token = generateAuthToken(user.email);
