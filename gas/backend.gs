@@ -58,6 +58,24 @@ function doGet(e) {
           timestamp: new Date().toISOString()
         };
         break;
+        
+      case 'check_users':
+        try {
+          const usersSheet = getSheet(SHEETS.users.name);
+          const users = getSheetData(usersSheet);
+          result = {
+            success: true,
+            userCount: users.length,
+            sampleUser: users.length > 0 ? {
+              keys: Object.keys(users[0]),
+              hasEmail: 'email' in users[0],
+              emailValue: users[0].email || 'NOT_FOUND'
+            } : null
+          };
+        } catch (error) {
+          result = { success: false, message: error.toString() };
+        }
+        break;
       
       case 'initialize_app':
         result = initializeApplication();
@@ -251,7 +269,13 @@ function handleLogin(params) {
     const usersSheet = getSheet(SHEETS.users.name);
     const users = getSheetData(usersSheet);
     
-
+    // Temporary debug - remove after fixing
+    Logger.log('Login Debug - Email looking for: ' + email);
+    Logger.log('Login Debug - Users count: ' + users.length);
+    if (users.length > 0) {
+      Logger.log('Login Debug - First user keys: ' + Object.keys(users[0]).join(', '));
+      Logger.log('Login Debug - First user: ' + JSON.stringify(users[0]));
+    }
     
     // Find user by email
     const user = users.find(u => u.email === email);

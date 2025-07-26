@@ -18,7 +18,10 @@ const API = {
             requestData.token = token;
         }
         
-        Logger.debug(`API Request: ${endpoint}`, requestData);
+        // Debug logging (hide sensitive data)
+        const safeData = { ...requestData };
+        if (safeData.password) safeData.password = '***';
+        Logger.debug(`API Request: ${endpoint}`, safeData);
         
         return new Promise((resolve, reject) => {
             // Create unique callback name
@@ -325,6 +328,25 @@ const API = {
         } catch (error) {
             Logger.error('API connectivity test failed:', error);
             return { success: false, message: 'Connection test failed: ' + error.message };
+        }
+    },
+
+    // Check users in sheet
+    checkUsers: async function() {
+        try {
+            const result = await this.makeRequest('check_users');
+            console.log('=== USERS CHECK ===');
+            console.log('User Count:', result.userCount);
+            if (result.sampleUser) {
+                console.log('Column Keys:', result.sampleUser.keys);
+                console.log('Has Email Column:', result.sampleUser.hasEmail);
+                console.log('Email Value:', result.sampleUser.emailValue);
+            }
+            console.log('=== END ===');
+            return result;
+        } catch (error) {
+            Logger.error('Check users failed:', error);
+            return { success: false, message: 'Check failed: ' + error.message };
         }
     },
 
