@@ -77,6 +77,10 @@ function doGet(e) {
       case 'create_admin':
         result = createAdminUser();
         break;
+        
+      case 'list_users':
+        result = listAllUsers();
+        break;
       
 
       
@@ -296,29 +300,49 @@ function handleLogin(params) {
       Logger.log('All user emails: ' + users.map(u => u.email).join(', '));
     }
     
-    // Auto-create admin user if sheet is empty or user doesn't exist
+    // Auto-create admin user if sheet is empty
     if (users.length === 0) {
       Logger.log('No users found, creating admin user...');
-      if (email === 'chowdhuryavy@gmail.com') {
-        // Create the admin user automatically
-        usersSheet.appendRow([
-          'chowdhuryavy@gmail.com', 
-          'Doha@2580', 
-          'admin', 
-          'Avy Chowdhury', 
-          'FALSE',
-          new Date().toISOString(), 
-          '', 
-          'active', 
-          '', 
-          '', 
-          'https://ui-avatars.com/api/?name=Avy+Chowdhury&background=667eea&color=fff&size=128'
-        ]);
-        Logger.log('Admin user created in sheet');
-        // Reload users data
-        users = getSheetData(usersSheet);
-        Logger.log('Users data reloaded - Count: ' + users.length);
-      }
+      // Create default admin user regardless of email attempted
+      usersSheet.appendRow([
+        'chowdhuryavy@gmail.com', 
+        'Doha@2580', 
+        'admin', 
+        'Avy Chowdhury', 
+        'FALSE',
+        new Date().toISOString(), 
+        '', 
+        'active', 
+        '', 
+        '', 
+        'https://ui-avatars.com/api/?name=Avy+Chowdhury&background=667eea&color=fff&size=128'
+      ]);
+      Logger.log('Admin user created in sheet');
+      // Reload users data
+      users = getSheetData(usersSheet);
+      Logger.log('Users data reloaded - Count: ' + users.length);
+    }
+    
+    // Also create admin user if someone tries to login with admin@gmail.com but it doesn't exist
+    if (email === 'admin@gmail.com' && !users.find(u => String(u.email).toLowerCase().trim() === 'admin@gmail.com')) {
+      Logger.log('Creating admin@gmail.com user...');
+      usersSheet.appendRow([
+        'admin@gmail.com', 
+        'admin123', 
+        'admin', 
+        'Admin User', 
+        'FALSE',
+        new Date().toISOString(), 
+        '', 
+        'active', 
+        '', 
+        '', 
+        'https://ui-avatars.com/api/?name=Admin+User&background=667eea&color=fff&size=128'
+      ]);
+      Logger.log('admin@gmail.com user created in sheet');
+      // Reload users data
+      users = getSheetData(usersSheet);
+      Logger.log('Users data reloaded - Count: ' + users.length);
     }
     
     // Find user by email (case insensitive)
@@ -367,7 +391,7 @@ function handleLogin(params) {
     }
     
     // Generate token
-    const token = generateToken(user.email);
+    const token = generateAuthToken(user.email);
     Logger.log('Token generated: ' + token.substring(0, 20) + '...');
     
     // Log successful login
@@ -2143,6 +2167,47 @@ function createAdminUser() {
     return {
       success: false,
       message: 'Failed to create admin user: ' + error.toString()
+    };
+  }
+}
+
+/**
+ * List all users for debugging
+ */
+function listAllUsers() {
+  try {
+    Logger.log('=== LISTING ALL USERS ===');
+    
+    const usersSheet = getSheet(SHEETS.users.name);
+    const users = getSheetData(usersSheet);
+    
+    Logger.log('Total users found: ' + users.length);
+    
+    const userList = users.map(user => ({
+      email: user.email,
+      role: user.role,
+      name: user.name,
+      status: user.status,
+      password_length: user.password ? user.password.length : 0
+    }));
+    
+    Logger.log('User list: ' + JSON.stringify(userList, null, 2));
+    
+    return {
+      success: true,
+      message: 'Users retrieved successfully',
+      users: userList,
+      validLogins: [
+        { email: 'chowdhuryavy@gmail.com', password: 'Doha@2580' },
+        { email: 'admin@gmail.com', password: 'admin123' }
+      ]
+    };
+    
+  } catch (error) {
+    Logger.log('Error listing users: ' + error.toString());
+    return {
+      success: false,
+      message: 'Failed to list users: ' + error.toString()
     };
   }
 }
