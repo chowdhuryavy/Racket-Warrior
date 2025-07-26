@@ -45,6 +45,17 @@ const SHEETS = {
  * Handle GET requests
  */
 function doGet(e) {
+  // Debug logging - remove after fixing
+  Logger.log('doGet called with e: ' + JSON.stringify(e));
+  Logger.log('e.parameter: ' + JSON.stringify(e?.parameter));
+  
+  // Safety check for parameters
+  if (!e || !e.parameter) {
+    const errorResult = { success: false, message: 'No parameters provided' };
+    return ContentService.createTextOutput(JSON.stringify(errorResult))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  
   const action = e.parameter.action;
   
   try {
@@ -55,7 +66,8 @@ function doGet(e) {
         result = {
           success: true,
           message: 'Racket Warrior API is running',
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          parameters: e.parameter ? Object.keys(e.parameter) : 'NO_PARAMETERS'
         };
         break;
         
@@ -171,6 +183,13 @@ function doGet(e) {
  * Handle POST requests
  */
 function doPost(e) {
+  // Safety check for parameters
+  if (!e || !e.parameter) {
+    const errorResult = { success: false, message: 'No parameters provided' };
+    return ContentService.createTextOutput(JSON.stringify(errorResult))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  
   const action = e.parameter.action;
   
   try {
@@ -259,6 +278,11 @@ function doPost(e) {
  */
 function handleLogin(params) {
   try {
+    // Safety check for params
+    if (!params) {
+      return { success: false, message: 'No login parameters provided' };
+    }
+    
     const { username, password } = params;
     const email = username; // Frontend sends 'username' but it's actually email
     

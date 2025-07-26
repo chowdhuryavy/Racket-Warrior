@@ -322,7 +322,7 @@ const API = {
     testConnection: async function() {
         try {
             Logger.info('Testing API connectivity...');
-            const result = await this.makeRequest('health_check');
+            const result = await this.makeRequest('health_check', { test: 'param' });
             Logger.info('API connectivity test result:', result);
             return result;
         } catch (error) {
