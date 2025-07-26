@@ -7,11 +7,11 @@ const CONFIG = {
     APP_NAME: 'Racket Warrior',
     VERSION: '1.0.0',
     
-    // Sheet configurations (matching backend structure)
+        // Sheet configurations (matching backend structure)
     SHEETS: {
-        users: { 
-            name: 'Users', 
-            columns: ['email', 'password', 'role', 'name', 'needs_password_change', 'created_at', 'last_login', 'status', 'resetToken', 'resetTokenExpiry'] 
+        users: {
+            name: 'Users',
+            columns: ['email', 'password', 'role', 'name', 'needs_password_change', 'created_at', 'last_login', 'status', 'resetToken', 'resetTokenExpiry', 'photo_url']
         },
         players: { 
             name: 'Players', 
@@ -56,7 +56,7 @@ const CONFIG = {
     
     // Default Settings
     DEFAULTS: {
-        USER_PHOTO: 'assets/default-avatar.png',
+        USER_PHOTO: 'https://ui-avatars.com/api/?name=User&background=667eea&color=fff&size=128',
         LOGO: 'assets/logo.png',
         CURRENCY: 'QAR',
         DATE_FORMAT: 'DD/MM/YYYY',

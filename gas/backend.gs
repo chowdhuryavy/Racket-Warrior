@@ -17,7 +17,7 @@ const CONFIG = {
 const SHEETS = {
   users: {
     name: 'Users',
-    columns: ['email', 'password', 'role', 'name', 'needs_password_change', 'created_at', 'last_login', 'status', 'resetToken', 'resetTokenExpiry']
+    columns: ['email', 'password', 'role', 'name', 'needs_password_change', 'created_at', 'last_login', 'status', 'resetToken', 'resetTokenExpiry', 'photo_url']
   },
   players: {
     name: 'Players',
@@ -199,7 +199,8 @@ function handleLogin(params) {
         email: user.email,
         name: user.name,
         role: user.role,
-        needs_password_change: user.needs_password_change === 'TRUE'
+        needs_password_change: user.needs_password_change === 'TRUE',
+        photo_url: user.photo_url || ''
       },
       token: token
     };
@@ -448,7 +449,8 @@ function handleGetUsers(params) {
       status: user.status,
       created_at: user.created_at,
       last_login: user.last_login,
-      needs_password_change: user.needs_password_change === 'TRUE'
+      needs_password_change: user.needs_password_change === 'TRUE',
+      photo_url: user.photo_url || ''
     }));
     
     return { success: true, data: sanitizedUsers };
