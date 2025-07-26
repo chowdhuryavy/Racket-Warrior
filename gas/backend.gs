@@ -7,10 +7,10 @@
 const CONFIG = {
   SHEET_ID: '1zJHUpcWaOBhKCzHS-uGPqaJepv_eZm019ElKtt249fg', // Your Google Sheet ID
   EMAIL_FROM: 'chowdhuryavy@gmail.com', // Your Gmail address
-  BASE_URL: 'https://script.google.com/macros/s/AKfycbxTErlOO4L97LY9jiAIBhcIk5cWPcHEvRwhc_xMR4GDCdcEKK4H9yzzUsSwfNinx8CAHw/exec',
   OTP_EXPIRY_MINUTES: 10,
   TOKEN_EXPIRY_HOURS: 24,
-  DEFAULT_PASSWORD: 'RacketWarrior123!'
+  DEFAULT_PASSWORD: 'RacketWarrior123!',
+  APP_NAME: 'Racket Warrior'
 };
 
 // Sheet configurations (updated based on user requirements)
@@ -1953,11 +1953,10 @@ Email: ${email}
 Temporary Password: ${tempPassword}
 
 Please login and change your password immediately.
-
-Login URL: ${CONFIG.BASE_URL}
+You can access ${CONFIG.APP_NAME} through your usual login page.
 
 Best regards,
-Racket Warrior Team
+${CONFIG.APP_NAME} Team
 `;
     
     MailApp.sendEmail({
