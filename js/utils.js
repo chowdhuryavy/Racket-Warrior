@@ -265,15 +265,26 @@ const UIUtils = {
         }
         
         if (element) {
+            element.disabled = true;
             element.classList.add('loading');
             const originalContent = element.innerHTML;
             element.setAttribute('data-original-content', originalContent);
-            element.innerHTML = `
-                <div class="d-flex align-center justify-center gap-2">
-                    <div class="spinner-border"></div>
-                    <span>${text}</span>
-                </div>
-            `;
+            
+            if (element.tagName === 'BUTTON') {
+                element.innerHTML = `
+                    <div class="d-flex align-center justify-center gap-2">
+                        <div class="spinner-border"></div>
+                        <span>${text}</span>
+                    </div>
+                `;
+            } else {
+                element.innerHTML = `
+                    <div class="loading-placeholder">
+                        <div class="spinner-border"></div>
+                        <span>${text}</span>
+                    </div>
+                `;
+            }
         }
     },
     
@@ -284,6 +295,7 @@ const UIUtils = {
         }
         
         if (element && element.classList.contains('loading')) {
+            element.disabled = false;
             element.classList.remove('loading');
             const originalContent = element.getAttribute('data-original-content');
             if (originalContent) {

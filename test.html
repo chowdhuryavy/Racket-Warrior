@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Racket Warrior - Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .btn {
+            padding: 10px 20px;
+            background: #1e40af;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #fff;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Racket Warrior - Test Page</h1>
+    
+    <div class="test-section">
+        <h2>Button Loading Test</h2>
+        <button id="testBtn" class="btn" onclick="testLoading()">
+            <i class="fas fa-sign-in-alt"></i>
+            Test Loading
+        </button>
+        <p>Click the button to test loading state</p>
+    </div>
+
+    <div class="test-section">
+        <h2>API Test</h2>
+        <button class="btn" onclick="testAPI()">Test API Connection</button>
+        <div id="apiResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Mock Login Test</h2>
+        <input type="text" id="username" placeholder="Username" value="admin@example.com">
+        <input type="password" id="password" placeholder="Password" value="password123">
+        <button class="btn" onclick="testLogin()">Test Login</button>
+        <div id="loginResult"></div>
+    </div>
+
+    <script>
+        function testLoading() {
+            const btn = document.getElementById('testBtn');
+            
+            // Show loading
+            btn.disabled = true;
+            btn.classList.add('loading');
+            btn.innerHTML = '<span class="spinner"></span>Loading...';
+            
+            // Hide loading after 2 seconds
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.classList.remove('loading');
+                btn.innerHTML = '<i class="fas fa-sign-in-alt"></i>Test Loading';
+            }, 2000);
+        }
+
+        function testAPI() {
+            const result = document.getElementById('apiResult');
+            result.innerHTML = 'Testing API connection...';
+            
+            // Test with mock API
+            setTimeout(() => {
+                result.innerHTML = `
+                    <p><strong>Mock API Response:</strong></p>
+                    <pre>{
+  "success": true,
+  "message": "API is working",
+  "timestamp": "${new Date().toISOString()}"
+}</pre>
+                `;
+            }, 1000);
+        }
+
+        function testLogin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const result = document.getElementById('loginResult');
+            
+            result.innerHTML = 'Testing login...';
+            
+            // Simulate login process
+            setTimeout(() => {
+                if (username && password) {
+                    result.innerHTML = `
+                        <p><strong>Mock Login Response:</strong></p>
+                        <pre>{
+  "success": true,
+  "user": {
+    "email": "${username}",
+    "name": "Test User",
+    "role": "admin"
+  },
+  "token": "mock_token_${Date.now()}"
+}</pre>
+                    `;
+                } else {
+                    result.innerHTML = `
+                        <p style="color: red;"><strong>Error:</strong></p>
+                        <pre>{
+  "success": false,
+  "message": "Username and password are required"
+}</pre>
+                    `;
+                }
+            }, 1000);
+        }
+    </script>
+</body>
+</html>

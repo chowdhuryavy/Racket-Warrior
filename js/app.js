@@ -1,33 +1,3 @@
-// Configuration
-const CONFIG = {
-    // Replace with your actual Google Apps Script Web App URL
-    SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbyXcvA0LNt_ZWxGgx3dgJK9U5hVIrZg7ovzKOkt8M8kxbMrbdbiG5mBgPP-yqaYNOHtVA/exec',
-    MONTHS: [
-        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ]
-};
-
-// Global state
-let currentUser = null;
-let currentPage = 'dashboard';
-let cachedData = {
-    players: [],
-    income: [],
-    expenses: [],
-    users: [],
-    logs: []
-};
-let notificationTimeout = null;
-let playersData = [];
-let collectionsData = [];
-let expensesData = [];
-
-// Forgot Password Flow Management
-let currentForgotStep = 1;
-let forgotEmailCache = '';
-let forgotOTPCache = '';
-
 // Main Application Controller for Racket Warrior
 
 const App = {
@@ -38,7 +8,12 @@ const App = {
     init: function() {
         Logger.info('Initializing Racket Warrior App');
         
-        // Initialize authentication first
+        // Hide loading screen after a short delay
+        setTimeout(() => {
+            document.getElementById('loadingScreen').style.display = 'none';
+        }, 500);
+        
+        // Initialize authentication
         Auth.init();
         
         // Setup global event listeners
@@ -46,8 +21,6 @@ const App = {
         
         // Setup mobile navigation
         this.setupMobileNavigation();
-        
-        // Load default page if authenticated
         if (Auth.isAuthenticated()) {
             this.showPage('dashboard');
         }

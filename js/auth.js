@@ -102,16 +102,16 @@ const Auth = {
         document.getElementById('loginContainer').style.display = 'none';
         document.getElementById('appContainer').style.display = 'flex';
         
-        // Initialize app after showing
-        if (window.App && typeof window.App.init === 'function') {
-            window.App.init();
-        }
-        
         // Update user profile in header
         this.updateUserProfile();
         
         // Setup role-based navigation
         this.setupRoleBasedNavigation();
+        
+        // Load dashboard page
+        if (window.App && typeof window.App.showPage === 'function') {
+            window.App.showPage('dashboard');
+        }
     },
     
     // Update user profile display
