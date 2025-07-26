@@ -5,7 +5,7 @@
 
 // Configuration
 const CONFIG = {
-  SHEET_ID: '1zJHUpcWaOBhKCzHS-uGPqaJepv_eZm019ElKtt249fg', // Your Google Sheet ID
+  SHEET_ID: '1P7Sj5dJcz9SRKvEYkOleGsdLknzJje6BZOPoHyH9jfw', // Your Google Sheet ID
   EMAIL_FROM: 'chowdhuryavy@gmail.com', // Your Gmail address
   OTP_EXPIRY_MINUTES: 10,
   TOKEN_EXPIRY_HOURS: 24,
@@ -66,6 +66,20 @@ function doGet(e) {
           message: 'Racket Warrior API is running',
           timestamp: new Date().toISOString()
         };
+        break;
+        
+      case 'debug_sheet':
+        try {
+          const usersSheet = getSheet(SHEETS.users.name);
+          const allData = usersSheet.getDataRange().getValues();
+          result = {
+            success: true,
+            sheetData: allData,
+            rowCount: allData.length
+          };
+        } catch (error) {
+          result = { success: false, message: error.toString() };
+        }
         break;
 
       
