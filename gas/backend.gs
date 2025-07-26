@@ -2286,16 +2286,16 @@ function sendOTPEmail(email, name, otp) {
  */
 function sendWelcomeEmail(email, name, tempPassword) {
   try {
-    const subject = 'Welcome to Racket Warrior - Account Created';
+    const subject = 'Welcome! RACKET WARRIOR';
     const htmlBody = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to Racket Warrior</title>
+    <title>Welcome! RACKET WARRIOR</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap');
         
         * {
             margin: 0;
@@ -2305,7 +2305,7 @@ function sendWelcomeEmail(email, name, tempPassword) {
         
         body {
             font-family: 'Poppins', Arial, sans-serif;
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             padding: 20px;
             min-height: 100vh;
         }
@@ -2331,98 +2331,62 @@ function sendWelcomeEmail(email, name, tempPassword) {
             }
         }
         
-        .header {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            padding: 40px 30px;
-            text-align: center;
-            color: white;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 200px;
-            height: 200px;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-            border-radius: 50%;
-            animation: float 6s ease-in-out infinite;
-        }
-        
-        @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(180deg); }
-        }
-        
-        .logo {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            margin: 0 auto 20px;
-            animation: pulse 2s ease-in-out infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-        
-        .header h1 {
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 10px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .header p {
-            font-size: 16px;
-            opacity: 0.9;
-            font-weight: 300;
-        }
-        
         .content {
-            padding: 40px 30px;
+            padding: 50px 40px;
             background: white;
-        }
-        
-        .greeting {
-            font-size: 24px;
-            font-weight: 700;
-            color: #10b981;
-            margin-bottom: 20px;
             text-align: center;
         }
         
-        .message {
-            font-size: 16px;
-            line-height: 1.6;
-            color: #666;
+        .main-title {
+            font-size: 32px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
             margin-bottom: 30px;
-            text-align: center;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            animation: colorShift 3s ease-in-out infinite alternate;
         }
         
-        .credentials-container {
-            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        @keyframes colorShift {
+            0% {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+            100% {
+                background: linear-gradient(135deg, #f093fb 0%, #667eea 50%, #764ba2 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+        }
+        
+        .subtitle {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+        
+        .credentials-section {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
             border-radius: 16px;
             padding: 30px;
-            text-align: center;
             margin: 30px 0;
-            border: 2px solid #bbf7d0;
+            border: 2px solid #e5e7eb;
             position: relative;
             overflow: hidden;
         }
         
-        .credentials-container::before {
+        .credentials-section::before {
             content: '';
             position: absolute;
             top: -50%;
             left: -50%;
             width: 200%;
             height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(16, 185, 129, 0.05), transparent);
+            background: linear-gradient(45deg, transparent, rgba(102, 126, 234, 0.05), transparent);
             animation: shimmer 3s ease-in-out infinite;
         }
         
@@ -2431,161 +2395,146 @@ function sendWelcomeEmail(email, name, tempPassword) {
             50% { transform: translateX(100%) translateY(100%) rotate(30deg); }
         }
         
-        .credentials-title {
+        .credential-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
             font-size: 18px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .credential-icon {
+            font-size: 20px;
+        }
+        
+        .credential-label {
             font-weight: 600;
-            color: #10b981;
-            margin-bottom: 20px;
+            color: #374151;
+        }
+        
+        .credential-value {
+            font-weight: 700;
+            color: #1f2937;
+            font-family: 'Courier New', monospace;
+            background: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #d1d5db;
+        }
+        
+        .warning-section {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            border: 2px solid #fca5a5;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 30px 0;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+            50% { transform: scale(1.02); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+        }
+        
+        .warning-text {
+            font-size: 16px;
+            font-weight: 600;
+            color: #dc2626;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
         }
         
-        .credential-item {
-            background: white;
-            padding: 15px 20px;
-            border-radius: 10px;
-            margin: 10px 0;
-            border: 1px solid #d1fae5;
-            position: relative;
-            z-index: 2;
-        }
-        
-        .credential-label {
-            font-size: 14px;
-            color: #059669;
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-        
-        .credential-value {
+        .support-text {
             font-size: 16px;
-            font-weight: 700;
-            color: #333;
-            font-family: 'Courier New', monospace;
+            color: #6b7280;
+            margin: 30px 0;
+            line-height: 1.6;
         }
         
-        .warning {
-            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-            border-left: 4px solid #f59e0b;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
+        .signature-section {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #e5e7eb;
         }
         
-        .warning-text {
-            font-size: 14px;
-            color: #92400e;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .footer {
-            background: #f8fafc;
-            padding: 30px;
-            text-align: center;
-            border-top: 1px solid #e5e7eb;
-        }
-        
-        .signature {
+        .signature-text {
             font-size: 16px;
-            color: #10b981;
-            font-weight: 600;
-            margin-bottom: 5px;
+            color: #374151;
+            margin-bottom: 10px;
         }
         
-        .company {
+        .admin-name {
             font-size: 18px;
             font-weight: 700;
-            color: #333;
-            margin-bottom: 20px;
+            color: #667eea;
+            margin-bottom: 5px;
         }
         
-        .next-steps {
-            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-            border-radius: 12px;
-            padding: 20px;
-            margin-top: 20px;
+        .company-name {
+            font-size: 20px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 25px;
         }
         
-        .steps-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #1e40af;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        .logo {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            animation: logoFloat 3s ease-in-out infinite;
         }
         
-        .steps-list {
-            font-size: 14px;
-            color: #1e40af;
-            line-height: 1.6;
-            text-align: left;
+        @keyframes logoFloat {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-5px) rotate(5deg); }
         }
     </style>
 </head>
 <body>
     <div class="email-container">
-        <div class="header">
-            <img src="https://i.imgur.com/04MGPFl.png" alt="Racket Warrior" class="logo">
-            <h1>🏸 Racket Warrior</h1>
-            <p>Badminton Group Management</p>
-        </div>
-        
         <div class="content">
-            <div class="greeting">Welcome ${name}! 🎉</div>
+            <h1 class="main-title">Welcome to Racket Warrior!</h1>
             
-            <div class="message">
-                Congratulations! Your account has been created successfully.
-                <br><br>
-                You can now access all the features of our badminton group management system.
-            </div>
+            <p class="subtitle">Your account has been successfully created.</p>
             
-            <div class="credentials-container">
-                <div class="credentials-title">
-                    🔑 Your Login Credentials
+            <div class="credentials-section">
+                <div class="credential-item">
+                    <span class="credential-icon">👤</span>
+                    <span class="credential-label">Username:</span>
+                    <span class="credential-value">${email}</span>
                 </div>
                 
                 <div class="credential-item">
-                    <div class="credential-label">📧 Email Address</div>
-                    <div class="credential-value">${email}</div>
-                </div>
-                
-                <div class="credential-item">
-                    <div class="credential-label">🔒 Temporary Password</div>
-                    <div class="credential-value">${tempPassword}</div>
+                    <span class="credential-icon">🔐</span>
+                    <span class="credential-label">Temporary Password:</span>
+                    <span class="credential-value">${tempPassword}</span>
                 </div>
             </div>
             
-            <div class="warning">
+            <div class="warning-section">
                 <div class="warning-text">
-                    ⚠️ Please login and change your password immediately for security purposes.
+                    ⚠️ Please change your password after your first login for security purposes.
                 </div>
             </div>
             
-            <div class="next-steps">
-                <div class="steps-title">
-                    📋 Next Steps
-                </div>
-                <div class="steps-list">
-                    1. 🌐 Visit the Racket Warrior website<br>
-                    2. 🔐 Login with your email and temporary password<br>
-                    3. 🔄 Change your password to something secure<br>
-                    4. 🏸 Start managing your badminton group!
-                </div>
+            <p class="support-text">
+                If you need any help, feel free to reach out to our support team.
+            </p>
+            
+            <div class="signature-section">
+                <p class="signature-text">Best Regards,</p>
+                <div class="admin-name">Admin</div>
+                <div class="company-name">Racket Warrior</div>
+                <img src="https://i.imgur.com/04MGPFl.png" alt="Racket Warrior Logo" class="logo">
             </div>
-        </div>
-        
-        <div class="footer">
-            <div class="signature">Welcome to the team,</div>
-            <div class="signature">Admin</div>
-            <div class="company">Racket Warrior</div>
-            <img src="https://i.imgur.com/04MGPFl.png" alt="Racket Warrior Logo" style="width: 40px; height: 40px; border-radius: 50%;">
         </div>
     </div>
 </body>
