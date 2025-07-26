@@ -1,17 +1,17 @@
 // Application Configuration
 const CONFIG = {
-    // Google Apps Script Web App URL (Replace with your deployed URL)
-    API_BASE_URL: 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec',
+    // API Configuration
+    API_BASE_URL: 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec', // Replace with your actual Apps Script URL
     
-    // Application Settings
+    // Application Info
     APP_NAME: 'Racket Warrior',
     VERSION: '1.0.0',
     
-    // Google Sheets Configuration
+    // Sheet configurations (matching backend structure)
     SHEETS: {
         users: { 
             name: 'Users', 
-            columns: ['email', 'password', 'role', 'name', 'needs_password_change', 'created_at', 'last_login', 'status', 'resetToken', 'resetTokenExpiry', 'photo_url'] 
+            columns: ['email', 'password', 'role', 'name', 'needs_password_change', 'created_at', 'last_login', 'status', 'resetToken', 'resetTokenExpiry'] 
         },
         players: { 
             name: 'Players', 

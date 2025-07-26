@@ -77,6 +77,70 @@ const DateUtils = {
             'July', 'August', 'September', 'October', 'November', 'December'
         ];
         return `${monthNames[parseInt(month) - 1]} ${year}`;
+    },
+
+    // Format date for input elements (YYYY-MM-DD)
+    formatDateForInput: function(date) {
+        if (!date) return '';
+        try {
+            const d = new Date(date);
+            return d.toISOString().split('T')[0];
+        } catch (error) {
+            return '';
+        }
+    },
+
+    // Get month key from date (YYYY-MM format)
+    getMonthKey: function(date) {
+        if (!date) return '';
+        try {
+            const d = new Date(date);
+            const year = d.getFullYear();
+            const month = (d.getMonth() + 1).toString().padStart(2, '0');
+            return `${year}-${month}`;
+        } catch (error) {
+            return '';
+        }
+    },
+
+    // Format month key to readable format
+    formatMonth: function(monthKey) {
+        if (!monthKey) return 'N/A';
+        try {
+            const [year, month] = monthKey.split('-');
+            const date = new Date(parseInt(year), parseInt(month) - 1, 1);
+            return date.toLocaleString('default', { month: 'long', year: 'numeric' });
+        } catch (error) {
+            return monthKey;
+        }
+    },
+
+    // Generate month options for dropdowns
+    generateMonthOptions: function() {
+        const options = [];
+        const currentDate = new Date();
+        
+        // Generate last 12 months
+        for (let i = 11; i >= 0; i--) {
+            const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+            const year = date.getFullYear();
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const value = `${year}-${month}`;
+            const label = date.toLocaleString('default', { month: 'long', year: 'numeric' });
+            options.push({ value, label });
+        }
+        
+        // Add next 3 months
+        for (let i = 1; i <= 3; i++) {
+            const date = new Date(currentDate.getFullYear(), currentDate.getMonth() + i, 1);
+            const year = date.getFullYear();
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const value = `${year}-${month}`;
+            const label = date.toLocaleString('default', { month: 'long', year: 'numeric' });
+            options.push({ value, label });
+        }
+        
+        return options;
     }
 };
 
