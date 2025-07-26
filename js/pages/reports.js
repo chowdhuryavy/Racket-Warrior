@@ -11,7 +11,6 @@ const Reports = {
     
     // Initialize reports page
     init: function() {
-        console.log('Reports page initializing...');
         this.setupMonthFilter();
         this.setupEventListeners();
         
@@ -26,7 +25,6 @@ const Reports = {
     
     // Show test data immediately
     showTestData: function() {
-        console.log('Showing test data for reports...');
         
         // Update summary cards with test data
         const testData = {

@@ -14,7 +14,6 @@ const Logs = {
     
     // Initialize logs page
     init: function() {
-        console.log('Logs page initializing...');
         this.setupEventListeners();
         
         // Show test data immediately
@@ -28,7 +27,6 @@ const Logs = {
     
     // Show test data immediately
     showTestData: function() {
-        console.log('Showing test data for logs...');
         
         // Update stats
         const totalLogsEl = document.getElementById('totalLogs');

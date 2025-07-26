@@ -4,7 +4,6 @@
 const Logger = {
     debug: function(message, data = null) {
         if (CONFIG.DEBUG && CONFIG.LOG_LEVEL === 'debug') {
-            console.log(`[DEBUG] ${message}`, data);
         }
     },
     info: function(message, data = null) {

@@ -12,7 +12,6 @@ const Admin = {
     
     // Initialize admin page
     init: function() {
-        console.log('Admin page initializing...');
         this.setupEventListeners();
         
         // Show test data immediately
@@ -27,7 +26,6 @@ const Admin = {
     
     // Show test data immediately
     showTestData: function() {
-        console.log('Showing test data for admin...');
         
         // Update user stats
         const totalUsersEl = document.getElementById('totalUsers');

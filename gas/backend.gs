@@ -149,7 +149,6 @@ function doGet(e) {
       .setMimeType(ContentService.MimeType.JSON);
       
   } catch (error) {
-    Logger.log('doGet Error: ' + error.toString());
     const errorResult = {
       success: false,
       message: 'Server error: ' + error.toString()
@@ -248,8 +247,6 @@ function doPost(e) {
       });
       
   } catch (error) {
-    Logger.log('doPost Error: ' + error.toString());
-    Logger.log('Stack trace: ' + error.stack);
     
     return ContentService
       .createTextOutput(JSON.stringify({
@@ -267,136 +264,99 @@ function doPost(e) {
  */
 function handleLogin(params) {
   try {
-    // Add detailed logging to debug the issue
-    Logger.log('=== LOGIN DEBUG START ===');
-    Logger.log('Received params: ' + JSON.stringify(params));
-    
     // Safety check for params
     if (!params) {
-      Logger.log('ERROR: No parameters provided');
       return { success: false, message: 'No login parameters provided' };
     }
-    
+
     const { username, password } = params;
     const email = username; // Frontend sends 'username' but it's actually email
-    
-    Logger.log('Login attempt - Email: ' + email + ', Password length: ' + (password ? password.length : 0));
-    
+
     if (!username || !password) {
-      Logger.log('ERROR: Missing username or password');
       return { success: false, message: 'Email and password are required' };
     }
-    
+
     // Get users from sheet
-    Logger.log('Attempting to access Users sheet...');
     const usersSheet = getSheet(SHEETS.users.name);
-    Logger.log('Users sheet accessed successfully');
-    
     let users = getSheetData(usersSheet);
-    Logger.log('Users data retrieved - Count: ' + users.length);
-    
-    if (users.length > 0) {
-      Logger.log('First user sample: ' + JSON.stringify(users[0]));
-      Logger.log('All user emails: ' + users.map(u => u.email).join(', '));
-    }
-    
+
     // Auto-create admin user if sheet is empty
     if (users.length === 0) {
-      Logger.log('No users found, creating admin user...');
-      // Create default admin user regardless of email attempted
+      // Create default admin user
       usersSheet.appendRow([
-        'chowdhuryavy@gmail.com', 
-        'Doha@2580', 
-        'admin', 
-        'Avy Chowdhury', 
+        'chowdhuryavy@gmail.com',
+        'Doha@2580',
+        'admin',
+        'Avy Chowdhury',
         'FALSE',
-        new Date().toISOString(), 
-        '', 
-        'active', 
-        '', 
-        '', 
+        new Date().toISOString(),
+        '',
+        'active',
+        '',
+        '',
         'https://ui-avatars.com/api/?name=Avy+Chowdhury&background=667eea&color=fff&size=128'
       ]);
-      Logger.log('Admin user created in sheet');
       // Reload users data
       users = getSheetData(usersSheet);
-      Logger.log('Users data reloaded - Count: ' + users.length);
     }
-    
+
     // Also create admin user if someone tries to login with admin@gmail.com but it doesn't exist
     if (email === 'admin@gmail.com' && !users.find(u => String(u.email).toLowerCase().trim() === 'admin@gmail.com')) {
-      Logger.log('Creating admin@gmail.com user...');
       usersSheet.appendRow([
-        'admin@gmail.com', 
-        'admin123', 
-        'admin', 
-        'Admin User', 
+        'admin@gmail.com',
+        'admin123',
+        'admin',
+        'Admin User',
         'FALSE',
-        new Date().toISOString(), 
-        '', 
-        'active', 
-        '', 
-        '', 
+        new Date().toISOString(),
+        '',
+        'active',
+        '',
+        '',
         'https://ui-avatars.com/api/?name=Admin+User&background=667eea&color=fff&size=128'
       ]);
-      Logger.log('admin@gmail.com user created in sheet');
       // Reload users data
       users = getSheetData(usersSheet);
-      Logger.log('Users data reloaded - Count: ' + users.length);
     }
-    
+
     // Find user by email (case insensitive)
-    Logger.log('Looking for user with email: ' + email);
     const user = users.find(u => {
       const userEmail = String(u.email || '').toLowerCase().trim();
       const loginEmail = String(email || '').toLowerCase().trim();
-      Logger.log('Comparing: "' + userEmail + '" vs "' + loginEmail + '"');
       return userEmail === loginEmail;
     });
-    
+
     if (!user) {
-      Logger.log('ERROR: User not found in sheet');
-      Logger.log('Available emails: ' + users.map(u => '"' + u.email + '"').join(', '));
       return { success: false, message: 'Invalid email or password' };
     }
-    
-    Logger.log('User found: ' + JSON.stringify(user));
-    
+
     // Check password (convert to string and trim)
     const storedPassword = String(user.password || '').trim();
     const inputPassword = String(password || '').trim();
-    
-    Logger.log('Password check - Stored: "' + storedPassword + '", Input: "' + inputPassword + '"');
-    
+
     if (storedPassword !== inputPassword) {
-      Logger.log('ERROR: Password mismatch');
       return { success: false, message: 'Invalid email or password' };
     }
-    
+
     // Check if user is active
-    Logger.log('Checking user status: ' + user.status);
     if (user.status !== 'active') {
-      Logger.log('ERROR: User account is disabled');
       return { success: false, message: 'Account is disabled. Contact administrator.' };
     }
-    
+
     // Update last login
-    Logger.log('Updating last login...');
     try {
       const userIndex = users.indexOf(user) + 2; // +2 for header and 0-based index
       usersSheet.getRange(userIndex, 7).setValue(new Date().toISOString());
-      Logger.log('Last login updated successfully');
     } catch (updateError) {
-      Logger.log('Warning: Could not update last login: ' + updateError.toString());
+      // Silent fail for last login update
     }
-    
+
     // Generate token
     const token = generateAuthToken(user.email);
-    Logger.log('Token generated: ' + token.substring(0, 20) + '...');
-    
+
     // Log successful login
     addLog('LOGIN', `User logged in successfully`, user.email, user.role);
-    
+
     // Prepare user response data
     const userData = {
       email: user.email,
@@ -405,19 +365,15 @@ function handleLogin(params) {
       needs_password_change: user.needs_password_change === 'TRUE',
       photo_url: user.photo_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.name) + '&background=667eea&color=fff&size=128'
     };
-    
-    Logger.log('Login successful - returning user data: ' + JSON.stringify(userData));
-    Logger.log('=== LOGIN DEBUG END ===');
-    
+
     return {
       success: true,
       message: 'Login successful',
       user: userData,
       token: token
     };
-    
+
   } catch (error) {
-    Logger.log('Login error: ' + error.toString());
     return { success: false, message: 'Login failed: ' + error.toString() };
   }
 }
@@ -443,7 +399,6 @@ function handleLogout(params) {
     return { success: true, message: 'Logout successful' };
     
   } catch (error) {
-    Logger.log('Logout error: ' + error.toString());
     return { success: false, message: 'Logout failed: ' + error.toString() };
   }
 }
@@ -487,7 +442,6 @@ function handleForgotPassword(params) {
     return { success: true, message: 'OTP sent to your email address.' };
     
   } catch (error) {
-    Logger.log('Forgot password error: ' + error.toString());
     return { success: false, message: 'Failed to process request: ' + error.toString() };
   }
 }
@@ -539,7 +493,6 @@ function handleVerifyOTP(params) {
     };
     
   } catch (error) {
-    Logger.log('Verify OTP error: ' + error.toString());
     return { success: false, message: 'OTP verification failed: ' + error.toString() };
   }
 }
@@ -585,7 +538,6 @@ function handleResetPassword(params) {
     return { success: true, message: 'Password reset successfully. You can now login with your new password.' };
     
   } catch (error) {
-    Logger.log('Reset password error: ' + error.toString());
     return { success: false, message: 'Password reset failed: ' + error.toString() };
   }
 }
@@ -615,27 +567,15 @@ function handleChangePassword(params) {
       return { success: false, message: 'User not found' };
     }
     
-    // Verify current password (with proper string handling)
+        // Verify current password (with proper string handling)
     const storedPassword = String(userData.password || '').trim();
     const inputCurrentPassword = String(currentPassword || '').trim();
-    
-    Logger.log('=== PASSWORD CHANGE DEBUG ===');
-    Logger.log('User email: ' + user.email);
-    Logger.log('Stored password: "' + storedPassword + '" (length: ' + storedPassword.length + ')');
-    Logger.log('Input password: "' + inputCurrentPassword + '" (length: ' + inputCurrentPassword.length + ')');
-    Logger.log('Passwords match: ' + (storedPassword === inputCurrentPassword));
-    
+
     if (storedPassword !== inputCurrentPassword) {
-      Logger.log('PASSWORD_CHANGE_FAILED - Password mismatch for: ' + user.email);
       addLog('PASSWORD_CHANGE_FAILED', `Wrong current password for ${user.email}`, user.email, user.role);
-      return { 
-        success: false, 
-        message: 'Current password is incorrect',
-        debug: {
-          stored: storedPassword,
-          input: inputCurrentPassword,
-          match: storedPassword === inputCurrentPassword
-        }
+      return {
+        success: false,
+        message: 'Current password is incorrect'
       };
     }
     
@@ -648,7 +588,6 @@ function handleChangePassword(params) {
     return { success: true, message: 'Password changed successfully' };
     
   } catch (error) {
-    Logger.log('Change password error: ' + error.toString());
     return { success: false, message: 'Password change failed: ' + error.toString() };
   }
 }
@@ -685,7 +624,6 @@ function handleGetUsers(params) {
     return { success: true, data: sanitizedUsers };
     
   } catch (error) {
-    Logger.log('Get users error: ' + error.toString());
     return { success: false, message: 'Failed to get users: ' + error.toString() };
   }
 }
@@ -745,7 +683,6 @@ function handleAddUser(params) {
     return { success: true, message: 'User added successfully. Welcome email sent.' };
     
   } catch (error) {
-    Logger.log('Add user error: ' + error.toString());
     return { success: false, message: 'Failed to add user: ' + error.toString() };
   }
 }
@@ -812,7 +749,6 @@ function handleUpdateUser(params) {
     return { success: true, message: 'User updated successfully' };
     
   } catch (error) {
-    Logger.log('Update user error: ' + error.toString());
     return { success: false, message: 'Failed to update user: ' + error.toString() };
   }
 }
@@ -862,7 +798,6 @@ function handleDeleteUser(params) {
     return { success: true, message: 'User deleted successfully' };
     
   } catch (error) {
-    Logger.log('Delete user error: ' + error.toString());
     return { success: false, message: 'Failed to delete user: ' + error.toString() };
   }
 }
@@ -902,7 +837,6 @@ function handleGetPlayers(params) {
     return { success: true, data: players };
     
   } catch (error) {
-    Logger.log('Get players error: ' + error.toString());
     return { success: false, message: 'Failed to get players: ' + error.toString() };
   }
 }
@@ -956,7 +890,6 @@ function handleAddPlayer(params) {
     return { success: true, message: 'Player added successfully', data: { ID: id } };
     
   } catch (error) {
-    Logger.log('Add player error: ' + error.toString());
     return { success: false, message: 'Failed to add player: ' + error.toString() };
   }
 }
@@ -1020,7 +953,6 @@ function handleUpdatePlayer(params) {
     return { success: true, message: 'Player updated successfully' };
     
   } catch (error) {
-    Logger.log('Update player error: ' + error.toString());
     return { success: false, message: 'Failed to update player: ' + error.toString() };
   }
 }
@@ -1065,7 +997,6 @@ function handleDeletePlayer(params) {
     return { success: true, message: 'Player deleted successfully' };
     
   } catch (error) {
-    Logger.log('Delete player error: ' + error.toString());
     return { success: false, message: 'Failed to delete player: ' + error.toString() };
   }
 }
@@ -1098,7 +1029,6 @@ function handleGetIncome(params) {
     return { success: true, data: income };
     
   } catch (error) {
-    Logger.log('Get income error: ' + error.toString());
     return { success: false, message: 'Failed to get income: ' + error.toString() };
   }
 }
@@ -1148,7 +1078,6 @@ function handleAddIncome(params) {
     return { success: true, message: 'Income added successfully', data: { ID: id } };
     
   } catch (error) {
-    Logger.log('Add income error: ' + error.toString());
     return { success: false, message: 'Failed to add income: ' + error.toString() };
   }
 }
@@ -1231,7 +1160,6 @@ function handleUpdateIncome(params) {
     return { success: true, message: 'Income updated successfully' };
     
   } catch (error) {
-    Logger.log('Update income error: ' + error.toString());
     return { success: false, message: 'Failed to update income: ' + error.toString() };
   }
 }
@@ -1276,7 +1204,6 @@ function handleDeleteIncome(params) {
     return { success: true, message: 'Income deleted successfully' };
     
   } catch (error) {
-    Logger.log('Delete income error: ' + error.toString());
     return { success: false, message: 'Failed to delete income: ' + error.toString() };
   }
 }
@@ -1309,7 +1236,6 @@ function handleGetExpenses(params) {
     return { success: true, data: expenses };
     
   } catch (error) {
-    Logger.log('Get expenses error: ' + error.toString());
     return { success: false, message: 'Failed to get expenses: ' + error.toString() };
   }
 }
@@ -1349,7 +1275,6 @@ function handleAddExpense(params) {
     return { success: true, message: 'Expense added successfully', data: { ID: id } };
     
   } catch (error) {
-    Logger.log('Add expense error: ' + error.toString());
     return { success: false, message: 'Failed to add expense: ' + error.toString() };
   }
 }
@@ -1418,7 +1343,6 @@ function handleUpdateExpense(params) {
     return { success: true, message: 'Expense updated successfully' };
     
   } catch (error) {
-    Logger.log('Update expense error: ' + error.toString());
     return { success: false, message: 'Failed to update expense: ' + error.toString() };
   }
 }
@@ -1463,7 +1387,6 @@ function handleDeleteExpense(params) {
     return { success: true, message: 'Expense deleted successfully' };
     
   } catch (error) {
-    Logger.log('Delete expense error: ' + error.toString());
     return { success: false, message: 'Failed to delete expense: ' + error.toString() };
   }
 }
@@ -1541,7 +1464,6 @@ function handleGetDashboardStats(params) {
     };
     
   } catch (error) {
-    Logger.log('Get dashboard stats error: ' + error.toString());
     return { success: false, message: 'Failed to get dashboard stats: ' + error.toString() };
   }
 }
@@ -1609,7 +1531,6 @@ function handleGetMonthlyReport(params) {
     };
     
   } catch (error) {
-    Logger.log('Get monthly report error: ' + error.toString());
     return { success: false, message: 'Failed to get monthly report: ' + error.toString() };
   }
 }
@@ -1642,7 +1563,6 @@ function handleGetLogs(params) {
     return { success: true, data: logs };
     
   } catch (error) {
-    Logger.log('Get logs error: ' + error.toString());
     return { success: false, message: 'Failed to get logs: ' + error.toString() };
   }
 }
@@ -1668,7 +1588,6 @@ function handleAddLog(params) {
     return { success: true, message: 'Log added successfully' };
     
   } catch (error) {
-    Logger.log('Add log error: ' + error.toString());
     return { success: false, message: 'Failed to add log: ' + error.toString() };
   }
 }
@@ -1699,7 +1618,6 @@ function handleGetSettings(params) {
     return { success: true, data: settingsObj };
     
   } catch (error) {
-    Logger.log('Get settings error: ' + error.toString());
     return { success: false, message: 'Failed to get settings: ' + error.toString() };
   }
 }
@@ -1745,7 +1663,6 @@ function handleUpdateSettings(params) {
     return { success: true, message: 'Setting updated successfully' };
     
   } catch (error) {
-    Logger.log('Update settings error: ' + error.toString());
     return { success: false, message: 'Failed to update settings: ' + error.toString() };
   }
 }
@@ -1776,7 +1693,6 @@ function handleUploadPhoto(params) {
     };
     
   } catch (error) {
-    Logger.log('Upload photo error: ' + error.toString());
     return { success: false, message: 'Failed to upload photo: ' + error.toString() };
   }
 }
@@ -1798,7 +1714,6 @@ function getSheet(sheetName) {
     
     return sheet;
   } catch (error) {
-    Logger.log('Error getting sheet: ' + error.toString());
     throw new Error('Failed to access sheet: ' + sheetName);
   }
 }
@@ -1825,7 +1740,6 @@ function getSheetData(sheet) {
       return obj;
     });
   } catch (error) {
-    Logger.log('Error getting sheet data: ' + error.toString());
     return [];
   }
 }
@@ -1842,7 +1756,6 @@ function initializeSheet(sheet, sheetName) {
       sheet.setFrozenRows(1);
     }
   } catch (error) {
-    Logger.log('Error initializing sheet: ' + error.toString());
   }
 }
 
@@ -1905,7 +1818,6 @@ function verifyToken(token) {
     return user || null;
     
   } catch (error) {
-    Logger.log('Token verification error: ' + error.toString());
     return null;
   }
 }
@@ -1939,7 +1851,6 @@ function addLog(action, details, userEmail, userRole) {
       details || ''
     ]);
   } catch (error) {
-    Logger.log('Error adding log: ' + error.toString());
   }
 }
 
@@ -1976,7 +1887,6 @@ function updateUserLastLogin(email) {
       }
     }
   } catch (error) {
-    Logger.log('Error updating last login: ' + error.toString());
   }
 }
 
@@ -2004,7 +1914,6 @@ function updateUserResetToken(email, token, expiry) {
       }
     }
   } catch (error) {
-    Logger.log('Error updating reset token: ' + error.toString());
   }
 }
 
@@ -2027,7 +1936,6 @@ function updateUserPassword(email, newPassword) {
       }
     }
   } catch (error) {
-    Logger.log('Error updating password: ' + error.toString());
   }
 }
 
@@ -2050,7 +1958,6 @@ function updateUserPasswordChangeFlag(email, needsChange) {
       }
     }
   } catch (error) {
-    Logger.log('Error updating password change flag: ' + error.toString());
   }
 }
 
@@ -2083,7 +1990,6 @@ Racket Warrior Team
     
     return true;
   } catch (error) {
-    Logger.log('Error sending OTP email: ' + error.toString());
     return false;
   }
 }
@@ -2118,7 +2024,6 @@ ${CONFIG.APP_NAME} Team
     
     return true;
   } catch (error) {
-    Logger.log('Error sending welcome email: ' + error.toString());
     return false;
   }
 }
@@ -2126,114 +2031,8 @@ ${CONFIG.APP_NAME} Team
 /**
  * Initialize application with default data
  */
-/**
- * Create admin user manually
- */
-function createAdminUser() {
-  try {
-    Logger.log('=== CREATING ADMIN USER ===');
-    
-    const usersSheet = getSheet(SHEETS.users.name);
-    const users = getSheetData(usersSheet);
-    
-    Logger.log('Current users count: ' + users.length);
-    
-    // Check if admin already exists
-    const existingAdmin = users.find(u => String(u.email).toLowerCase() === 'chowdhuryavy@gmail.com');
-    
-    if (existingAdmin) {
-      Logger.log('Admin user already exists: ' + JSON.stringify(existingAdmin));
-      return {
-        success: true,
-        message: 'Admin user already exists',
-        user: existingAdmin
-      };
-    }
-    
-    // Create admin user
-    Logger.log('Creating new admin user...');
-    usersSheet.appendRow([
-      'chowdhuryavy@gmail.com',
-      'Doha@2580',
-      'admin',
-      'Avy Chowdhury',
-      'FALSE',
-      new Date().toISOString(),
-      '',
-      'active',
-      '',
-      '',
-      'https://ui-avatars.com/api/?name=Avy+Chowdhury&background=667eea&color=fff&size=128'
-    ]);
-    
-    Logger.log('Admin user created successfully');
-    
-    // Verify creation
-    const updatedUsers = getSheetData(usersSheet);
-    const newAdmin = updatedUsers.find(u => String(u.email).toLowerCase() === 'chowdhuryavy@gmail.com');
-    
-    Logger.log('Verification - New admin user: ' + JSON.stringify(newAdmin));
-    
-    return {
-      success: true,
-      message: 'Admin user created successfully',
-      user: newAdmin
-    };
-    
-  } catch (error) {
-    Logger.log('Error creating admin user: ' + error.toString());
-    return {
-      success: false,
-      message: 'Failed to create admin user: ' + error.toString()
-    };
-  }
-}
-
-/**
- * List all users for debugging
- */
-function listAllUsers() {
-  try {
-    Logger.log('=== LISTING ALL USERS ===');
-    
-    const usersSheet = getSheet(SHEETS.users.name);
-    const users = getSheetData(usersSheet);
-    
-    Logger.log('Total users found: ' + users.length);
-    
-    const userList = users.map(user => ({
-      email: user.email,
-      role: user.role,
-      name: user.name,
-      status: user.status,
-      password_length: user.password ? user.password.length : 0
-    }));
-    
-    Logger.log('User list: ' + JSON.stringify(userList, null, 2));
-    
-    return {
-      success: true,
-      message: 'Users retrieved successfully',
-      users: userList,
-      validLogins: [
-        { email: 'chowdhuryavy@gmail.com', password: 'Doha@2580' },
-        { email: 'admin@gmail.com', password: 'admin123' }
-      ]
-    };
-    
-  } catch (error) {
-    Logger.log('Error listing users: ' + error.toString());
-    return {
-      success: false,
-      message: 'Failed to list users: ' + error.toString()
-    };
-  }
-}
-
 function initializeApplication() {
   try {
-    Logger.log('Starting application initialization...');
-    
     // Initialize Users sheet
     const usersSheet = getSheet(SHEETS.users.name);
     const userData = getSheetData(usersSheet);
@@ -2242,12 +2041,10 @@ function initializeApplication() {
     const adminExists = userData.find(user => user.email === 'chowdhuryavy@gmail.com');
     
     if (!adminExists) {
-      Logger.log('Creating default admin user...');
-      
       // Add default admin user
       usersSheet.appendRow([
         'chowdhuryavy@gmail.com',  // email
-        'Doha@2580',              // password (plain text for now)
+        'Doha@2580',              // password
         'admin',                  // role
         'Avy Chowdhury',          // name
         'FALSE',                  // needs_password_change
@@ -2256,12 +2053,8 @@ function initializeApplication() {
         'active',                 // status
         '',                       // resetToken
         '',                       // resetTokenExpiry
-        ''                        // photo_url
+        'https://ui-avatars.com/api/?name=Avy+Chowdhury&background=667eea&color=fff&size=128' // photo_url
       ]);
-      
-      Logger.log('Default admin user created successfully');
-    } else {
-      Logger.log('Admin user already exists');
     }
     
     // Initialize other sheets
@@ -2276,13 +2069,10 @@ function initializeApplication() {
     const settingsData = getSheetData(settingsSheet);
     
     if (settingsData.length === 0) {
-      Logger.log('Adding default settings...');
       settingsSheet.appendRow(['app_name', CONFIG.APP_NAME]);
       settingsSheet.appendRow(['currency', 'QAR']);
       settingsSheet.appendRow(['timezone', 'Asia/Qatar']);
     }
-    
-    Logger.log('Application initialization completed successfully');
     
     return {
       success: true,
@@ -2295,7 +2085,6 @@ function initializeApplication() {
     };
     
   } catch (error) {
-    Logger.log('Application initialization error: ' + error.toString());
     return {
       success: false,
       message: 'Failed to initialize application: ' + error.toString()
