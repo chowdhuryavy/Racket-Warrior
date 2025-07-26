@@ -313,6 +313,19 @@ const API = {
             Logger.error('Health check failed', error);
             return { success: false, error: error.message };
         }
+    },
+
+    // Test API connectivity
+    testConnection: async function() {
+        try {
+            Logger.info('Testing API connectivity...');
+            const result = await this.makeRequest('health_check');
+            Logger.info('API connectivity test result:', result);
+            return result;
+        } catch (error) {
+            Logger.error('API connectivity test failed:', error);
+            return { success: false, message: 'Connection test failed: ' + error.message };
+        }
     }
 };
 
@@ -553,20 +566,6 @@ const MockAPI = {
     }
 };
 
-    // Test API connectivity
-    testConnection: async function() {
-        try {
-            Logger.info('Testing API connectivity...');
-            const result = await this.makeRequest('health_check');
-            Logger.info('API connectivity test result:', result);
-            return result;
-        } catch (error) {
-            Logger.error('API connectivity test failed:', error);
-            return { success: false, message: 'Connection test failed: ' + error.message };
-        }
-    }
-};
-
 // Use mock API in development mode
 if (CONFIG.DEBUG && CONFIG.API_BASE_URL.includes('YOUR_SCRIPT_ID')) {
     Logger.info('Using Mock API for development');
@@ -580,7 +579,15 @@ window.API = API;
 if (CONFIG.DEBUG) {
     document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
-            API.testConnection();
+            API.testConnection().then(result => {
+                if (result.success) {
+                    Logger.info('✅ API Connection Test: SUCCESS');
+                } else {
+                    Logger.error('❌ API Connection Test: FAILED', result);
+                }
+            }).catch(error => {
+                Logger.error('❌ API Connection Test: ERROR', error);
+            });
         }, 2000);
     });
 }
