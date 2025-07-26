@@ -1966,26 +1966,313 @@ function updateUserPasswordChangeFlag(email, needsChange) {
  */
 function sendOTPEmail(email, name, otp) {
   try {
-    const subject = 'Racket Warrior - Password Reset OTP';
-    const body = `
-Dear ${name},
-
-You have requested to reset your password for Racket Warrior.
-
-Your OTP (One-Time Password) is: ${otp}
-
-This OTP will expire in ${CONFIG.OTP_EXPIRY_MINUTES} minutes.
-
-If you did not request this, please ignore this email.
-
-Best regards,
-Racket Warrior Team
+    const subject = 'OTP for Password Reset';
+    const htmlBody = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTP for Password Reset</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            animation: slideIn 0.8s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 30px;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+        
+        .logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+        
+        .content {
+            padding: 40px 30px;
+            background: white;
+        }
+        
+        .greeting {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .message {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .otp-container {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            margin: 30px 0;
+            border: 2px solid #e5e7eb;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .otp-container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(102, 126, 234, 0.05), transparent);
+            animation: shimmer 3s ease-in-out infinite;
+        }
+        
+        @keyframes shimmer {
+            0%, 100% { transform: translateX(-100%) translateY(-100%) rotate(30deg); }
+            50% { transform: translateX(100%) translateY(100%) rotate(30deg); }
+        }
+        
+        .otp-label {
+            font-size: 18px;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .otp-code {
+            font-size: 36px;
+            font-weight: 700;
+            color: #333;
+            letter-spacing: 8px;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 2;
+        }
+        
+        .otp-validity {
+            font-size: 14px;
+            color: #ef4444;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .warning {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left: 4px solid #f59e0b;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .warning-text {
+            font-size: 14px;
+            color: #92400e;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .footer {
+            background: #f8fafc;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .signature {
+            font-size: 16px;
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .company {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .icon {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            background-size: contain;
+            vertical-align: middle;
+        }
+        
+        .security-tips {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .tips-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e40af;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .tips-list {
+            font-size: 14px;
+            color: #1e40af;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <img src="https://i.imgur.com/04MGPFl.png" alt="Racket Warrior" class="logo">
+            <h1>🏸 Racket Warrior</h1>
+            <p>Badminton Group Management</p>
+        </div>
+        
+        <div class="content">
+            <div class="greeting">Hi ${name}! 👋</div>
+            
+            <div class="message">
+                We received a request to reset the password for your account associated with this email.
+                <br><br>
+                To proceed, please use the One-Time Password (OTP) below:
+            </div>
+            
+            <div class="otp-container">
+                <div class="otp-label">
+                    🔐 Your OTP Code
+                </div>
+                <div class="otp-code">${otp}</div>
+                <div class="otp-validity">
+                    ⏰ This OTP is valid for the next ${CONFIG.OTP_EXPIRY_MINUTES} minutes
+                </div>
+            </div>
+            
+            <div class="warning">
+                <div class="warning-text">
+                    ⚠️ If you did not request a password reset, please ignore this email or contact our admin immediately.
+                </div>
+            </div>
+            
+            <div class="security-tips">
+                <div class="tips-title">
+                    🛡️ Security Tips
+                </div>
+                <div class="tips-list">
+                    • Never share your OTP with anyone<br>
+                    • Our team will never ask for your OTP<br>
+                    • Use this OTP only on the official Racket Warrior website
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <div class="signature">Stay secure,</div>
+            <div class="signature">Admin</div>
+            <div class="company">Racket Warrior</div>
+            <img src="https://i.imgur.com/04MGPFl.png" alt="Racket Warrior Logo" style="width: 40px; height: 40px; border-radius: 50%;">
+        </div>
+    </div>
+</body>
+</html>
 `;
     
     MailApp.sendEmail({
       to: email,
       subject: subject,
-      body: body
+      htmlBody: htmlBody
     });
     
     return true;
@@ -2000,26 +2287,315 @@ Racket Warrior Team
 function sendWelcomeEmail(email, name, tempPassword) {
   try {
     const subject = 'Welcome to Racket Warrior - Account Created';
-    const body = `
-Dear ${name},
-
-Welcome to Racket Warrior! Your account has been created successfully.
-
-Your login credentials:
-Email: ${email}
-Temporary Password: ${tempPassword}
-
-Please login and change your password immediately.
-You can access ${CONFIG.APP_NAME} through your usual login page.
-
-Best regards,
-${CONFIG.APP_NAME} Team
+    const htmlBody = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Racket Warrior</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', Arial, sans-serif;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            animation: slideIn 0.8s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            padding: 40px 30px;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+        
+        .logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+        
+        .content {
+            padding: 40px 30px;
+            background: white;
+        }
+        
+        .greeting {
+            font-size: 24px;
+            font-weight: 700;
+            color: #10b981;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .message {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #666;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .credentials-container {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            margin: 30px 0;
+            border: 2px solid #bbf7d0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .credentials-container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(16, 185, 129, 0.05), transparent);
+            animation: shimmer 3s ease-in-out infinite;
+        }
+        
+        @keyframes shimmer {
+            0%, 100% { transform: translateX(-100%) translateY(-100%) rotate(30deg); }
+            50% { transform: translateX(100%) translateY(100%) rotate(30deg); }
+        }
+        
+        .credentials-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #10b981;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .credential-item {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin: 10px 0;
+            border: 1px solid #d1fae5;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .credential-label {
+            font-size: 14px;
+            color: #059669;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .credential-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: #333;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .warning {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left: 4px solid #f59e0b;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .warning-text {
+            font-size: 14px;
+            color: #92400e;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .footer {
+            background: #f8fafc;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .signature {
+            font-size: 16px;
+            color: #10b981;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .company {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .next-steps {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .steps-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e40af;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .steps-list {
+            font-size: 14px;
+            color: #1e40af;
+            line-height: 1.6;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <img src="https://i.imgur.com/04MGPFl.png" alt="Racket Warrior" class="logo">
+            <h1>🏸 Racket Warrior</h1>
+            <p>Badminton Group Management</p>
+        </div>
+        
+        <div class="content">
+            <div class="greeting">Welcome ${name}! 🎉</div>
+            
+            <div class="message">
+                Congratulations! Your account has been created successfully.
+                <br><br>
+                You can now access all the features of our badminton group management system.
+            </div>
+            
+            <div class="credentials-container">
+                <div class="credentials-title">
+                    🔑 Your Login Credentials
+                </div>
+                
+                <div class="credential-item">
+                    <div class="credential-label">📧 Email Address</div>
+                    <div class="credential-value">${email}</div>
+                </div>
+                
+                <div class="credential-item">
+                    <div class="credential-label">🔒 Temporary Password</div>
+                    <div class="credential-value">${tempPassword}</div>
+                </div>
+            </div>
+            
+            <div class="warning">
+                <div class="warning-text">
+                    ⚠️ Please login and change your password immediately for security purposes.
+                </div>
+            </div>
+            
+            <div class="next-steps">
+                <div class="steps-title">
+                    📋 Next Steps
+                </div>
+                <div class="steps-list">
+                    1. 🌐 Visit the Racket Warrior website<br>
+                    2. 🔐 Login with your email and temporary password<br>
+                    3. 🔄 Change your password to something secure<br>
+                    4. 🏸 Start managing your badminton group!
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <div class="signature">Welcome to the team,</div>
+            <div class="signature">Admin</div>
+            <div class="company">Racket Warrior</div>
+            <img src="https://i.imgur.com/04MGPFl.png" alt="Racket Warrior Logo" style="width: 40px; height: 40px; border-radius: 50%;">
+        </div>
+    </div>
+</body>
+</html>
 `;
     
     MailApp.sendEmail({
       to: email,
       subject: subject,
-      body: body
+      htmlBody: htmlBody
     });
     
     return true;
