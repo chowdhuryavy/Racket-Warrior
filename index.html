@@ -31,31 +31,53 @@
                 <p>Badminton Group Manager</p>
             </div>
             
-            <form id="loginForm" class="login-form">
-                <div class="form-group">
-                    <label for="username">Username</label>
-                    <div class="input-wrapper">
-                        <i class="fas fa-user"></i>
-                        <input type="text" id="username" name="username" required>
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <div class="input-wrapper">
-                        <i class="fas fa-lock"></i>
-                        <input type="password" id="password" name="password" required>
-                        <i class="fas fa-eye password-toggle" onclick="togglePassword('password')"></i>
-                    </div>
-                </div>
-                
-                <button type="submit" class="btn btn-primary ripple">
-                    <i class="fas fa-sign-in-alt"></i>
-                    Login
-                </button>
-                
-                <a href="#" class="forgot-password" onclick="showForgotPassword()">Forgot Password?</a>
-            </form>
+                                    <form id="loginForm" class="login-form">
+                            <div class="form-group animate__animated animate__fadeInUp animate__delay-1s">
+                                <label for="email" class="form-label">
+                                    <i class="fas fa-envelope"></i>
+                                    Email Address
+                                </label>
+                                <div class="input-wrapper">
+                                    <input type="email" id="email" name="email" placeholder="Enter your email address" required>
+                                    <div class="input-focus-line"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group animate__animated animate__fadeInUp animate__delay-2s">
+                                <label for="password" class="form-label">
+                                    <i class="fas fa-lock"></i>
+                                    Password
+                                </label>
+                                <div class="input-wrapper">
+                                    <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                                    <i class="fas fa-eye password-toggle" onclick="togglePassword('password')"></i>
+                                    <div class="input-focus-line"></div>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary ripple animate__animated animate__fadeInUp animate__delay-3s">
+                                <i class="fas fa-sign-in-alt"></i>
+                                <span>Sign In</span>
+                            </button>
+                            
+                            <a href="#" class="forgot-password animate__animated animate__fadeInUp animate__delay-4s" onclick="showForgotPassword()">
+                                <i class="fas fa-key"></i>
+                                Forgot Password?
+                            </a>
+                        </form>
+                        
+                        <!-- Designer Credit -->
+                        <div class="designer-credit animate__animated animate__fadeInUp animate__delay-5s">
+                            <div class="credit-container">
+                                <span class="credit-text">Designed by</span>
+                                <span class="designer-name">Avy</span>
+                                <div class="credit-sparkle">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                </div>
+                            </div>
+                        </div>
         </div>
     </div>
 

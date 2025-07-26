@@ -41,11 +41,18 @@ const Auth = {
     handleLogin: async function(event) {
         event.preventDefault();
         
-        const username = document.getElementById('username').value.trim();
+        const email = document.getElementById('email').value.trim();
         const password = document.getElementById('password').value;
         
-        if (!username || !password) {
-            UIUtils.showNotification('Please enter both username and password', 'error');
+        if (!email || !password) {
+            UIUtils.showNotification('Please enter both email and password', 'error');
+            return;
+        }
+        
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            UIUtils.showNotification('Please enter a valid email address', 'error');
             return;
         }
         
@@ -53,7 +60,7 @@ const Auth = {
         UIUtils.showLoading(submitButton, 'Signing in...');
         
         try {
-            const response = await API.login(username, password);
+            const response = await API.login(email, password);
             
             if (response.success) {
                 // Store user data and token
