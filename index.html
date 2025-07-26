@@ -55,15 +55,23 @@
                                 </div>
                             </div>
                             
-                            <button type="submit" class="btn btn-primary ripple animate__animated animate__fadeInUp animate__delay-3s">
+                            <div class="form-options animate__animated animate__fadeInUp animate__delay-3s">
+                                <div class="remember-me">
+                                    <input type="checkbox" id="rememberMe" name="rememberMe">
+                                    <label for="rememberMe" class="checkbox-label">
+                                        <span class="checkmark"></span>
+                                        Remember me
+                                    </label>
+                                </div>
+                                <a href="#" class="forgot-password-inline" onclick="showForgotPassword()">
+                                    Forgot Password?
+                                </a>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary ripple animate__animated animate__fadeInUp animate__delay-4s">
                                 <i class="fas fa-sign-in-alt"></i>
                                 <span>Sign In</span>
                             </button>
-                            
-                            <a href="#" class="forgot-password animate__animated animate__fadeInUp animate__delay-4s" onclick="showForgotPassword()">
-                                <i class="fas fa-key"></i>
-                                Forgot Password?
-                            </a>
                         </form>
                         
                         <!-- Designer Credit -->

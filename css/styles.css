@@ -940,7 +940,116 @@ body {
     to { opacity: 1; }
 }
 
-/* Enhanced Forgot Password Link */
+/* Form Options Section */
+.form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding: 0 2px;
+}
+
+/* Remember Me Checkbox */
+.remember-me {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.remember-me input[type="checkbox"] {
+    display: none;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    color: #6b7280;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: color 0.3s ease;
+    user-select: none;
+}
+
+.checkmark {
+    position: relative;
+    width: 18px;
+    height: 18px;
+    border: 2px solid #d1d5db;
+    border-radius: 4px;
+    background: white;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.checkmark::after {
+    content: '';
+    position: absolute;
+    width: 5px;
+    height: 9px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg) scale(0);
+    transition: transform 0.2s ease;
+}
+
+.remember-me input[type="checkbox"]:checked + .checkbox-label .checkmark {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-color: #667eea;
+    transform: scale(1.1);
+}
+
+.remember-me input[type="checkbox"]:checked + .checkbox-label .checkmark::after {
+    transform: rotate(45deg) scale(1);
+}
+
+.remember-me input[type="checkbox"]:checked + .checkbox-label {
+    color: #667eea;
+}
+
+.checkbox-label:hover .checkmark {
+    border-color: #667eea;
+    transform: scale(1.05);
+}
+
+/* Inline Forgot Password Link */
+.forgot-password-inline {
+    color: #667eea;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    padding: 4px 8px;
+    border-radius: 6px;
+    position: relative;
+    overflow: hidden;
+}
+
+.forgot-password-inline::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    transition: width 0.3s ease;
+}
+
+.forgot-password-inline:hover {
+    color: #764ba2;
+    background: rgba(102, 126, 234, 0.05);
+    transform: translateY(-1px);
+}
+
+.forgot-password-inline:hover::before {
+    width: 100%;
+}
+
+/* Original Forgot Password Link (if still needed elsewhere) */
 .forgot-password {
     display: flex;
     align-items: center;
@@ -978,10 +1087,10 @@ body {
 .credit-container {
     display: flex;
     align-items: center;
-    gap: 0.8rem;
+    gap: 0.5rem;
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85));
     backdrop-filter: blur(15px);
-    padding: 8px 16px;
+    padding: 6px 12px;
     border-radius: 50px;
     box-shadow: 
         0 8px 32px rgba(102, 126, 234, 0.15),
@@ -990,12 +1099,12 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.4);
     position: relative;
     overflow: hidden;
-    transform: scale(0.9);
+    transform: scale(0.8);
     transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .credit-container:hover {
-    transform: scale(1);
+    transform: scale(0.9);
     box-shadow: 
         0 12px 40px rgba(102, 126, 234, 0.2),
         0 6px 20px rgba(0, 0, 0, 0.15),
@@ -1135,28 +1244,45 @@ body {
     }
     
     .credit-container {
-        padding: 6px 12px;
-        transform: scale(0.8);
+        padding: 5px 10px;
+        transform: scale(0.7);
+        gap: 0.4rem;
     }
     
     .credit-container:hover {
-        transform: scale(0.9);
+        transform: scale(0.8);
     }
     
     .credit-text {
-        font-size: 0.7rem;
+        font-size: 0.65rem;
     }
     
     .designer-name {
-        font-size: 0.9rem;
+        font-size: 0.8rem;
+    }
+    
+    .credit-sparkle {
+        margin-left: 6px;
+        gap: 2px;
     }
     
     .credit-sparkle i {
-        font-size: 0.5rem;
+        font-size: 0.45rem;
     }
     
     .credit-sparkle i:nth-child(2) {
-        font-size: 0.6rem;
+        font-size: 0.5rem;
+    }
+    
+    /* Form Options Responsive */
+    .form-options {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+    
+    .forgot-password-inline {
+        align-self: flex-end;
     }
 }
 
@@ -1167,13 +1293,21 @@ body {
     }
     
     .credit-container {
-        padding: 5px 10px;
-        gap: 0.6rem;
-        transform: scale(0.75);
+        padding: 4px 8px;
+        gap: 0.3rem;
+        transform: scale(0.6);
     }
     
     .credit-container:hover {
-        transform: scale(0.85);
+        transform: scale(0.7);
+    }
+    
+    .credit-text {
+        font-size: 0.6rem;
+    }
+    
+    .designer-name {
+        font-size: 0.75rem;
     }
 }
 
