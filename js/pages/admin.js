@@ -12,9 +12,124 @@ const Admin = {
     
     // Initialize admin page
     init: function() {
+        console.log('Admin page initializing...');
         this.setupEventListeners();
-        this.loadUsers();
+        
+        // Show test data immediately
+        this.showTestData();
         this.showTab('users');
+        
+        // Then try to load real data
+        setTimeout(() => {
+            this.loadUsers();
+        }, 100);
+    },
+    
+    // Show test data immediately
+    showTestData: function() {
+        console.log('Showing test data for admin...');
+        
+        // Update user stats
+        const totalUsersEl = document.getElementById('totalUsers');
+        const activeUsersEl = document.getElementById('activeUsers');
+        const adminUsersEl = document.getElementById('adminUsers');
+        
+        if (totalUsersEl) totalUsersEl.textContent = '8';
+        if (activeUsersEl) activeUsersEl.textContent = '7';
+        if (adminUsersEl) adminUsersEl.textContent = '2';
+        
+        // Show test users table
+        const usersContainer = document.getElementById('usersContainer');
+        if (usersContainer) {
+            usersContainer.innerHTML = `
+                <table class="table users-table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Last Login</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div class="user-info">
+                                    <img src="https://ui-avatars.com/api/?name=Admin+User&background=667eea&color=fff&size=32" alt="Admin" class="user-avatar-sm">
+                                    <span>Admin User</span>
+                                </div>
+                            </td>
+                            <td>admin@example.com</td>
+                            <td><span class="role-badge role-admin">Admin</span></td>
+                            <td><span class="status-badge status-active">Active</span></td>
+                            <td>2024-01-20 10:30:15</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn btn-sm btn-edit" title="Edit User">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-key" title="Reset Password">
+                                        <i class="fas fa-key"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="user-info">
+                                    <img src="https://ui-avatars.com/api/?name=John+Doe&background=10b981&color=fff&size=32" alt="John" class="user-avatar-sm">
+                                    <span>John Doe</span>
+                                </div>
+                            </td>
+                            <td>john.doe@example.com</td>
+                            <td><span class="role-badge role-view-edit">View Edit</span></td>
+                            <td><span class="status-badge status-active">Active</span></td>
+                            <td>2024-01-19 15:45:22</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn btn-sm btn-edit" title="Edit User">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-key" title="Reset Password">
+                                        <i class="fas fa-key"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-delete" title="Delete User">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="user-info">
+                                    <img src="https://ui-avatars.com/api/?name=Jane+Smith&background=f59e0b&color=fff&size=32" alt="Jane" class="user-avatar-sm">
+                                    <span>Jane Smith</span>
+                                </div>
+                            </td>
+                            <td>jane.smith@example.com</td>
+                            <td><span class="role-badge role-view">View</span></td>
+                            <td><span class="status-badge status-active">Active</span></td>
+                            <td>2024-01-18 09:12:45</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn btn-sm btn-edit" title="Edit User">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-key" title="Reset Password">
+                                        <i class="fas fa-key"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-delete" title="Delete User">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            `;
+        }
     },
     
     // Get admin HTML

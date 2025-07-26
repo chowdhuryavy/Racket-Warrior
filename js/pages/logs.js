@@ -14,8 +14,73 @@ const Logs = {
     
     // Initialize logs page
     init: function() {
+        console.log('Logs page initializing...');
         this.setupEventListeners();
-        this.loadLogs();
+        
+        // Show test data immediately
+        this.showTestData();
+        
+        // Then try to load real data
+        setTimeout(() => {
+            this.loadLogs();
+        }, 100);
+    },
+    
+    // Show test data immediately
+    showTestData: function() {
+        console.log('Showing test data for logs...');
+        
+        // Update stats
+        const totalLogsEl = document.getElementById('totalLogs');
+        const todayLogsEl = document.getElementById('todayLogs');
+        const errorLogsEl = document.getElementById('errorLogs');
+        
+        if (totalLogsEl) totalLogsEl.textContent = '156';
+        if (todayLogsEl) todayLogsEl.textContent = '12';
+        if (errorLogsEl) errorLogsEl.textContent = '2';
+        
+        // Show test logs
+        const logsContainer = document.getElementById('logsContainer');
+        if (logsContainer) {
+            logsContainer.innerHTML = `
+                <table class="table logs-table">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Action</th>
+                            <th>User</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>2024-01-20 10:30:15</td>
+                            <td><span class="action-badge action-login">LOGIN</span></td>
+                            <td>john.doe@example.com</td>
+                            <td>User logged in successfully</td>
+                        </tr>
+                        <tr>
+                            <td>2024-01-20 10:25:30</td>
+                            <td><span class="action-badge action-add">ADD_PLAYER</span></td>
+                            <td>admin@example.com</td>
+                            <td>Added new player: Jane Smith</td>
+                        </tr>
+                        <tr>
+                            <td>2024-01-20 10:20:45</td>
+                            <td><span class="action-badge action-update">UPDATE_COLLECTION</span></td>
+                            <td>jane.smith@example.com</td>
+                            <td>Updated collection amount: QAR 100.00</td>
+                        </tr>
+                        <tr>
+                            <td>2024-01-20 10:15:20</td>
+                            <td><span class="action-badge action-delete">DELETE_EXPENSE</span></td>
+                            <td>admin@example.com</td>
+                            <td>Deleted expense: Office supplies</td>
+                        </tr>
+                    </tbody>
+                </table>
+            `;
+        }
     },
     
     // Get logs HTML
