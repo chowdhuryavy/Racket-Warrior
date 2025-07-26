@@ -164,7 +164,52 @@ const Auth = {
         });
         
         this.currentForgotPasswordModal = modal;
+        this.forgotEmail = '';
         this.currentStep = 1;
+        
+        // Setup initial step and event handlers after modal is rendered
+        setTimeout(() => {
+            this.showForgotStep(1);
+        }, 100);
+    },
+    
+    // Remove existing event handlers to prevent duplicates
+    removeForgotPasswordHandlers: function() {
+        const forgotForm = document.getElementById('forgotPasswordForm');
+        const otpForm = document.getElementById('otpVerificationForm');
+        const resetForm = document.getElementById('resetPasswordForm');
+        
+        if (forgotForm && this._forgotFormHandler) {
+            forgotForm.removeEventListener('submit', this._forgotFormHandler);
+        }
+        if (otpForm && this._otpFormHandler) {
+            otpForm.removeEventListener('submit', this._otpFormHandler);
+        }
+        if (resetForm && this._resetFormHandler) {
+            resetForm.removeEventListener('submit', this._resetFormHandler);
+        }
+    },
+    
+    // Resend OTP
+    resendOTP: async function() {
+        if (!this.forgotEmail) {
+            UIUtils.showNotification('Session expired. Please start over.', 'error');
+            this.showForgotStep(1);
+            return;
+        }
+        
+        try {
+            const response = await API.forgotPassword(this.forgotEmail);
+            
+            if (response.success) {
+                UIUtils.showNotification('✅ New verification code sent!', 'success');
+            } else {
+                UIUtils.showNotification(response.message || 'Failed to resend code.', 'error');
+            }
+        } catch (error) {
+            Logger.error('Resend OTP error', error);
+            UIUtils.showNotification('Failed to resend code. Please try again.', 'error');
+        }
     },
     
     // Get forgot password modal content
@@ -190,8 +235,14 @@ const Auth = {
             </div>
             
             <div id="forgotStep2" style="display: none;">
-                <p style="text-align: center; margin-bottom: 1.5rem; color: var(--text-secondary);">
-                    We've sent a verification code to your email. Please enter it below.
+                <p style="text-align: center; margin-bottom: 1rem; color: var(--text-secondary);">
+                    We've sent a verification code to:
+                </p>
+                <p style="text-align: center; margin-bottom: 1.5rem; font-weight: 600; color: var(--primary-color);">
+                    <span class="email-display">your email</span>
+                </p>
+                <p style="text-align: center; margin-bottom: 1.5rem; color: var(--text-secondary); font-size: 0.9rem;">
+                    Please enter the 6-digit code below:
                 </p>
                 <form id="otpVerificationForm">
                     <div class="form-group">
@@ -204,6 +255,11 @@ const Auth = {
                     <div class="form-actions">
                         <button type="button" class="btn btn-secondary" onclick="Auth.showForgotStep(1)">Back</button>
                         <button type="submit" class="btn btn-primary">Verify Code</button>
+                    </div>
+                    <div style="text-align: center; margin-top: 1rem;">
+                        <button type="button" class="btn-link" onclick="Auth.resendOTP()" style="color: var(--primary-color); background: none; border: none; text-decoration: underline; cursor: pointer;">
+                            Didn't receive the code? Resend
+                        </button>
                     </div>
                 </form>
             </div>
@@ -282,29 +338,46 @@ const Auth = {
         
         // Setup form handlers for the current step
         this.setupForgotPasswordHandlers(step);
+        
+        // Focus on first input of the current step
+        setTimeout(() => {
+            const activeStep = document.getElementById(`forgotStep${step}`);
+            if (activeStep) {
+                const firstInput = activeStep.querySelector('input');
+                if (firstInput) {
+                    firstInput.focus();
+                }
+            }
+        }, 100);
     },
     
     // Setup form handlers for forgot password steps
     setupForgotPasswordHandlers: function(step) {
+        // Remove existing event listeners first
+        this.removeForgotPasswordHandlers();
+        
         switch (step) {
             case 1:
                 const forgotForm = document.getElementById('forgotPasswordForm');
                 if (forgotForm) {
-                    forgotForm.addEventListener('submit', this.handleForgotPassword.bind(this));
+                    this._forgotFormHandler = this.handleForgotPassword.bind(this);
+                    forgotForm.addEventListener('submit', this._forgotFormHandler);
                 }
                 break;
                 
             case 2:
                 const otpForm = document.getElementById('otpVerificationForm');
                 if (otpForm) {
-                    otpForm.addEventListener('submit', this.handleOTPVerification.bind(this));
+                    this._otpFormHandler = this.handleOTPVerification.bind(this);
+                    otpForm.addEventListener('submit', this._otpFormHandler);
                 }
                 break;
                 
             case 3:
                 const resetForm = document.getElementById('resetPasswordForm');
                 if (resetForm) {
-                    resetForm.addEventListener('submit', this.handlePasswordReset.bind(this));
+                    this._resetFormHandler = this.handlePasswordReset.bind(this);
+                    resetForm.addEventListener('submit', this._resetFormHandler);
                 }
                 
                 // Setup password validation
@@ -325,6 +398,11 @@ const Auth = {
         
         const email = document.getElementById('forgotEmail').value.trim();
         
+        if (!email) {
+            UIUtils.showNotification('Please enter your email address', 'error');
+            return;
+        }
+        
         if (!ValidationUtils.isValidEmail(email)) {
             UIUtils.showNotification('Please enter a valid email address', 'error');
             return;
@@ -337,15 +415,26 @@ const Auth = {
             const response = await API.forgotPassword(email);
             
             if (response.success) {
-                UIUtils.showNotification('Verification code sent to your email', 'success');
+                UIUtils.showNotification('✅ Verification code sent to your email!', 'success');
                 this.forgotEmail = email;
-                this.showForgotStep(2);
+                
+                // Update step 2 content with email
+                setTimeout(() => {
+                    const step2Element = document.getElementById('forgotStep2');
+                    if (step2Element) {
+                        const emailSpan = step2Element.querySelector('.email-display');
+                        if (emailSpan) {
+                            emailSpan.textContent = email;
+                        }
+                    }
+                    this.showForgotStep(2);
+                }, 500);
             } else {
-                UIUtils.showNotification(response.message || 'Failed to send verification code', 'error');
+                UIUtils.showNotification(response.message || 'Failed to send verification code. Please check your email address.', 'error');
             }
         } catch (error) {
             Logger.error('Forgot password error', error);
-            UIUtils.showNotification('Failed to send verification code. Please try again.', 'error');
+            UIUtils.showNotification('Network error. Please check your connection and try again.', 'error');
         } finally {
             UIUtils.hideLoading(submitButton);
         }
@@ -357,8 +446,19 @@ const Auth = {
         
         const otp = document.getElementById('otpCode').value.trim();
         
-        if (!otp || otp.length !== 6) {
+        if (!otp) {
+            UIUtils.showNotification('Please enter the verification code', 'error');
+            return;
+        }
+        
+        if (otp.length !== 6 || !/^\d{6}$/.test(otp)) {
             UIUtils.showNotification('Please enter a valid 6-digit code', 'error');
+            return;
+        }
+        
+        if (!this.forgotEmail) {
+            UIUtils.showNotification('Session expired. Please start over.', 'error');
+            this.showForgotStep(1);
             return;
         }
         
@@ -369,15 +469,17 @@ const Auth = {
             const response = await API.verifyOTP(this.forgotEmail, otp);
             
             if (response.success) {
-                UIUtils.showNotification('Code verified successfully', 'success');
-                this.resetToken = response.resetToken;
-                this.showForgotStep(3);
+                UIUtils.showNotification('✅ Code verified! Set your new password.', 'success');
+                this.resetToken = response.resetToken || response.token;
+                setTimeout(() => {
+                    this.showForgotStep(3);
+                }, 500);
             } else {
-                UIUtils.showNotification(response.message || 'Invalid verification code', 'error');
+                UIUtils.showNotification(response.message || 'Invalid or expired verification code. Please try again.', 'error');
             }
         } catch (error) {
             Logger.error('OTP verification error', error);
-            UIUtils.showNotification('Verification failed. Please try again.', 'error');
+            UIUtils.showNotification('Verification failed. Please check your connection and try again.', 'error');
         } finally {
             UIUtils.hideLoading(submitButton);
         }
