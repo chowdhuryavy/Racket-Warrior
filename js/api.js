@@ -58,9 +58,15 @@ const API = {
             // Create script tag for JSONP
             const script = document.createElement('script');
             script.src = url.toString();
-            script.onerror = () => {
+            script.onerror = (error) => {
                 cleanup();
-                reject(new Error('Network error. Please check your connection.'));
+                Logger.error(`JSONP Script Load Failed: ${url.toString()}`, error);
+                reject(new Error(`Failed to load script: ${endpoint}. Check if Google Apps Script is deployed correctly.`));
+            };
+            script.onload = () => {
+                // Script loaded successfully, but callback might not be called
+                // This will be cleaned up by the callback or timeout
+                Logger.debug(`JSONP Script Loaded: ${endpoint}`);
             };
             
             // Add script to DOM
@@ -547,6 +553,20 @@ const MockAPI = {
     }
 };
 
+    // Test API connectivity
+    testConnection: async function() {
+        try {
+            Logger.info('Testing API connectivity...');
+            const result = await this.makeRequest('health_check');
+            Logger.info('API connectivity test result:', result);
+            return result;
+        } catch (error) {
+            Logger.error('API connectivity test failed:', error);
+            return { success: false, message: 'Connection test failed: ' + error.message };
+        }
+    }
+};
+
 // Use mock API in development mode
 if (CONFIG.DEBUG && CONFIG.API_BASE_URL.includes('YOUR_SCRIPT_ID')) {
     Logger.info('Using Mock API for development');
@@ -555,3 +575,12 @@ if (CONFIG.DEBUG && CONFIG.API_BASE_URL.includes('YOUR_SCRIPT_ID')) {
 
 // Export API module
 window.API = API;
+
+// Test connection on page load (only in debug mode)
+if (CONFIG.DEBUG) {
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+            API.testConnection();
+        }, 2000);
+    });
+}

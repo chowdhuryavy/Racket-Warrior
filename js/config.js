@@ -1,7 +1,7 @@
 // Application Configuration
 const CONFIG = {
     // API Configuration
-    API_BASE_URL: 'https://script.google.com/macros/s/AKfycbxTErlOO4L97LY9jiAIBhcIk5cWPcHEvRwhc_xMR4GDCdcEKK4H9yzzUsSwfNinx8CAHw/exec', // Replace with your actual Apps Script URL
+    API_BASE_URL: 'https://script.google.com/macros/s/AKfycbwEVzaOhPlN78DKL2jJx0tDSgi__rHO7aEmxG7-Q9opOR5pOfxGXTbErpcK_vue7pAvyw/exec', // Replace with your actual Apps Script URL
     
     // Application Info
     APP_NAME: 'Racket Warrior',
