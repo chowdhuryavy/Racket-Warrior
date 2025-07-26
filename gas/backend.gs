@@ -258,6 +258,9 @@ function doPost(e) {
  */
 function handleLogin(params) {
   try {
+    // Debug what we actually receive
+    Logger.log('LOGIN DEBUG - Received params: ' + JSON.stringify(params));
+    
     // Safety check for params
     if (!params) {
       return { success: false, message: 'No login parameters provided' };
