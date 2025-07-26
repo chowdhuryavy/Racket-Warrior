@@ -326,6 +326,19 @@ const API = {
             Logger.error('API connectivity test failed:', error);
             return { success: false, message: 'Connection test failed: ' + error.message };
         }
+    },
+
+    // Initialize application
+    initializeApp: async function() {
+        try {
+            Logger.info('Initializing application...');
+            const result = await this.makeRequest('initialize_app');
+            Logger.info('Application initialization result:', result);
+            return result;
+        } catch (error) {
+            Logger.error('Application initialization failed:', error);
+            return { success: false, message: 'Initialization failed: ' + error.message };
+        }
     }
 };
 

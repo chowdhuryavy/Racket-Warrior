@@ -59,6 +59,10 @@ function doGet(e) {
         };
         break;
       
+      case 'initialize_app':
+        result = initializeApplication();
+        break;
+      
       // Authentication
       case 'login': result = handleLogin(e.parameter); break;
       case 'logout': result = handleLogout(e.parameter); break;
@@ -1969,5 +1973,81 @@ ${CONFIG.APP_NAME} Team
   } catch (error) {
     Logger.log('Error sending welcome email: ' + error.toString());
     return false;
+  }
+}
+
+/**
+ * Initialize application with default data
+ */
+function initializeApplication() {
+  try {
+    Logger.log('Starting application initialization...');
+    
+    // Initialize Users sheet
+    const usersSheet = getSheet(SHEETS.users.name);
+    const userData = getSheetData(usersSheet);
+    
+    // Check if admin user already exists
+    const adminExists = userData.find(user => user.email === 'chowdhuryavy@gmail.com');
+    
+    if (!adminExists) {
+      Logger.log('Creating default admin user...');
+      
+      // Add default admin user
+      usersSheet.appendRow([
+        'chowdhuryavy@gmail.com',  // email
+        'Doha@2580',              // password (plain text for now)
+        'admin',                  // role
+        'Avy Chowdhury',          // name
+        'FALSE',                  // needs_password_change
+        new Date().toISOString(), // created_at
+        '',                       // last_login
+        'active',                 // status
+        '',                       // resetToken
+        '',                       // resetTokenExpiry
+        ''                        // photo_url
+      ]);
+      
+      Logger.log('Default admin user created successfully');
+    } else {
+      Logger.log('Admin user already exists');
+    }
+    
+    // Initialize other sheets
+    getSheet(SHEETS.players.name);
+    getSheet(SHEETS.income.name);
+    getSheet(SHEETS.expenses.name);
+    getSheet(SHEETS.logs.name);
+    getSheet(SHEETS.settings.name);
+    
+    // Add default settings
+    const settingsSheet = getSheet(SHEETS.settings.name);
+    const settingsData = getSheetData(settingsSheet);
+    
+    if (settingsData.length === 0) {
+      Logger.log('Adding default settings...');
+      settingsSheet.appendRow(['app_name', CONFIG.APP_NAME]);
+      settingsSheet.appendRow(['currency', 'QAR']);
+      settingsSheet.appendRow(['timezone', 'Asia/Qatar']);
+    }
+    
+    Logger.log('Application initialization completed successfully');
+    
+    return {
+      success: true,
+      message: 'Application initialized successfully',
+      details: {
+        userCreated: !adminExists,
+        sheetsInitialized: true,
+        settingsAdded: settingsData.length === 0
+      }
+    };
+    
+  } catch (error) {
+    Logger.log('Application initialization error: ' + error.toString());
+    return {
+      success: false,
+      message: 'Failed to initialize application: ' + error.toString()
+    };
   }
 }
