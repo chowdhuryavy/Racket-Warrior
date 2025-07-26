@@ -258,12 +258,8 @@ const App = {
             return;
         }
         
-        // Show loading state
-        UIUtils.showLoading(contentArea, 'Loading page...');
-        
-        // Load page-specific content
-        setTimeout(() => {
-            switch (page) {
+        // Load page-specific content immediately (UI is local)
+        switch (page) {
                 case 'dashboard':
                     if (window.Dashboard) {
                         Dashboard.render(contentArea);
@@ -326,8 +322,7 @@ const App = {
                             </button>
                         </div>
                     `;
-            }
-        }, 300);
+        }
     },
     
     // Adjust tables for mobile view
