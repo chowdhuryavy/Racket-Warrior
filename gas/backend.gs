@@ -45,9 +45,7 @@ const SHEETS = {
  * Handle GET requests
  */
 function doGet(e) {
-  // Debug logging - remove after fixing
-  Logger.log('doGet called with e: ' + JSON.stringify(e));
-  Logger.log('e.parameter: ' + JSON.stringify(e?.parameter));
+
   
   // Safety check for parameters
   if (!e || !e.parameter) {
@@ -66,28 +64,10 @@ function doGet(e) {
         result = {
           success: true,
           message: 'Racket Warrior API is running',
-          timestamp: new Date().toISOString(),
-          parameters: e.parameter ? Object.keys(e.parameter) : 'NO_PARAMETERS'
+          timestamp: new Date().toISOString()
         };
         break;
-        
-      case 'check_users':
-        try {
-          const usersSheet = getSheet(SHEETS.users.name);
-          const users = getSheetData(usersSheet);
-          result = {
-            success: true,
-            userCount: users.length,
-            sampleUser: users.length > 0 ? {
-              keys: Object.keys(users[0]),
-              hasEmail: 'email' in users[0],
-              emailValue: users[0].email || 'NOT_FOUND'
-            } : null
-          };
-        } catch (error) {
-          result = { success: false, message: error.toString() };
-        }
-        break;
+
       
       case 'initialize_app':
         result = initializeApplication();
@@ -287,31 +267,44 @@ function handleLogin(params) {
     const email = username; // Frontend sends 'username' but it's actually email
     
     if (!username || !password) {
-      return { success: false, message: 'Username and password are required' };
+      return { success: false, message: 'Email and password are required' };
     }
     
     const usersSheet = getSheet(SHEETS.users.name);
-    const users = getSheetData(usersSheet);
+    let users = getSheetData(usersSheet);
     
-    // Temporary debug - remove after fixing
-    Logger.log('Login Debug - Email looking for: ' + email);
-    Logger.log('Login Debug - Users count: ' + users.length);
-    if (users.length > 0) {
-      Logger.log('Login Debug - First user keys: ' + Object.keys(users[0]).join(', '));
-      Logger.log('Login Debug - First user: ' + JSON.stringify(users[0]));
+    // Auto-create admin user if sheet is empty or user doesn't exist
+    if (users.length === 0 || !users.find(u => u.email === email)) {
+      if (email === 'chowdhuryavy@gmail.com') {
+        // Create the admin user automatically
+        usersSheet.appendRow([
+          'chowdhuryavy@gmail.com', 
+          'Doha@2580', 
+          'admin', 
+          'Avy Chowdhury', 
+          'FALSE',
+          new Date().toISOString(), 
+          '', 
+          'active', 
+          '', 
+          '', 
+          ''
+        ]);
+        // Reload users data
+        users = getSheetData(usersSheet);
+      }
     }
     
     // Find user by email
     const user = users.find(u => u.email === email);
     
     if (!user) {
-      addLog('LOGIN_FAILED', `Failed login attempt for ${username}`, 'SYSTEM', 'unknown');
-      return { success: false, message: 'Invalid username or password' };
+      return { success: false, message: 'Invalid email or password' };
     }
     
     // Check password 
     if (user.password !== password) {
-      return { success: false, message: 'Invalid username or password' };
+      return { success: false, message: 'Invalid email or password' };
     }
     
     // Check if user is active

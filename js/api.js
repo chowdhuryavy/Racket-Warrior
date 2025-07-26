@@ -322,7 +322,7 @@ const API = {
     testConnection: async function() {
         try {
             Logger.info('Testing API connectivity...');
-            const result = await this.makeRequest('health_check', { test: 'param' });
+            const result = await this.makeRequest('health_check');
             Logger.info('API connectivity test result:', result);
             return result;
         } catch (error) {
@@ -331,24 +331,7 @@ const API = {
         }
     },
 
-    // Check users in sheet
-    checkUsers: async function() {
-        try {
-            const result = await this.makeRequest('check_users');
-            console.log('=== USERS CHECK ===');
-            console.log('User Count:', result.userCount);
-            if (result.sampleUser) {
-                console.log('Column Keys:', result.sampleUser.keys);
-                console.log('Has Email Column:', result.sampleUser.hasEmail);
-                console.log('Email Value:', result.sampleUser.emailValue);
-            }
-            console.log('=== END ===');
-            return result;
-        } catch (error) {
-            Logger.error('Check users failed:', error);
-            return { success: false, message: 'Check failed: ' + error.message };
-        }
-    },
+
 
     // Initialize application
     initializeApp: async function() {
