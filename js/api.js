@@ -352,6 +352,19 @@ const API = {
             Logger.error('Debug users failed:', error);
             return { success: false, message: 'Debug failed: ' + error.message };
         }
+    },
+
+    // Test sheet access
+    testSheetAccess: async function() {
+        try {
+            Logger.info('Testing sheet access...');
+            const result = await this.makeRequest('test_sheet_access');
+            Logger.info('Sheet access test result:', result);
+            return result;
+        } catch (error) {
+            Logger.error('Sheet access test failed:', error);
+            return { success: false, message: 'Sheet access test failed: ' + error.message };
+        }
     }
 };
 
