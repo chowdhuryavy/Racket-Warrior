@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug API Response</title>
+</head>
+<body>
+    <h1>Debug Results</h1>
+    <div id="results"></div>
+    
+    <script>
+        // Function to display debug results nicely
+        function displayResults(data) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+        }
+        
+        // You can copy and paste the API response here
+        console.log('To see debug results, run: API.debugUsers().then(result => displayResults(result))');
+    </script>
+</body>
+</html>

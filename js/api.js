@@ -365,6 +365,21 @@ const API = {
             Logger.error('Sheet access test failed:', error);
             return { success: false, message: 'Sheet access test failed: ' + error.message };
         }
+    },
+
+    // Helper function to display debug results
+    showDebugResults: function(result) {
+        console.log('=== DEBUG RESULTS ===');
+        console.log(JSON.stringify(result, null, 2));
+        console.log('=== END DEBUG ===');
+        
+        if (result.success && result.data) {
+            console.log('Raw Data:', result.data.rawData);
+            console.log('Processed Users:', result.data.processedUsers);
+            console.log('User Count:', result.data.userCount);
+        }
+        
+        return result;
     }
 };
 
