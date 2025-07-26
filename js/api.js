@@ -341,46 +341,7 @@ const API = {
         }
     },
 
-    // Debug users data
-    debugUsers: async function() {
-        try {
-            Logger.info('Debugging users data...');
-            const result = await this.makeRequest('debug_users');
-            Logger.info('Debug users result:', result);
-            return result;
-        } catch (error) {
-            Logger.error('Debug users failed:', error);
-            return { success: false, message: 'Debug failed: ' + error.message };
-        }
-    },
 
-    // Test sheet access
-    testSheetAccess: async function() {
-        try {
-            Logger.info('Testing sheet access...');
-            const result = await this.makeRequest('test_sheet_access');
-            Logger.info('Sheet access test result:', result);
-            return result;
-        } catch (error) {
-            Logger.error('Sheet access test failed:', error);
-            return { success: false, message: 'Sheet access test failed: ' + error.message };
-        }
-    },
-
-    // Helper function to display debug results
-    showDebugResults: function(result) {
-        console.log('=== DEBUG RESULTS ===');
-        console.log(JSON.stringify(result, null, 2));
-        console.log('=== END DEBUG ===');
-        
-        if (result.success && result.data) {
-            console.log('Raw Data:', result.data.rawData);
-            console.log('Processed Users:', result.data.processedUsers);
-            console.log('User Count:', result.data.userCount);
-        }
-        
-        return result;
-    }
 };
 
 // Mock API for development/testing
@@ -629,19 +590,3 @@ if (CONFIG.DEBUG && CONFIG.API_BASE_URL.includes('YOUR_SCRIPT_ID')) {
 // Export API module
 window.API = API;
 
-// Test connection on page load (only in debug mode)
-if (CONFIG.DEBUG) {
-    document.addEventListener('DOMContentLoaded', () => {
-        setTimeout(() => {
-            API.testConnection().then(result => {
-                if (result.success) {
-                    Logger.info('✅ API Connection Test: SUCCESS');
-                } else {
-                    Logger.error('❌ API Connection Test: FAILED', result);
-                }
-            }).catch(error => {
-                Logger.error('❌ API Connection Test: ERROR', error);
-            });
-        }, 2000);
-    });
-}

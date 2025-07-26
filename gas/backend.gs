@@ -63,13 +63,7 @@ function doGet(e) {
         result = initializeApplication();
         break;
       
-      case 'debug_users':
-        result = debugUsers();
-        break;
-      
-      case 'test_sheet_access':
-        result = testSheetAccess();
-        break;
+
       
       // Authentication
       case 'login': result = handleLogin(e.parameter); break;
@@ -257,10 +251,7 @@ function handleLogin(params) {
     const usersSheet = getSheet(SHEETS.users.name);
     const users = getSheetData(usersSheet);
     
-    // Debug logging
-    Logger.log('Login attempt for email: ' + email);
-    Logger.log('Users found in sheet: ' + users.length);
-    Logger.log('All users: ' + JSON.stringify(users));
+
     
     // Find user by email
     const user = users.find(u => u.email === email);
@@ -270,9 +261,8 @@ function handleLogin(params) {
       return { success: false, message: 'Invalid username or password' };
     }
     
-    // Check password (in production, use proper hashing)
+    // Check password 
     if (user.password !== password) {
-      addLog('LOGIN_FAILED', `Wrong password for ${username}`, 'SYSTEM', 'unknown');
       return { success: false, message: 'Invalid username or password' };
     }
     
@@ -1657,27 +1647,18 @@ function handleUploadPhoto(params) {
  */
 function getSheet(sheetName) {
   try {
-    Logger.log('getSheet - Attempting to access sheet: ' + sheetName);
-    Logger.log('getSheet - Using spreadsheet ID: ' + CONFIG.SHEET_ID);
-    
     const spreadsheet = SpreadsheetApp.openById(CONFIG.SHEET_ID);
-    Logger.log('getSheet - Spreadsheet opened successfully');
-    
     let sheet = spreadsheet.getSheetByName(sheetName);
     
     if (!sheet) {
-      Logger.log('getSheet - Sheet not found, creating new sheet: ' + sheetName);
       sheet = spreadsheet.insertSheet(sheetName);
       initializeSheet(sheet, sheetName);
-      Logger.log('getSheet - New sheet created and initialized');
-    } else {
-      Logger.log('getSheet - Existing sheet found: ' + sheetName);
     }
     
     return sheet;
   } catch (error) {
     Logger.log('Error getting sheet: ' + error.toString());
-    throw new Error('Failed to access sheet: ' + sheetName + ' - ' + error.toString());
+    throw new Error('Failed to access sheet: ' + sheetName);
   }
 }
 
@@ -1688,31 +1669,20 @@ function getSheetData(sheet) {
   try {
     const data = sheet.getDataRange().getValues();
     
-    Logger.log('getSheetData - Sheet name: ' + sheet.getName());
-    Logger.log('getSheetData - Raw data length: ' + data.length);
-    Logger.log('getSheetData - Raw data: ' + JSON.stringify(data));
-    
     if (data.length <= 1) {
-      Logger.log('getSheetData - No data rows found (only headers or empty)');
       return [];
     }
     
     const headers = data[0];
     const rows = data.slice(1);
     
-    Logger.log('getSheetData - Headers: ' + JSON.stringify(headers));
-    Logger.log('getSheetData - Data rows count: ' + rows.length);
-    
-    const result = rows.map(row => {
+    return rows.map(row => {
       const obj = {};
       headers.forEach((header, index) => {
         obj[header] = row[index];
       });
       return obj;
     });
-    
-    Logger.log('getSheetData - Processed result: ' + JSON.stringify(result));
-    return result;
   } catch (error) {
     Logger.log('Error getting sheet data: ' + error.toString());
     return [];
@@ -2088,82 +2058,3 @@ function initializeApplication() {
   }
 }
 
-/**
- * Debug function to check users data
- */
-function debugUsers() {
-  try {
-    const usersSheet = getSheet(SHEETS.users.name);
-    const rawData = usersSheet.getDataRange().getValues();
-    const users = getSheetData(usersSheet);
-    
-    Logger.log('Raw sheet data: ' + JSON.stringify(rawData));
-    Logger.log('Processed users: ' + JSON.stringify(users));
-    
-    return {
-      success: true,
-      data: {
-        sheetName: SHEETS.users.name,
-        rawData: rawData,
-        processedUsers: users,
-        userCount: users.length,
-        expectedColumns: SHEETS.users.columns
-      }
-    };
-  } catch (error) {
-    Logger.log('Debug users error: ' + error.toString());
-    return {
-      success: false,
-      message: 'Debug failed: ' + error.toString()
-    };
-  }
-}
-
-/**
- * Test basic sheet access
- */
-function testSheetAccess() {
-  try {
-    Logger.log('Testing sheet access...');
-    
-    // Test spreadsheet access
-    const spreadsheet = SpreadsheetApp.openById(CONFIG.SHEET_ID);
-    const sheets = spreadsheet.getSheets();
-    const sheetNames = sheets.map(sheet => sheet.getName());
-    
-    Logger.log('Spreadsheet accessed successfully');
-    Logger.log('Available sheets: ' + JSON.stringify(sheetNames));
-    
-    // Test Users sheet specifically
-    let usersSheet = spreadsheet.getSheetByName('Users');
-    let usersData = null;
-    
-    if (usersSheet) {
-      Logger.log('Users sheet found');
-      const range = usersSheet.getDataRange();
-      usersData = range.getValues();
-      Logger.log('Users sheet data: ' + JSON.stringify(usersData));
-    } else {
-      Logger.log('Users sheet NOT found');
-    }
-    
-    return {
-      success: true,
-      data: {
-        spreadsheetId: CONFIG.SHEET_ID,
-        availableSheets: sheetNames,
-        usersSheetExists: !!usersSheet,
-        usersData: usersData,
-        sheetsConfig: SHEETS
-      }
-    };
-    
-  } catch (error) {
-    Logger.log('Sheet access test error: ' + error.toString());
-    return {
-      success: false,
-      message: 'Sheet access failed: ' + error.toString(),
-      spreadsheetId: CONFIG.SHEET_ID
-    };
-  }
-}
