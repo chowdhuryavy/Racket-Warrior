@@ -112,15 +112,34 @@ function doGet(e) {
         result = { success: false, message: 'Unknown action: ' + action };
     }
     
+    // Handle JSONP callback if provided
+    const callback = e.parameter.callback;
+    if (callback) {
+      const jsonpResponse = `${callback}(${JSON.stringify(result)})`;
+      return ContentService.createTextOutput(jsonpResponse)
+        .setMimeType(ContentService.MimeType.JAVASCRIPT);
+    }
+    
     return ContentService.createTextOutput(JSON.stringify(result))
       .setMimeType(ContentService.MimeType.JSON);
       
   } catch (error) {
     Logger.log('doGet Error: ' + error.toString());
-    return ContentService.createTextOutput(JSON.stringify({
+    const errorResult = {
       success: false,
       message: 'Server error: ' + error.toString()
-    })).setMimeType(ContentService.MimeType.JSON);
+    };
+    
+    // Handle JSONP callback for errors too
+    const callback = e.parameter.callback;
+    if (callback) {
+      const jsonpResponse = `${callback}(${JSON.stringify(errorResult)})`;
+      return ContentService.createTextOutput(jsonpResponse)
+        .setMimeType(ContentService.MimeType.JAVASCRIPT);
+    }
+    
+    return ContentService.createTextOutput(JSON.stringify(errorResult))
+      .setMimeType(ContentService.MimeType.JSON);
   }
 }
 

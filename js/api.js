@@ -5,9 +5,8 @@ const API = {
     baseURL: CONFIG.API_BASE_URL,
     timeout: 30000, // 30 seconds
     
-    // Make HTTP request to Google Apps Script
-    makeRequest: async function(endpoint, data = {}, method = 'POST') {
-        const url = this.baseURL;
+    // Make HTTP request to Google Apps Script using JSONP
+    makeRequest: async function(endpoint, data = {}) {
         const requestData = {
             action: endpoint,
             ...data
@@ -21,43 +20,52 @@ const API = {
         
         Logger.debug(`API Request: ${endpoint}`, requestData);
         
-        try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+        return new Promise((resolve, reject) => {
+            // Create unique callback name
+            const callbackName = 'jsonp_callback_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
             
-            // For Google Apps Script, we need to use GET with query parameters
-            const urlWithParams = new URL(url);
+            // Create timeout
+            const timeoutId = setTimeout(() => {
+                cleanup();
+                reject(new Error('Request timeout. Please try again.'));
+            }, this.timeout);
+            
+            // Create cleanup function
+            const cleanup = () => {
+                clearTimeout(timeoutId);
+                if (window[callbackName]) {
+                    delete window[callbackName];
+                }
+                if (script && script.parentNode) {
+                    script.parentNode.removeChild(script);
+                }
+            };
+            
+            // Set up global callback
+            window[callbackName] = (result) => {
+                cleanup();
+                Logger.debug(`API Response: ${endpoint}`, result);
+                resolve(result);
+            };
+            
+            // Build URL with parameters
+            const url = new URL(this.baseURL);
             Object.keys(requestData).forEach(key => {
-                urlWithParams.searchParams.append(key, requestData[key]);
+                url.searchParams.append(key, requestData[key]);
             });
+            url.searchParams.append('callback', callbackName);
             
-            const response = await fetch(urlWithParams.toString(), {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                },
-                signal: controller.signal
-            });
+            // Create script tag for JSONP
+            const script = document.createElement('script');
+            script.src = url.toString();
+            script.onerror = () => {
+                cleanup();
+                reject(new Error('Network error. Please check your connection.'));
+            };
             
-            clearTimeout(timeoutId);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const result = await response.json();
-            Logger.debug(`API Response: ${endpoint}`, result);
-            
-            return result;
-        } catch (error) {
-            Logger.error(`API Error: ${endpoint}`, error);
-            
-            if (error.name === 'AbortError') {
-                throw new Error('Request timeout. Please try again.');
-            }
-            
-            throw error;
-        }
+            // Add script to DOM
+            document.head.appendChild(script);
+        });
     },
     
     // Authentication APIs
