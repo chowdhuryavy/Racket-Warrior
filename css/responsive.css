@@ -397,3 +397,206 @@
         background: linear-gradient(135deg, #1f2937, #111827);
     }
 }
+
+/* Enhanced Form Responsiveness */
+@media (max-width: 768px) {
+    .form-container {
+        padding: 1.5rem;
+        margin: 1rem;
+        border-radius: 12px;
+        max-width: calc(100% - 2rem);
+    }
+    
+    .form-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    
+    .input-wrapper input,
+    .input-wrapper select,
+    .input-wrapper textarea {
+        padding: 14px 16px;
+        font-size: 16px; /* Prevents zoom on iOS */
+        border-radius: 10px;
+    }
+    
+    .input-wrapper select {
+        padding-right: 45px;
+        background-size: 14px;
+        background-position: right 12px center;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+        gap: 0.75rem;
+        margin-top: 1.5rem;
+    }
+    
+    .form-actions .btn {
+        width: 100%;
+        padding: 14px;
+        font-size: 1rem;
+        border-radius: 10px;
+    }
+    
+    .page-header {
+        padding: 1.5rem !important;
+        margin-bottom: 1.5rem;
+    }
+    
+    .reports-page .page-header,
+    .logs-page .page-header,
+    .admin-page .page-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+    
+    .header-actions {
+        justify-content: center;
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .form-container {
+        padding: 1rem;
+        margin: 0.5rem;
+    }
+    
+    .input-wrapper input,
+    .input-wrapper select,
+    .input-wrapper textarea {
+        padding: 12px 14px;
+        font-size: 16px;
+    }
+    
+    .form-label {
+        font-size: 0.85rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .page-content {
+        padding: 1rem !important;
+    }
+}
+
+/* Enhanced Table Responsiveness */
+@media (max-width: 768px) {
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 12px;
+    }
+    
+    .table {
+        min-width: 700px;
+        font-size: 0.9rem;
+    }
+    
+    .table th,
+    .table td {
+        padding: 0.75rem 0.5rem;
+        white-space: nowrap;
+    }
+    
+    .action-buttons {
+        gap: 0.25rem;
+    }
+    
+    .btn-sm {
+        padding: 4px 8px;
+        font-size: 0.75rem;
+    }
+}
+
+/* Enhanced Dashboard Mobile */
+@media (max-width: 768px) {
+    .dashboard-stats {
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 1rem;
+        padding: 0 0.5rem;
+    }
+    
+    .stat-card {
+        padding: 1.25rem;
+    }
+    
+    .stat-card-value {
+        font-size: 1.4rem;
+    }
+    
+    .stat-card-label {
+        font-size: 0.8rem;
+    }
+    
+    .quick-actions {
+        margin-bottom: 1.5rem;
+    }
+    
+    .action-buttons {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 0.75rem;
+    }
+    
+    .action-btn {
+        padding: 1rem;
+    }
+    
+    .action-btn i {
+        font-size: 1.5rem;
+    }
+    
+    .action-btn span {
+        font-size: 0.85rem;
+    }
+    
+    .activity-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .activity-card {
+        padding: 1rem;
+    }
+}
+
+/* Enhanced Reports/Logs/Admin Mobile */
+@media (max-width: 768px) {
+    .summary-cards {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+    }
+    
+    .summary-card {
+        padding: 1rem;
+    }
+    
+    .summary-card .card-value {
+        font-size: 1.25rem;
+    }
+    
+    .summary-card .card-label {
+        font-size: 0.8rem;
+    }
+    
+    .report-controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+    
+    .control-group {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+    }
+    
+    .control-group select {
+        min-width: auto;
+    }
+}

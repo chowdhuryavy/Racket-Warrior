@@ -245,12 +245,12 @@ const API = {
         return await this.makeRequest(CONFIG.ENDPOINTS.UPDATE_SETTINGS, settings);
     },
     
-    // File Upload APIs
+    // File Upload APIs (Disabled - using UI Avatars API instead)
     uploadPhoto: async function(photoData, fileName) {
-        return await this.makeRequest(CONFIG.ENDPOINTS.UPLOAD_PHOTO, {
-            photoData: photoData,
-            fileName: fileName
-        });
+        return {
+            success: false,
+            message: 'Photo upload disabled. Using UI Avatars API for profile pictures.'
+        };
     },
     
     // Utility methods

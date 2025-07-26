@@ -62,11 +62,14 @@ const Players = {
                         
                         <div class="form-group">
                             <label for="playerStatus">Status <span class="required">*</span></label>
-                            <select id="playerStatus" name="status" required>
-                                <option value="">Select Status</option>
-                                <option value="active">🟢 Active</option>
-                                <option value="inactive">🔴 Inactive</option>
-                            </select>
+                            <div class="input-wrapper">
+                                <i class="fas fa-toggle-on"></i>
+                                <select id="playerStatus" name="status" required>
+                                    <option value="">Select Status</option>
+                                    <option value="active">🟢 Active</option>
+                                    <option value="inactive">🔴 Inactive</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                     
@@ -224,16 +227,24 @@ const Players = {
             })
         };
         
-        // Validate required fields
-        const validation = ValidationUtils.validateRequired({
-            Name: playerData.Name,
-            Phone: playerData.Phone,
-            JoinDate: playerData.JoinDate,
-            Status: playerData.Status
-        });
+        // Manual validation with better error messages
+        if (!playerData.Name || playerData.Name.trim() === '') {
+            UIUtils.showNotification('Player name is required', 'error');
+            return;
+        }
         
-        if (!validation.isValid) {
-            UIUtils.showNotification(validation.errors.join(', '), 'error');
+        if (!playerData.Phone || playerData.Phone.trim() === '') {
+            UIUtils.showNotification('Phone number is required', 'error');
+            return;
+        }
+        
+        if (!playerData.JoinDate) {
+            UIUtils.showNotification('Join date is required', 'error');
+            return;
+        }
+        
+        if (!playerData.Status) {
+            UIUtils.showNotification('Status is required', 'error');
             return;
         }
         
