@@ -366,7 +366,7 @@ body {
 .input-wrapper select,
 .input-wrapper textarea {
     width: 100%;
-    padding: 16px 20px;
+    padding: 16px 45px 16px 45px;
     border: 2px solid #e5e7eb;
     border-radius: 12px;
     font-size: 1rem;
@@ -376,6 +376,11 @@ body {
     font-weight: 500;
     backdrop-filter: blur(20px);
     box-sizing: border-box;
+}
+
+/* Special padding for password fields */
+.input-wrapper input[type="password"] {
+    padding-right: 50px;
 }
 
 /* Enhanced Select Styling */
@@ -465,10 +470,18 @@ body {
 
 .password-toggle {
     position: absolute;
-    right: 20px;
+    right: 15px;
     top: 50%;
     transform: translateY(-50%);
     cursor: pointer;
+    color: #6b7280;
+    font-size: 1rem;
+    z-index: 3;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     color: #9ca3af;
     transition: all 0.3s ease;
     font-size: 1.1rem;
@@ -690,7 +703,8 @@ body {
 .main-content {
     flex: 1;
     margin-left: var(--sidebar-width);
-    min-height: 100vh;
+    margin-top: var(--header-height);
+    min-height: calc(100vh - var(--header-height));
     background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
     position: relative;
 }
@@ -815,41 +829,92 @@ body {
 
 .action-buttons {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
 }
 
-.action-btn {
-    background: linear-gradient(135deg, #fff 0%, #f8fafc 100%);
-    border: 1px solid #e5e7eb;
+.action-btn-group {
+    position: relative;
+}
+
+.action-btn.main-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
     border-radius: 16px;
     padding: 1.5rem;
-    text-align: center;
+    color: white;
     cursor: pointer;
     transition: all 0.3s ease;
     text-decoration: none;
-    color: var(--text-primary);
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+    width: 100%;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.action-btn.main-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.action-btn.main-btn i:first-child {
+    font-size: 1.5rem;
+}
+
+.toggle-icon {
+    font-size: 0.9rem !important;
+    transition: transform 0.3s ease;
+}
+
+.action-submenu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    z-index: 10;
+    margin-top: 0.5rem;
+    overflow: hidden;
+}
+
+.submenu-item {
+    display: flex;
     align-items: center;
     gap: 0.75rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    padding: 1rem 1.25rem;
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    border-bottom: 1px solid #f3f4f6;
 }
 
-.action-btn:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
-    border-color: #667eea;
+.submenu-item:last-child {
+    border-bottom: none;
 }
 
-.action-btn i {
-    font-size: 2rem;
+.submenu-item:hover {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
     color: #667eea;
 }
 
-.action-btn span {
-    font-weight: 600;
-    font-size: 0.95rem;
+.submenu-item i {
+    font-size: 1.1rem;
+    color: #667eea;
+    width: 20px;
+    text-align: center;
 }
 
 /* Activity Summary */
@@ -1178,10 +1243,14 @@ body {
     align-items: center;
     justify-content: space-between;
     padding: 0 2rem;
-    position: sticky;
+    position: fixed;
     top: 0;
-    z-index: 100;
+    left: 0;
+    right: 0;
+    z-index: 1000;
 }
+
+
 
 .header-left {
     display: flex;

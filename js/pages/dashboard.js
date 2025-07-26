@@ -104,22 +104,53 @@ const Dashboard = {
                 <div class="quick-actions">
                     <h2>Quick Actions</h2>
                     <div class="action-buttons">
-                        <button class="action-btn" onclick="showPage('players-add')" data-role="admin,view_edit">
-                            <i class="fas fa-user-plus"></i>
-                            <span>Add Player</span>
-                        </button>
-                        <button class="action-btn" onclick="showPage('collection-add')" data-role="admin,view_edit">
-                            <i class="fas fa-coins"></i>
-                            <span>Record Payment</span>
-                        </button>
-                        <button class="action-btn" onclick="showPage('expenses-add')" data-role="admin,view_edit">
-                            <i class="fas fa-receipt"></i>
-                            <span>Add Expense</span>
-                        </button>
-                        <button class="action-btn" onclick="showPage('reports')" data-role="admin,view_edit,view">
-                            <i class="fas fa-chart-bar"></i>
-                            <span>View Reports</span>
-                        </button>
+                        <div class="action-btn-group" data-role="admin,view_edit">
+                            <button class="action-btn main-btn" onclick="Dashboard.toggleAddMenu()" id="addBtn">
+                                <i class="fas fa-plus"></i>
+                                <span>Add</span>
+                                <i class="fas fa-chevron-down toggle-icon"></i>
+                            </button>
+                            <div class="action-submenu" id="addMenu" style="display: none;">
+                                <button class="submenu-item" onclick="showPage('players-add')">
+                                    <i class="fas fa-user-plus"></i>
+                                    <span>Add Player</span>
+                                </button>
+                                <button class="submenu-item" onclick="showPage('collection-add')">
+                                    <i class="fas fa-coins"></i>
+                                    <span>Record Payment</span>
+                                </button>
+                                <button class="submenu-item" onclick="showPage('expenses-add')">
+                                    <i class="fas fa-receipt"></i>
+                                    <span>Add Expense</span>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="action-btn-group">
+                            <button class="action-btn main-btn" onclick="Dashboard.toggleViewMenu()" id="viewBtn">
+                                <i class="fas fa-eye"></i>
+                                <span>View</span>
+                                <i class="fas fa-chevron-down toggle-icon"></i>
+                            </button>
+                            <div class="action-submenu" id="viewMenu" style="display: none;">
+                                <button class="submenu-item" onclick="showPage('players-view')">
+                                    <i class="fas fa-users"></i>
+                                    <span>View Players</span>
+                                </button>
+                                <button class="submenu-item" onclick="showPage('collection-view')">
+                                    <i class="fas fa-coins"></i>
+                                    <span>View Collections</span>
+                                </button>
+                                <button class="submenu-item" onclick="showPage('expenses-view')">
+                                    <i class="fas fa-receipt"></i>
+                                    <span>View Expenses</span>
+                                </button>
+                                <button class="submenu-item" onclick="showPage('reports')">
+                                    <i class="fas fa-chart-bar"></i>
+                                    <span>Reports</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
@@ -546,6 +577,44 @@ const Dashboard = {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    },
+    
+    // Toggle Add menu
+    toggleAddMenu: function() {
+        const addMenu = document.getElementById('addMenu');
+        const viewMenu = document.getElementById('viewMenu');
+        const addBtn = document.getElementById('addBtn');
+        const viewBtn = document.getElementById('viewBtn');
+        
+        if (addMenu.style.display === 'none') {
+            addMenu.style.display = 'block';
+            addBtn.querySelector('.toggle-icon').style.transform = 'rotate(180deg)';
+            // Hide view menu
+            viewMenu.style.display = 'none';
+            viewBtn.querySelector('.toggle-icon').style.transform = 'rotate(0deg)';
+        } else {
+            addMenu.style.display = 'none';
+            addBtn.querySelector('.toggle-icon').style.transform = 'rotate(0deg)';
+        }
+    },
+    
+    // Toggle View menu
+    toggleViewMenu: function() {
+        const addMenu = document.getElementById('addMenu');
+        const viewMenu = document.getElementById('viewMenu');
+        const addBtn = document.getElementById('addBtn');
+        const viewBtn = document.getElementById('viewBtn');
+        
+        if (viewMenu.style.display === 'none') {
+            viewMenu.style.display = 'block';
+            viewBtn.querySelector('.toggle-icon').style.transform = 'rotate(180deg)';
+            // Hide add menu
+            addMenu.style.display = 'none';
+            addBtn.querySelector('.toggle-icon').style.transform = 'rotate(0deg)';
+        } else {
+            viewMenu.style.display = 'none';
+            viewBtn.querySelector('.toggle-icon').style.transform = 'rotate(0deg)';
+        }
     }
 };
 

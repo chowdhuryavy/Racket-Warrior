@@ -215,15 +215,23 @@ const Players = {
         event.preventDefault();
         
         const formData = new FormData(event.target);
+        
+        // Get form values directly from inputs
+        const nameInput = document.getElementById('playerName');
+        const phoneInput = document.getElementById('playerPhone');
+        const emailInput = document.getElementById('playerEmail');
+        const joinDateInput = document.getElementById('playerJoinDate');
+        const statusInput = document.getElementById('playerStatus');
+        
         const playerData = {
-            Name: formData.get('name'),
-            Phone: formData.get('phone'),
-            Email: formData.get('email') || '',
-            JoinDate: formData.get('joinDate'),
-            Status: formData.get('status'),
+            Name: nameInput ? nameInput.value.trim() : '',
+            Phone: phoneInput ? phoneInput.value.trim() : '',
+            Email: emailInput ? emailInput.value.trim() || '' : '',
+            JoinDate: joinDateInput ? joinDateInput.value : '',
+            Status: statusInput ? statusInput.value : '',
             CreatedAt: new Date().toISOString(),
             MonthlyStatus: JSON.stringify({
-                [DateUtils.getMonthYear(new Date())]: formData.get('status') === 'active'
+                [DateUtils.getMonthYear(new Date())]: (statusInput ? statusInput.value : '') === 'active'
             })
         };
         
