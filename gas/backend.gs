@@ -619,12 +619,24 @@ function handleChangePassword(params) {
     const storedPassword = String(userData.password || '').trim();
     const inputCurrentPassword = String(currentPassword || '').trim();
     
-    Logger.log('Password change - Stored: "' + storedPassword + '", Input: "' + inputCurrentPassword + '"');
+    Logger.log('=== PASSWORD CHANGE DEBUG ===');
+    Logger.log('User email: ' + user.email);
+    Logger.log('Stored password: "' + storedPassword + '" (length: ' + storedPassword.length + ')');
+    Logger.log('Input password: "' + inputCurrentPassword + '" (length: ' + inputCurrentPassword.length + ')');
+    Logger.log('Passwords match: ' + (storedPassword === inputCurrentPassword));
     
     if (storedPassword !== inputCurrentPassword) {
       Logger.log('PASSWORD_CHANGE_FAILED - Password mismatch for: ' + user.email);
       addLog('PASSWORD_CHANGE_FAILED', `Wrong current password for ${user.email}`, user.email, user.role);
-      return { success: false, message: 'Current password is incorrect' };
+      return { 
+        success: false, 
+        message: 'Current password is incorrect',
+        debug: {
+          stored: storedPassword,
+          input: inputCurrentPassword,
+          match: storedPassword === inputCurrentPassword
+        }
+      };
     }
     
     // Update password and clear needs_password_change flag

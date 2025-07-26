@@ -79,8 +79,12 @@ const App = {
         const sidebar = document.getElementById('sidebar');
         const overlay = document.querySelector('.sidebar-overlay');
         
-        sidebar.classList.remove('show');
-        overlay.classList.remove('show');
+        if (sidebar) {
+            sidebar.classList.remove('show');
+        }
+        if (overlay) {
+            overlay.classList.remove('show');
+        }
     },
     
     // Handle window resize
@@ -248,6 +252,11 @@ const App = {
     // Load page content
     loadPageContent: function(page) {
         const contentArea = document.getElementById('pageContent');
+        
+        if (!contentArea) {
+            Logger.error('Page content area not found');
+            return;
+        }
         
         // Show loading state
         UIUtils.showLoading(contentArea, 'Loading page...');
