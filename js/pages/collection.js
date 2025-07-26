@@ -4,8 +4,8 @@ const Collection = {
     filteredData: [],
 
     // Render Add Collection Form
-    renderAddForm: function() {
-        return `
+    renderAddForm: function(container) {
+        container.innerHTML = `
             <div class="collection-add-page">
                 <div class="page-header">
                     <h1>Add Collection</h1>
@@ -63,11 +63,12 @@ const Collection = {
                 </div>
             </div>
         `;
+        this.init();
     },
 
     // Render View Collections Table
-    renderViewTable: function() {
-        return `
+    renderViewTable: function(container) {
+        container.innerHTML = `
             <div class="collection-view-page">
                 <div class="page-header">
                     <div class="header-content">
@@ -111,6 +112,7 @@ const Collection = {
                 </div>
             </div>
         `;
+        this.init();
     },
 
     // Initialize the collection forms and tables

@@ -29,22 +29,23 @@ const Dashboard = {
             <div class="dashboard-page">
                 <!-- Dashboard Header -->
                 <div class="dashboard-header">
-                    <div class="page-info">
-                        <h1>Dashboard</h1>
-                        <p class="page-description">Welcome to Racket Warrior - Your badminton group management overview</p>
+                    <div class="header-left">
+                        <div class="header-icon">
+                            <i class="fas fa-tachometer-alt"></i>
+                        </div>
+                        <div class="header-text">
+                            <h1>Dashboard</h1>
+                            <p>Quick overview of your badminton group</p>
+                        </div>
                     </div>
                     
-                    <div class="dashboard-controls">
-                        <div class="month-filter-section">
-                            <label for="dashboardMonthFilter">Filter by Month:</label>
-                            <select id="dashboardMonthFilter" class="month-filter">
-                                <option value="">All Time</option>
-                            </select>
-                            <button id="refreshDashboard" class="btn btn-secondary">
-                                <i class="fas fa-sync-alt"></i>
-                                Refresh
-                            </button>
-                        </div>
+                    <div class="header-controls">
+                        <select id="dashboardMonthFilter" class="form-control">
+                            <option value="">All Time</option>
+                        </select>
+                        <button id="refreshDashboard" class="btn btn-white">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
                     </div>
                 </div>
                 
@@ -99,43 +100,64 @@ const Dashboard = {
                     </div>
                 </div>
                 
-                <!-- Recent Activities -->
-                <div class="dashboard-grid">
-                    <div class="dashboard-section">
-                        <div class="section-header">
-                            <h2>Recent Players</h2>
-                            <a href="#" onclick="showPage('players-view')" class="section-link">
-                                View All <i class="fas fa-arrow-right"></i>
-                            </a>
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <h2>Quick Actions</h2>
+                    <div class="action-buttons">
+                        <button class="action-btn" onclick="showPage('players-add')" data-role="admin,view_edit">
+                            <i class="fas fa-user-plus"></i>
+                            <span>Add Player</span>
+                        </button>
+                        <button class="action-btn" onclick="showPage('collection-add')" data-role="admin,view_edit">
+                            <i class="fas fa-coins"></i>
+                            <span>Record Payment</span>
+                        </button>
+                        <button class="action-btn" onclick="showPage('expenses-add')" data-role="admin,view_edit">
+                            <i class="fas fa-receipt"></i>
+                            <span>Add Expense</span>
+                        </button>
+                        <button class="action-btn" onclick="showPage('reports')" data-role="admin,view_edit,view">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>View Reports</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Recent Activity Summary -->
+                <div class="activity-summary">
+                    <h2>Recent Activity</h2>
+                    <div class="activity-grid">
+                        <div class="activity-card">
+                            <div class="activity-header">
+                                <h3><i class="fas fa-users"></i> Latest Players</h3>
+                                <a href="#" onclick="showPage('players-view')" class="view-all-link">View All</a>
+                            </div>
+                            <div class="activity-content" id="recentPlayers">
+                                <div class="loading-item">Loading...</div>
+                            </div>
                         </div>
-                        <div class="recent-items" id="recentPlayers">
-                            <div class="loading-placeholder">Loading recent players...</div>
+                        
+                        <div class="activity-card">
+                            <div class="activity-header">
+                                <h3><i class="fas fa-coins"></i> Recent Collections</h3>
+                                <a href="#" onclick="showPage('collection-view')" class="view-all-link">View All</a>
+                            </div>
+                            <div class="activity-content" id="recentCollections">
+                                <div class="loading-item">Loading...</div>
+                            </div>
+                        </div>
+                        
+                        <div class="activity-card">
+                            <div class="activity-header">
+                                <h3><i class="fas fa-receipt"></i> Recent Expenses</h3>
+                                <a href="#" onclick="showPage('expenses-view')" class="view-all-link">View All</a>
+                            </div>
+                            <div class="activity-content" id="recentExpenses">
+                                <div class="loading-item">Loading...</div>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="dashboard-section">
-                        <div class="section-header">
-                            <h2>Recent Collections</h2>
-                            <a href="#" onclick="showPage('collection-view')" class="section-link">
-                                View All <i class="fas fa-arrow-right"></i>
-                            </a>
-                        </div>
-                        <div class="recent-items" id="recentCollections">
-                            <div class="loading-placeholder">Loading recent collections...</div>
-                        </div>
-                    </div>
-                    
-                    <div class="dashboard-section">
-                        <div class="section-header">
-                            <h2>Recent Expenses</h2>
-                            <a href="#" onclick="showPage('expenses-view')" class="section-link">
-                                View All <i class="fas fa-arrow-right"></i>
-                            </a>
-                        </div>
-                        <div class="recent-items" id="recentExpenses">
-                            <div class="loading-placeholder">Loading recent expenses...</div>
-                        </div>
-                    </div>
+                </div>
                     
                     <div class="dashboard-section">
                         <div class="section-header">

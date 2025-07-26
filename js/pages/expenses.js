@@ -4,8 +4,8 @@ const Expenses = {
     filteredData: [],
 
     // Render Add Expense Form
-    renderAddForm: function() {
-        return `
+    renderAddForm: function(container) {
+        container.innerHTML = `
             <div class="expenses-add-page">
                 <div class="page-header">
                     <h1>Add Expense</h1>
@@ -69,11 +69,12 @@ const Expenses = {
                 </div>
             </div>
         `;
+        this.init();
     },
 
     // Render View Expenses Table
-    renderViewTable: function() {
-        return `
+    renderViewTable: function(container) {
+        container.innerHTML = `
             <div class="expenses-view-page">
                 <div class="page-header">
                     <div class="header-content">
@@ -123,6 +124,7 @@ const Expenses = {
                 </div>
             </div>
         `;
+        this.init();
     },
 
     // Initialize the expense forms and tables
