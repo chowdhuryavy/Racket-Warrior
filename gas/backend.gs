@@ -615,8 +615,14 @@ function handleChangePassword(params) {
       return { success: false, message: 'User not found' };
     }
     
-    // Verify current password
-    if (userData.password !== currentPassword) {
+    // Verify current password (with proper string handling)
+    const storedPassword = String(userData.password || '').trim();
+    const inputCurrentPassword = String(currentPassword || '').trim();
+    
+    Logger.log('Password change - Stored: "' + storedPassword + '", Input: "' + inputCurrentPassword + '"');
+    
+    if (storedPassword !== inputCurrentPassword) {
+      Logger.log('PASSWORD_CHANGE_FAILED - Password mismatch for: ' + user.email);
       addLog('PASSWORD_CHANGE_FAILED', `Wrong current password for ${user.email}`, user.email, user.role);
       return { success: false, message: 'Current password is incorrect' };
     }
