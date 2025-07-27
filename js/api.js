@@ -245,12 +245,42 @@ const API = {
         return await this.makeRequest(CONFIG.ENDPOINTS.UPDATE_SETTINGS, settings);
     },
     
-    // File Upload APIs (Disabled - using UI Avatars API instead)
+    // File Upload APIs
     uploadPhoto: async function(photoData, fileName) {
-        return {
-            success: false,
-            message: 'Photo upload disabled. Using UI Avatars API for profile pictures.'
-        };
+        try {
+            // Convert the photo to base64 if it's not already
+            let base64Data = photoData;
+            if (photoData instanceof File) {
+                base64Data = await this.fileToBase64(photoData);
+            }
+            
+            // For now, we'll use the UI Avatars API but allow custom uploads
+            // You can implement actual file upload to Google Drive or other service here
+            const params = {
+                action: 'upload_photo',
+                photoData: base64Data,
+                fileName: fileName || 'profile-photo.jpg',
+                token: StorageUtils.get(CONFIG.STORAGE_KEYS.AUTH_TOKEN)
+            };
+            
+            return await this.makeRequest('upload_photo', params);
+        } catch (error) {
+            Logger.error('Photo upload error', error);
+            return {
+                success: false,
+                message: 'Failed to upload photo: ' + error.message
+            };
+        }
+    },
+    
+    // Helper function to convert file to base64
+    fileToBase64: function(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
     },
     
     // Utility methods

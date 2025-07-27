@@ -365,27 +365,52 @@ const App = {
     // Get change photo modal content
     getChangePhotoContent: function() {
         return `
-            <form id="changePhotoForm">
-                <div class="form-group">
-                    <label for="photoFile">Select Photo</label>
-                    <input type="file" id="photoFile" accept="image/*" required style="width: 100%; padding: 12px; border: 2px dashed var(--border-color); border-radius: var(--border-radius); background: var(--bg-secondary);">
-                    <small style="color: var(--text-secondary); display: block; margin-top: 0.5rem;">
-                        Maximum file size: 5MB. Supported formats: JPG, PNG, GIF
-                    </small>
+            <div class="photo-upload-container">
+                <div class="current-photo-section">
+                    <h4><i class="fas fa-user-circle"></i> Current Photo</h4>
+                    <div class="current-photo-display">
+                        <img id="currentPhoto" src="${Auth.getCurrentUser().photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(Auth.getCurrentUser().name)}&background=667eea&color=fff&size=200`}" alt="Current Photo" class="current-photo-img">
+                    </div>
                 </div>
                 
-                <div id="photoPreview" style="display: none; text-align: center; margin: 1rem 0;">
-                    <img id="previewImage" style="max-width: 200px; max-height: 200px; border-radius: 50%; border: 3px solid var(--border-color);">
+                <div class="upload-section">
+                    <h4><i class="fas fa-upload"></i> Upload New Photo</h4>
+                    <form id="changePhotoForm" class="photo-upload-form">
+                        <div class="file-upload-area" id="fileUploadArea">
+                            <div class="upload-icon">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                            </div>
+                            <p class="upload-text">
+                                <strong>Click to select</strong> or drag and drop your photo here
+                            </p>
+                            <p class="upload-info">
+                                Maximum file size: 5MB<br>
+                                Supported formats: JPG, PNG, GIF
+                            </p>
+                            <input type="file" id="photoFile" accept="image/*" required class="file-input">
+                        </div>
+                        
+                        <div id="photoPreview" class="photo-preview" style="display: none;">
+                            <h5><i class="fas fa-eye"></i> Preview</h5>
+                            <img id="previewImage" class="preview-img">
+                            <button type="button" class="btn-remove-preview" onclick="App.removePhotoPreview()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="btn-unified btn-unified-secondary" onclick="this.closest('.modal').remove()">
+                                <i class="fas fa-times"></i>
+                                Cancel
+                            </button>
+                            <button type="submit" class="btn-unified btn-unified-primary" disabled id="uploadPhotoBtn">
+                                <i class="fas fa-upload"></i>
+                                Upload Photo
+                            </button>
+                        </div>
+                    </form>
                 </div>
-                
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cancel</button>
-                    <button type="submit" class="btn btn-primary" disabled id="uploadPhotoBtn">
-                        <i class="fas fa-upload"></i>
-                        Upload Photo
-                    </button>
-                </div>
-            </form>
+            </div>
         `;
     },
     
@@ -396,39 +421,90 @@ const App = {
         const previewImage = document.getElementById('previewImage');
         const uploadButton = document.getElementById('uploadPhotoBtn');
         const changePhotoForm = document.getElementById('changePhotoForm');
+        const fileUploadArea = document.getElementById('fileUploadArea');
+        
+        // Setup drag and drop
+        if (fileUploadArea) {
+            fileUploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                fileUploadArea.classList.add('dragover');
+            });
+            
+            fileUploadArea.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                fileUploadArea.classList.remove('dragover');
+            });
+            
+            fileUploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                fileUploadArea.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    photoFile.files = files;
+                    this.handleFileSelection(files[0]);
+                }
+            });
+            
+            fileUploadArea.addEventListener('click', () => {
+                photoFile.click();
+            });
+        }
         
         if (photoFile) {
             photoFile.addEventListener('change', (event) => {
                 const file = event.target.files[0];
-                if (file) {
-                    // Validate file
-                    const validation = FileUtils.validateFile(file);
-                    if (!validation.isValid) {
-                        UIUtils.showNotification(validation.errors.join(', '), 'error');
-                        photoFile.value = '';
-                        photoPreview.style.display = 'none';
-                        uploadButton.disabled = true;
-                        return;
-                    }
-                    
-                    // Show preview
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        previewImage.src = e.target.result;
-                        photoPreview.style.display = 'block';
-                        uploadButton.disabled = false;
-                    };
-                    reader.readAsDataURL(file);
-                } else {
-                    photoPreview.style.display = 'none';
-                    uploadButton.disabled = true;
-                }
+                this.handleFileSelection(file);
             });
         }
         
         if (changePhotoForm) {
             changePhotoForm.addEventListener('submit', this.handlePhotoUpload.bind(this));
         }
+    },
+    
+    // Handle file selection
+    handleFileSelection: function(file) {
+        const photoPreview = document.getElementById('photoPreview');
+        const previewImage = document.getElementById('previewImage');
+        const uploadButton = document.getElementById('uploadPhotoBtn');
+        
+        if (file) {
+            // Validate file size (5MB max)
+            if (file.size > 5 * 1024 * 1024) {
+                UIUtils.showNotification('File size must be less than 5MB', 'error');
+                this.removePhotoPreview();
+                return;
+            }
+            
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                UIUtils.showNotification('Please select a valid image file', 'error');
+                this.removePhotoPreview();
+                return;
+            }
+            
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImage.src = e.target.result;
+                photoPreview.style.display = 'block';
+                uploadButton.disabled = false;
+            };
+            reader.readAsDataURL(file);
+        } else {
+            this.removePhotoPreview();
+        }
+    },
+    
+    // Remove photo preview
+    removePhotoPreview: function() {
+        const photoFile = document.getElementById('photoFile');
+        const photoPreview = document.getElementById('photoPreview');
+        const uploadButton = document.getElementById('uploadPhotoBtn');
+        
+        if (photoFile) photoFile.value = '';
+        if (photoPreview) photoPreview.style.display = 'none';
+        if (uploadButton) uploadButton.disabled = true;
     },
     
     // Handle photo upload
@@ -445,22 +521,25 @@ const App = {
         UIUtils.showLoading(submitButton, 'Uploading...');
         
         try {
-            // Convert file to base64
-            const photoData = await FileUtils.toBase64(photoFile);
-            const fileName = `profile_${Auth.getCurrentUser().id}_${Date.now()}.${photoFile.name.split('.').pop()}`;
+            const fileName = `profile_${Auth.getCurrentUser().email}_${Date.now()}.${photoFile.name.split('.').pop()}`;
             
-            const response = await API.uploadPhoto(photoData, fileName);
+            const response = await API.uploadPhoto(photoFile, fileName);
             
             if (response.success) {
                 // Update user profile photo
                 const currentUser = Auth.getCurrentUser();
-                currentUser.photo_url = response.photoUrl;
+                currentUser.photo_url = response.data.photo_url;
                 StorageUtils.set(CONFIG.STORAGE_KEYS.USER_DATA, currentUser);
+                
+                // Update auth token if provided
+                if (response.data.token) {
+                    StorageUtils.set(CONFIG.STORAGE_KEYS.AUTH_TOKEN, response.data.token);
+                }
                 
                 // Update UI
                 Auth.updateUserProfile();
                 
-                UIUtils.showNotification('Profile photo updated successfully!', 'success');
+                UIUtils.showNotification('✅ Profile photo updated successfully!', 'success');
                 
                 // Close modal
                 event.target.closest('.modal').remove();
@@ -493,6 +572,10 @@ window.showPage = function(page) {
 
 window.showChangePhoto = function() {
     App.showChangePhoto();
+};
+
+window.removePhotoPreview = function() {
+    App.removePhotoPreview();
 };
 
 // Initialize app when DOM is loaded

@@ -82,6 +82,10 @@ function doGet(e) {
         result = listAllUsers();
         break;
       
+      case 'upload_photo':
+        result = handleUploadPhoto(e.parameter);
+        break;
+      
 
       
       // Authentication
@@ -2278,6 +2282,58 @@ function sendOTPEmail(email, name, otp) {
     return true;
   } catch (error) {
     return false;
+  }
+}
+
+/**
+ * Handle photo upload
+ */
+function handleUploadPhoto(params) {
+  try {
+    const { token, photoData, fileName } = params;
+    
+    const user = verifyToken(token);
+    if (!user) {
+      return { success: false, message: 'Unauthorized access' };
+    }
+    
+    if (!photoData) {
+      return { success: false, message: 'Photo data is required' };
+    }
+    
+    // For now, we'll store the photo data in the Users sheet
+    // In a production environment, you might want to upload to Google Drive
+    const usersSheet = getSheet(SHEETS.users.name);
+    const users = getSheetData(usersSheet);
+    const userIndex = users.findIndex(u => u.email === user.email);
+    
+    if (userIndex === -1) {
+      return { success: false, message: 'User not found' };
+    }
+    
+    // Update the photo_url column (column K - index 11)
+    const rowIndex = userIndex + 2; // +2 because array is 0-indexed and sheet starts at row 2
+    usersSheet.getRange(rowIndex, 11).setValue(photoData); // Column K for photo_url
+    
+    // Update the user data in storage
+    const updatedUser = { ...user, photo_url: photoData };
+    
+    // Generate new token with updated user data
+    const newToken = generateAuthToken(updatedUser);
+    
+    addLog('PHOTO_UPDATED', `Profile photo updated`, user.email, user.role);
+    
+    return { 
+      success: true, 
+      message: 'Photo uploaded successfully',
+      data: {
+        photo_url: photoData,
+        token: newToken
+      }
+    };
+    
+  } catch (error) {
+    return { success: false, message: 'Failed to upload photo: ' + error.toString() };
   }
 }
 
