@@ -905,15 +905,28 @@
         min-width: auto;
     }
     
-    /* Password Toggle Mobile Fix */
+    /* Input and Icon Mobile Fixes */
+    .input-wrapper input,
+    .input-wrapper select,
+    .input-wrapper textarea {
+        padding: 14px 14px 14px 40px !important;
+    }
+    
     .input-wrapper input[type="password"] {
-        padding-right: 35px !important;
+        padding-right: 38px !important;
+    }
+    
+    .input-wrapper i {
+        left: 12px !important;
+        font-size: 0.9rem !important;
+        width: 14px !important;
+        height: 14px !important;
     }
     
     .password-toggle {
-        right: 10px !important;
-        width: 18px !important;
-        height: 18px !important;
-        font-size: 0.9rem !important;
+        right: 12px !important;
+        width: 16px !important;
+        height: 16px !important;
+        font-size: 0.85rem !important;
     }
 }

@@ -506,9 +506,17 @@ body {
     box-sizing: border-box;
 }
 
+/* Ensure all text inputs have proper padding for icons */
+.input-wrapper input[type="text"],
+.input-wrapper input[type="email"],
+.input-wrapper input[type="tel"],
+.input-wrapper input[type="number"] {
+    padding-left: 45px !important;
+}
+
 /* Special padding for password fields */
 .input-wrapper input[type="password"] {
-    padding-right: 40px !important;
+    padding-right: 45px !important;
 }
 
 /* Enhanced Select Styling */
@@ -523,7 +531,7 @@ body {
     padding-right: 50px;
 }
 
-/* Icon positioning for select inside input-wrapper */
+/* Icon positioning for inputs */
 .input-wrapper i {
     position: absolute;
     left: 15px;
@@ -531,8 +539,13 @@ body {
     transform: translateY(-50%);
     color: #6b7280;
     font-size: 1rem;
-    z-index: 2;
+    z-index: 3;
     pointer-events: none;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .input-wrapper select:focus {
@@ -598,15 +611,15 @@ body {
 
 .password-toggle {
     position: absolute;
-    right: 12px;
+    right: 15px;
     top: 50%;
     transform: translateY(-50%);
     cursor: pointer;
     color: #6b7280;
     font-size: 1rem;
     z-index: 10;
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -618,7 +631,7 @@ body {
 
 .password-toggle:hover {
     color: #667eea;
-    transform: translateY(-50%) scale(1.1);
+    transform: translateY(-50%) scale(1.05);
 }
 
 /* Button Styling */
@@ -3871,7 +3884,28 @@ body {
     padding: 16px 16px 16px 45px !important;
 }
 
+.forgot-step .input-wrapper input[type="email"] {
+    padding-left: 45px !important;
+}
+
 .forgot-step .input-wrapper i {
     left: 15px !important;
     z-index: 5 !important;
+    position: absolute !important;
+    width: 16px !important;
+    height: 16px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* Fix for login page inputs */
+.login-card .input-wrapper input[type="email"],
+.login-card .input-wrapper input[type="password"] {
+    padding-left: 45px !important;
+}
+
+.login-card .input-wrapper i {
+    left: 15px !important;
+    z-index: 3 !important;
 }
