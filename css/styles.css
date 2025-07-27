@@ -514,9 +514,18 @@ body {
     padding-left: 45px !important;
 }
 
-/* Special padding for password fields */
+/* Special styling for password fields - toggle is now outside */
+.input-wrapper:has(input[type="password"]) {
+    margin-right: 50px;
+}
+
 .input-wrapper input[type="password"] {
-    padding-right: 45px !important;
+    padding-right: 16px !important;
+}
+
+/* Fallback for browsers that don't support :has() */
+.password-input-wrapper {
+    margin-right: 50px;
 }
 
 /* Enhanced Select Styling */
@@ -611,26 +620,29 @@ body {
 
 .password-toggle {
     position: absolute;
-    right: 15px;
+    right: -40px;
     top: 50%;
     transform: translateY(-50%);
     cursor: pointer;
     color: #6b7280;
-    font-size: 1rem;
+    font-size: 1.2rem;
     z-index: 10;
-    width: 18px;
-    height: 18px;
+    width: 32px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.3s ease;
-    background: transparent;
-    border-radius: 0;
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
     padding: 0;
 }
 
 .password-toggle:hover {
     color: #667eea;
+    border-color: #667eea;
+    background: rgba(102, 126, 234, 0.1);
     transform: translateY(-50%) scale(1.05);
 }
 
@@ -3846,6 +3858,14 @@ body {
     position: relative;
 }
 
+.modal .input-wrapper:has(input[type="password"]) {
+    margin-right: 50px;
+}
+
+.modal .password-input-wrapper {
+    margin-right: 50px;
+}
+
 .modal .input-wrapper input[type="email"],
 .modal .input-wrapper input[type="text"],
 .modal .input-wrapper input[type="password"] {
@@ -3858,16 +3878,20 @@ body {
     background: white;
 }
 
+.modal .input-wrapper input[type="password"] {
+    padding-right: 16px !important;
+}
+
 .modal .input-wrapper input:focus {
     border-color: #667eea;
     outline: none;
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
-.modal .input-wrapper i {
+.modal .input-wrapper i:not(.password-toggle) {
     position: absolute;
     left: 15px;
-    top: 50%;
+    top: 40%;
     transform: translateY(-50%);
     color: #6b7280;
     font-size: 1rem;
@@ -3875,7 +3899,7 @@ body {
     pointer-events: none;
 }
 
-.modal .input-wrapper:focus-within i {
+.modal .input-wrapper:focus-within i:not(.password-toggle) {
     color: #667eea;
 }
 
@@ -3888,8 +3912,9 @@ body {
     padding-left: 45px !important;
 }
 
-.forgot-step .input-wrapper i {
+.forgot-step .input-wrapper i:not(.password-toggle) {
     left: 15px !important;
+    top: 40% !important;
     z-index: 5 !important;
     position: absolute !important;
     width: 16px !important;
@@ -3897,6 +3922,13 @@ body {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
+    transform: translateY(-50%) !important;
+}
+
+/* Fix forgot password modal password toggle */
+.forgot-step .password-toggle {
+    right: -40px !important;
+    top: 50% !important;
 }
 
 /* Fix for login page inputs */
