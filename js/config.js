@@ -11,7 +11,7 @@ const CONFIG = {
     SHEETS: {
         users: {
             name: 'Users',
-            columns: ['email', 'password', 'role', 'name', 'needs_password_change', 'created_at', 'last_login', 'status', 'resetToken', 'resetTokenExpiry', 'photo_url']
+            columns: ['email', 'password', 'role', 'name', 'needs_password_change', 'created_at', 'last_login', 'status', 'resetToken', 'resetTokenExpiry', 'img_url']
         },
         players: { 
             name: 'Players', 
@@ -177,6 +177,12 @@ const CONFIG = {
         FAST: 200,
         NORMAL: 300,
         SLOW: 500
+    },
+    
+    // Default values
+    DEFAULTS: {
+        LOGO: 'https://i.imgur.com/04MGPFl.png',
+        USER_PHOTO: 'https://ui-avatars.com/api/?name=User&background=667eea&color=fff&size=128'
     },
     
     // Development/Debug Settings

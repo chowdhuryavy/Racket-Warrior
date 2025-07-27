@@ -17,7 +17,7 @@ const CONFIG = {
 const SHEETS = {
   users: {
     name: 'Users',
-    columns: ['email', 'password', 'role', 'name', 'needs_password_change', 'created_at', 'last_login', 'status', 'resetToken', 'resetTokenExpiry', 'photo_url']
+    columns: ['email', 'password', 'role', 'name', 'needs_password_change', 'created_at', 'last_login', 'status', 'resetToken', 'resetTokenExpiry', 'img_url']
   },
   players: {
     name: 'Players',
@@ -95,6 +95,7 @@ function doGet(e) {
       case 'verify_otp': result = handleVerifyOTP(e.parameter); break;
       case 'reset_password': result = handleResetPassword(e.parameter); break;
       case 'change_password': result = handleChangePassword(e.parameter); break;
+      case 'get_user_profile': result = handleGetUserProfile(e.parameter); break;
       
       // Dashboard
       case 'get_dashboard_stats': result = handleGetDashboardStats(e.parameter); break;
@@ -367,7 +368,7 @@ function handleLogin(params) {
       name: user.name,
       role: user.role,
       needs_password_change: user.needs_password_change === 'TRUE',
-      photo_url: user.photo_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.name) + '&background=667eea&color=fff&size=128'
+              photo_url: user.img_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.name) + '&background=667eea&color=fff&size=128'
     };
 
     return {
@@ -622,7 +623,7 @@ function handleGetUsers(params) {
       created_at: user.created_at,
       last_login: user.last_login,
       needs_password_change: user.needs_password_change === 'TRUE',
-      photo_url: user.photo_url || ''
+              photo_url: user.img_url || ''
     }));
     
     return { success: true, data: sanitizedUsers };
@@ -2286,6 +2287,43 @@ function sendOTPEmail(email, name, otp) {
 }
 
 /**
+ * Handle get user profile request
+ */
+function handleGetUserProfile(params) {
+  try {
+    const { token } = params;
+    
+    const user = verifyToken(token);
+    if (!user) {
+      return { success: false, message: 'Unauthorized access' };
+    }
+    
+    // Get fresh user data from sheet
+    const usersSheet = getSheet(SHEETS.users.name);
+    const users = getSheetData(usersSheet);
+    const currentUser = users.find(u => u.email === user.email);
+    
+    if (!currentUser) {
+      return { success: false, message: 'User not found' };
+    }
+    
+    // Return updated user data
+    const userData = {
+      email: currentUser.email,
+      name: currentUser.name,
+      role: currentUser.role,
+      needs_password_change: currentUser.needs_password_change === 'TRUE',
+      photo_url: currentUser.img_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(currentUser.name) + '&background=667eea&color=fff&size=128'
+    };
+    
+    return { success: true, data: userData };
+    
+  } catch (error) {
+    return { success: false, message: 'Failed to get user profile: ' + error.toString() };
+  }
+}
+
+/**
  * Handle photo upload
  */
 function handleUploadPhoto(params) {
@@ -2311,12 +2349,12 @@ function handleUploadPhoto(params) {
       return { success: false, message: 'User not found' };
     }
     
-    // Update the photo_url column (column K - index 11)
+    // Update the img_url column (column K - index 11)
     const rowIndex = userIndex + 2; // +2 because array is 0-indexed and sheet starts at row 2
-    usersSheet.getRange(rowIndex, 11).setValue(photoData); // Column K for photo_url
+    usersSheet.getRange(rowIndex, 11).setValue(photoData); // Column K for img_url
     
     // Update the user data in storage
-    const updatedUser = { ...user, photo_url: photoData };
+    const updatedUser = { ...user, img_url: photoData };
     
     // Generate new token with updated user data
     const newToken = generateAuthToken(updatedUser);
@@ -2634,7 +2672,7 @@ function initializeApplication() {
         'active',                 // status
         '',                       // resetToken
         '',                       // resetTokenExpiry
-        'https://ui-avatars.com/api/?name=Avy+Chowdhury&background=667eea&color=fff&size=128' // photo_url
+        'https://ui-avatars.com/api/?name=Avy+Chowdhury&background=667eea&color=fff&size=128' // img_url
       ]);
     }
     

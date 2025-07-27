@@ -15,6 +15,8 @@ const Auth = {
             this.currentUser = userData;
             Logger.info('Existing session found', userData);
             this.showApp();
+            // Refresh user data from server to get latest photo
+            this.refreshUserData();
         } else {
             this.showLogin();
         }
@@ -125,16 +127,28 @@ const Auth = {
     updateUserProfile: function() {
         if (!this.currentUser) return;
         
+        Logger.debug('Updating user profile with data:', this.currentUser);
+        Logger.debug('User photo URL:', this.currentUser.photo_url);
+        
         const userName = document.getElementById('userName');
         const userPhoto = document.getElementById('userPhoto');
         const dropdownUserName = document.getElementById('dropdownUserName');
         const dropdownUserPhoto = document.getElementById('dropdownUserPhoto');
         const userRole = document.getElementById('userRole');
         
+        const photoUrl = this.currentUser.photo_url || CONFIG.DEFAULTS.USER_PHOTO;
+        Logger.debug('Final photo URL to use:', photoUrl);
+        
         if (userName) userName.textContent = this.currentUser.name;
-        if (userPhoto) userPhoto.src = this.currentUser.photo_url || CONFIG.DEFAULTS.USER_PHOTO;
+        if (userPhoto) {
+            userPhoto.src = photoUrl;
+            Logger.debug('Set userPhoto src to:', photoUrl);
+        }
         if (dropdownUserName) dropdownUserName.textContent = this.currentUser.name;
-        if (dropdownUserPhoto) dropdownUserPhoto.src = this.currentUser.photo_url || CONFIG.DEFAULTS.USER_PHOTO;
+        if (dropdownUserPhoto) {
+            dropdownUserPhoto.src = photoUrl;
+            Logger.debug('Set dropdownUserPhoto src to:', photoUrl);
+        }
         if (userRole) {
             const roleInfo = PermissionUtils.getRoleInfo(this.currentUser.role);
             userRole.textContent = `${roleInfo.icon} ${roleInfo.name}`;
@@ -837,6 +851,34 @@ const Auth = {
             this.updateUserProfile();
         } else {
             StorageUtils.remove(CONFIG.STORAGE_KEYS.USER_DATA);
+        }
+    },
+    
+    // Refresh user data from server
+    refreshUserData: async function() {
+        if (!this.currentUser) return;
+        
+        try {
+            Logger.debug('Refreshing user data from server');
+            const token = StorageUtils.get(CONFIG.STORAGE_KEYS.AUTH_TOKEN);
+            
+            if (!token) return;
+            
+            // Make API call to get fresh user data
+            const response = await API.makeRequest('get_user_profile', { token });
+            
+            if (response.success && response.data) {
+                Logger.debug('Fresh user data received:', response.data);
+                
+                // Update current user with fresh data
+                this.currentUser = { ...this.currentUser, ...response.data };
+                this.setCurrentUser(this.currentUser);
+                
+                Logger.info('User data refreshed successfully');
+            }
+        } catch (error) {
+            Logger.warn('Failed to refresh user data:', error);
+            // Don't throw error, just continue with cached data
         }
     },
     
