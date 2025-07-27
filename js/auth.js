@@ -215,79 +215,132 @@ const Auth = {
     // Get forgot password modal content
     getForgotPasswordContent: function() {
         return `
-            <div id="forgotStep1">
-                <p style="text-align: center; margin-bottom: 1.5rem; color: var(--text-secondary);">
-                    Enter your email address and we'll send you a verification code
-                </p>
-                <form id="forgotPasswordForm">
+            <!-- Step 1: Email Input -->
+            <div id="forgotStep1" class="forgot-step active">
+                <div class="forgot-header">
+                    <div class="forgot-icon-container">
+                        <div class="forgot-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                    </div>
+                    <h3>Reset Your Password</h3>
+                    <p>Enter your email address and we'll send you a verification code</p>
+                </div>
+                
+                <form id="forgotPasswordForm" class="forgot-form">
                     <div class="form-group">
-                        <label for="forgotEmail">Email Address</label>
+                        <label for="forgotEmail">
+                            <i class="fas fa-envelope"></i>
+                            Email Address
+                        </label>
                         <div class="input-wrapper">
                             <i class="fas fa-envelope"></i>
                             <input type="email" id="forgotEmail" placeholder="Enter your email address" required>
                         </div>
                     </div>
                     <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" onclick="Auth.currentForgotPasswordModal.hide()">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Send Verification Code</button>
-                    </div>
-                </form>
-            </div>
-            
-            <div id="forgotStep2" style="display: none;">
-                <p style="text-align: center; margin-bottom: 1rem; color: var(--text-secondary);">
-                    We've sent a verification code to:
-                </p>
-                <p style="text-align: center; margin-bottom: 1.5rem; font-weight: 600; color: var(--primary-color);">
-                    <span class="email-display">your email</span>
-                </p>
-                <p style="text-align: center; margin-bottom: 1.5rem; color: var(--text-secondary); font-size: 0.9rem;">
-                    Please enter the 6-digit code below:
-                </p>
-                <form id="otpVerificationForm">
-                    <div class="form-group">
-                        <label for="otpCode">Verification Code</label>
-                        <div class="input-wrapper">
-                            <i class="fas fa-key"></i>
-                            <input type="text" id="otpCode" placeholder="Enter 6-digit code" required maxlength="6" style="text-align: center; font-size: 1.2rem; letter-spacing: 0.2rem;">
-                        </div>
-                    </div>
-                    <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" onclick="Auth.showForgotStep(1)">Back</button>
-                        <button type="submit" class="btn btn-primary">Verify Code</button>
-                    </div>
-                    <div style="text-align: center; margin-top: 1rem;">
-                        <button type="button" class="btn-link" onclick="Auth.resendOTP()" style="color: var(--primary-color); background: none; border: none; text-decoration: underline; cursor: pointer;">
-                            Didn't receive the code? Resend
+                        <button type="button" class="btn-unified btn-unified-secondary" onclick="Auth.currentForgotPasswordModal.hide()">
+                            <i class="fas fa-times"></i>
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn-unified btn-unified-primary">
+                            <i class="fas fa-paper-plane"></i>
+                            Send Code
                         </button>
                     </div>
                 </form>
             </div>
             
-            <div id="forgotStep3" style="display: none;">
-                <p style="text-align: center; margin-bottom: 1.5rem; color: var(--text-secondary);">
-                    Create a strong new password for your account
-                </p>
-                <form id="resetPasswordForm">
+            <!-- Step 2: OTP Verification -->
+            <div id="forgotStep2" class="forgot-step">
+                <div class="forgot-header">
+                    <div class="forgot-icon-container">
+                        <div class="forgot-icon success">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                    </div>
+                    <h3>Verify Your Email</h3>
+                    <p>We've sent a verification code to:</p>
+                    <div class="email-highlight">
+                        <i class="fas fa-envelope"></i>
+                        <span class="email-display">your email</span>
+                    </div>
+                    <p class="otp-instruction">Please enter the 6-digit code below:</p>
+                </div>
+                
+                <form id="otpVerificationForm" class="forgot-form">
                     <div class="form-group">
-                        <label for="newPassword">New Password</label>
+                        <label for="otpCode">
+                            <i class="fas fa-key"></i>
+                            Verification Code
+                        </label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-key"></i>
+                            <input type="text" id="otpCode" placeholder="000000" required maxlength="6" class="otp-input">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-unified btn-unified-secondary" onclick="Auth.showForgotStep(1)">
+                            <i class="fas fa-arrow-left"></i>
+                            Back
+                        </button>
+                        <button type="submit" class="btn-unified btn-unified-primary">
+                            <i class="fas fa-check"></i>
+                            Verify Code
+                        </button>
+                    </div>
+                    <div class="resend-section">
+                        <p>Didn't receive the code?</p>
+                        <button type="button" class="btn-link" onclick="Auth.resendOTP()">
+                            <i class="fas fa-redo"></i>
+                            Resend Code
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Step 3: New Password -->
+            <div id="forgotStep3" class="forgot-step">
+                <div class="forgot-header">
+                    <div class="forgot-icon-container">
+                        <div class="forgot-icon warning">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                    </div>
+                    <h3>Create New Password</h3>
+                    <p>Choose a strong password to secure your account</p>
+                </div>
+                
+                <form id="resetPasswordForm" class="forgot-form">
+                    <div class="form-group">
+                        <label for="newPassword">
+                            <i class="fas fa-lock"></i>
+                            New Password
+                        </label>
                         <div class="input-wrapper">
                             <i class="fas fa-lock"></i>
                             <input type="password" id="newPassword" placeholder="Enter new password" required>
-                            <i class="fas fa-eye password-toggle" onclick="togglePassword('newPassword')"></i>
+                            <span class="password-toggle" onclick="togglePassword('newPassword')">
+                                <i class="fas fa-eye"></i>
+                            </span>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="confirmPassword">Confirm Password</label>
+                        <label for="confirmPassword">
+                            <i class="fas fa-check-circle"></i>
+                            Confirm Password
+                        </label>
                         <div class="input-wrapper">
-                            <i class="fas fa-lock"></i>
+                            <i class="fas fa-check-circle"></i>
                             <input type="password" id="confirmPassword" placeholder="Confirm new password" required>
-                            <i class="fas fa-eye password-toggle" onclick="togglePassword('confirmPassword')"></i>
+                            <span class="password-toggle" onclick="togglePassword('confirmPassword')">
+                                <i class="fas fa-eye"></i>
+                            </span>
                         </div>
                     </div>
                     
                     <div class="password-requirements">
-                        <div style="font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary);">Password Requirements:</div>
+                        <h4><i class="fas fa-shield-alt"></i> Password Requirements:</h4>
                         <div class="requirements-grid">
                             <div class="requirement-item" id="req-length">
                                 <i class="fas fa-times requirement-icon"></i>
@@ -317,8 +370,14 @@ const Auth = {
                     </div>
                     
                     <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" onclick="Auth.showForgotStep(2)">Back</button>
-                        <button type="submit" class="btn btn-primary" id="resetPasswordBtn" disabled>Reset Password</button>
+                        <button type="button" class="btn-unified btn-unified-secondary" onclick="Auth.showForgotStep(2)">
+                            <i class="fas fa-arrow-left"></i>
+                            Back
+                        </button>
+                        <button type="submit" class="btn-unified btn-unified-primary" id="resetPasswordBtn" disabled>
+                            <i class="fas fa-lock"></i>
+                            Reset Password
+                        </button>
                     </div>
                 </form>
             </div>

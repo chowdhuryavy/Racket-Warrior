@@ -629,8 +629,10 @@ const Admin = {
         const modal = document.getElementById('addUserModal');
         if (modal) {
             modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
             // Clear form
-            document.getElementById('addUserForm').reset();
+            const form = document.getElementById('addUserForm');
+            if (form) form.reset();
         }
     },
     
@@ -639,6 +641,7 @@ const Admin = {
         const modal = document.getElementById(modalId);
         if (modal) {
             modal.style.display = 'none';
+            document.body.style.overflow = '';
         }
     },
     
@@ -688,6 +691,7 @@ const Admin = {
         const modal = document.getElementById('editUserModal');
         if (modal) {
             modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
         }
     },
     
@@ -768,8 +772,13 @@ const Admin = {
             } finally {
                 UIUtils.hideLoading();
             }
-        }
-    }
+                 }
+     }
+};
+
+// Global function for closing modals (accessible from HTML)
+window.closeModal = function(modalId) {
+    Admin.closeModal(modalId);
 };
 
 // Export Admin module
