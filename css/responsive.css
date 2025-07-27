@@ -327,30 +327,31 @@
     
     /* Designer Credit Mobile */
     .designer-credit-wrapper {
-        padding: 0 10px 10px;
+        bottom: 10px;
+        right: 10px;
     }
     
     .credit-container {
-        transform: translateY(0) scale(0.8);
-        padding: 8px 16px;
+        transform: scale(0.85);
+        padding: 6px 12px;
     }
     
     .credit-container:hover {
-        transform: translateY(-3px) scale(0.9);
+        transform: scale(0.9) translateY(-1px);
     }
     
-    .credit-label {
-        font-size: 0.75rem !important;
-    }
-    
-    .designer-name {
-        font-size: 0.8rem !important;
+    .credit-text-section {
+        font-size: 0.7rem !important;
     }
     
     .credit-icon {
-        width: 20px !important;
-        height: 20px !important;
-        font-size: 0.8rem !important;
+        width: 16px !important;
+        height: 16px !important;
+        font-size: 0.6rem !important;
+    }
+    
+    .sparkle {
+        font-size: 0.5rem !important;
     }
     
     .main-content {
@@ -902,5 +903,17 @@
     
     .control-group select {
         min-width: auto;
+    }
+    
+    /* Password Toggle Mobile Fix */
+    .input-wrapper input[type="password"] {
+        padding-right: 35px !important;
+    }
+    
+    .password-toggle {
+        right: 10px !important;
+        width: 18px !important;
+        height: 18px !important;
+        font-size: 0.9rem !important;
     }
 }
