@@ -829,6 +829,17 @@ const Auth = {
         return this.currentUser;
     },
     
+    // Set current user
+    setCurrentUser: function(user) {
+        this.currentUser = user;
+        if (user) {
+            StorageUtils.set(CONFIG.STORAGE_KEYS.USER_DATA, user);
+            this.updateUserProfile();
+        } else {
+            StorageUtils.remove(CONFIG.STORAGE_KEYS.USER_DATA);
+        }
+    },
+    
     // Check if user has permission
     hasPermission: function(permission) {
         if (!this.currentUser) return false;

@@ -325,6 +325,34 @@
         font-size: 0.8rem;
     }
     
+    /* Designer Credit Mobile */
+    .designer-credit-wrapper {
+        padding: 0 10px 10px;
+    }
+    
+    .credit-container {
+        transform: translateY(0) scale(0.8);
+        padding: 8px 16px;
+    }
+    
+    .credit-container:hover {
+        transform: translateY(-3px) scale(0.9);
+    }
+    
+    .credit-label {
+        font-size: 0.75rem !important;
+    }
+    
+    .designer-name {
+        font-size: 0.8rem !important;
+    }
+    
+    .credit-icon {
+        width: 20px !important;
+        height: 20px !important;
+        font-size: 0.8rem !important;
+    }
+    
     .main-content {
         margin-left: 0;
     }

@@ -201,14 +201,14 @@ const App = {
         const user = Auth.getCurrentUser();
         if (!user) return false;
         
-        // Admin pages
-        if ((page === 'admin' || page === 'logs') && !Auth.hasPermission('admin')) {
+        // Admin pages - only admin role can access
+        if ((page === 'admin' || page === 'logs') && user.role !== 'admin') {
             return false;
         }
         
-        // Add/Edit pages
+        // Add/Edit pages - admin and view_edit roles can access
         if (page.includes('-add') || page.includes('-edit')) {
-            if (!Auth.hasPermission('add') && !Auth.hasPermission('edit')) {
+            if (user.role !== 'admin' && user.role !== 'view_edit') {
                 return false;
             }
         }
@@ -507,6 +507,29 @@ const App = {
         if (uploadButton) uploadButton.disabled = true;
     },
     
+    // Update user photo in UI
+    updateUserPhoto: function(photoUrl) {
+        // Update profile photo in header
+        const userPhoto = document.getElementById('userPhoto');
+        if (userPhoto) {
+            userPhoto.src = photoUrl;
+        }
+        
+        // Update current photo in modal if open
+        const currentPhoto = document.getElementById('currentPhoto');
+        if (currentPhoto) {
+            currentPhoto.src = photoUrl;
+        }
+        
+        // Update any other photo instances
+        const userAvatars = document.querySelectorAll('.user-avatar, .profile-avatar');
+        userAvatars.forEach(avatar => {
+            if (avatar.tagName === 'IMG') {
+                avatar.src = photoUrl;
+            }
+        });
+    },
+    
     // Handle photo upload
     handlePhotoUpload: async function(event) {
         event.preventDefault();
@@ -529,7 +552,7 @@ const App = {
                 // Update user profile photo
                 const currentUser = Auth.getCurrentUser();
                 currentUser.photo_url = response.data.photo_url;
-                StorageUtils.set(CONFIG.STORAGE_KEYS.USER_DATA, currentUser);
+                Auth.setCurrentUser(currentUser);
                 
                 // Update auth token if provided
                 if (response.data.token) {
@@ -537,6 +560,7 @@ const App = {
                 }
                 
                 // Update UI
+                this.updateUserPhoto(response.data.photo_url);
                 Auth.updateUserProfile();
                 
                 UIUtils.showNotification('✅ Profile photo updated successfully!', 'success');
