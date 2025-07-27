@@ -49,6 +49,38 @@
         display: block;
     }
     
+    /* Mobile Navigation Dropdown */
+    .nav-dropdown-toggle {
+        padding: 10px 1rem;
+        font-size: 0.9rem;
+    }
+    
+    .nav-dropdown-menu a {
+        padding: 8px 1.5rem;
+        font-size: 0.85rem;
+    }
+    
+    .nav-dropdown-menu a:hover {
+        padding-left: 2rem;
+    }
+    
+    /* Unified Form Mobile */
+    .unified-form {
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .unified-table-container {
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    /* Unified Button Mobile */
+    .btn-unified {
+        padding: 10px 20px;
+        font-size: 0.9rem;
+    }
+    
     .main-content {
         margin-left: 0;
     }

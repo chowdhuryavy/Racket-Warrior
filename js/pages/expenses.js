@@ -13,7 +13,7 @@ const Expenses = {
                 </div>
 
                 <div class="form-container">
-                    <form id="addExpenseForm" class="add-form">
+                    <form id="addExpenseForm" class="unified-form">
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="expenseDate">Date *</label>
@@ -56,11 +56,11 @@ const Expenses = {
                         </div>
 
                         <div class="form-actions">
-                            <button type="submit" class="btn btn-primary ripple">
+                            <button type="submit" class="btn-unified btn-unified-primary">
                                 <i class="fas fa-plus"></i>
                                 Add Expense
                             </button>
-                            <button type="button" class="btn btn-secondary" onclick="this.closest('form').reset()">
+                            <button type="button" class="btn-unified btn-unified-secondary" onclick="this.closest('form').reset()">
                                 <i class="fas fa-undo"></i>
                                 Reset
                             </button>
@@ -82,7 +82,7 @@ const Expenses = {
                         <p class="page-description">View and manage all group expenses</p>
                     </div>
                     <div class="header-actions" data-role="admin,view_edit">
-                        <button class="btn btn-primary" onclick="showPage('expenses-add')">
+                        <button class="btn-unified btn-unified-primary" onclick="showPage('expenses-add')">
                             <i class="fas fa-plus"></i>
                             Add Expense
                         </button>
@@ -110,14 +110,14 @@ const Expenses = {
                             <option value="Other">Other</option>
                         </select>
                         
-                        <button id="refreshExpenses" class="btn btn-secondary">
+                        <button id="refreshExpenses" class="btn-unified btn-unified-secondary">
                             <i class="fas fa-sync-alt"></i>
                             Refresh
                         </button>
                     </div>
                 </div>
 
-                <div class="table-container">
+                <div class="unified-table-container">
                     <div id="expensesTableContainer">
                         <div class="loading-placeholder">Loading expenses...</div>
                     </div>

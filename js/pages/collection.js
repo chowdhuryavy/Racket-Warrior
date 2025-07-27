@@ -13,7 +13,7 @@ const Collection = {
                 </div>
 
                 <div class="form-container">
-                    <form id="addCollectionForm" class="add-form">
+                    <form id="addCollectionForm" class="unified-form">
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="collectionDate">Date *</label>
@@ -50,11 +50,11 @@ const Collection = {
                         </div>
 
                         <div class="form-actions">
-                            <button type="submit" class="btn btn-primary ripple">
+                            <button type="submit" class="btn-unified btn-unified-primary">
                                 <i class="fas fa-plus"></i>
                                 Add Collection
                             </button>
-                            <button type="button" class="btn btn-secondary" onclick="this.closest('form').reset()">
+                            <button type="button" class="btn-unified btn-unified-secondary" onclick="this.closest('form').reset()">
                                 <i class="fas fa-undo"></i>
                                 Reset
                             </button>
@@ -76,7 +76,7 @@ const Collection = {
                         <p class="page-description">View and manage all payment collections</p>
                     </div>
                     <div class="header-actions" data-role="admin,view_edit">
-                        <button class="btn btn-primary" onclick="showPage('collection-add')">
+                        <button class="btn-unified btn-unified-primary" onclick="showPage('collection-add')">
                             <i class="fas fa-plus"></i>
                             Add Collection
                         </button>
@@ -98,14 +98,14 @@ const Collection = {
                             <option value="">All Players</option>
                         </select>
                         
-                        <button id="refreshCollections" class="btn btn-secondary">
+                        <button id="refreshCollections" class="btn-unified btn-unified-secondary">
                             <i class="fas fa-sync-alt"></i>
                             Refresh
                         </button>
                     </div>
                 </div>
 
-                <div class="table-container">
+                <div class="unified-table-container">
                     <div id="collectionsTableContainer">
                         <div class="loading-placeholder">Loading collections...</div>
                     </div>

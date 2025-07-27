@@ -26,7 +26,7 @@ const Players = {
                     <p>Add a new player to the badminton group</p>
                 </div>
                 
-                <form id="addPlayerForm" class="form-container">
+                <form id="addPlayerForm" class="unified-form">
                     <div class="form-grid">
                         <div class="form-group">
                             <label for="playerName">Full Name <span class="required">*</span></label>
@@ -74,11 +74,11 @@ const Players = {
                     </div>
                     
                     <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" onclick="showPage('players-view')">
+                        <button type="button" class="btn-unified btn-unified-secondary" onclick="showPage('players-view')">
                             <i class="fas fa-arrow-left"></i>
                             Back to Players
                         </button>
-                        <button type="submit" class="btn btn-primary">
+                        <button type="submit" class="btn-unified btn-unified-primary">
                             <i class="fas fa-save"></i>
                             Save Player
                         </button>
@@ -98,7 +98,7 @@ const Players = {
                         <p>Manage badminton group players</p>
                     </div>
                     <div class="header-actions" data-role="admin,view_edit">
-                        <button class="btn btn-primary" onclick="showPage('players-add')">
+                        <button class="btn-unified btn-unified-primary" onclick="showPage('players-add')">
                             <i class="fas fa-user-plus"></i>
                             Add Player
                         </button>
@@ -125,14 +125,14 @@ const Players = {
                                 <option value="inactive">Inactive</option>
                             </select>
                         </div>
-                        <button id="refreshPlayers" class="btn btn-secondary">
+                        <button id="refreshPlayers" class="btn-unified btn-unified-secondary">
                             <i class="fas fa-sync-alt"></i>
                             Refresh
                         </button>
                     </div>
                 </div>
                 
-                <div class="table-container" id="playersTableContainer">
+                <div class="unified-table-container" id="playersTableContainer">
                     <div class="loading-placeholder">Loading players...</div>
                 </div>
             </div>
