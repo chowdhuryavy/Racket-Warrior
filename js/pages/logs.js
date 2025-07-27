@@ -1,10 +1,8 @@
 // Logs Page Module for Racket Warrior
 
 const Logs = {
-    currentPage: 1,
-    itemsPerPage: 20,
-    allLogs: [],
-    filteredLogs: [],
+    logs: [],
+    currentFilter: 'all',
     
     // Render logs page
     render: function(container) {
@@ -15,179 +13,101 @@ const Logs = {
     // Initialize logs page
     init: function() {
         this.setupEventListeners();
-        
-        // Show test data immediately
-        this.showTestData();
-        
-        // Then try to load real data
-        setTimeout(() => {
-            this.loadLogs();
-        }, 100);
+        this.loadLogs();
     },
     
-    // Show test data immediately
-    showTestData: function() {
-        
-        // Update stats
-        const totalLogsEl = document.getElementById('totalLogs');
-        const todayLogsEl = document.getElementById('todayLogs');
-        const errorLogsEl = document.getElementById('errorLogs');
-        
-        if (totalLogsEl) totalLogsEl.textContent = '156';
-        if (todayLogsEl) todayLogsEl.textContent = '12';
-        if (errorLogsEl) errorLogsEl.textContent = '2';
-        
-        // Show test logs
-        const logsContainer = document.getElementById('logsContainer');
-        if (logsContainer) {
-            logsContainer.innerHTML = `
-                <table class="table logs-table">
-                    <thead>
-                        <tr>
-                            <th>Timestamp</th>
-                            <th>Action</th>
-                            <th>User</th>
-                            <th>Details</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>2024-01-20 10:30:15</td>
-                            <td><span class="action-badge action-login">LOGIN</span></td>
-                            <td>john.doe@example.com</td>
-                            <td>User logged in successfully</td>
-                        </tr>
-                        <tr>
-                            <td>2024-01-20 10:25:30</td>
-                            <td><span class="action-badge action-add">ADD_PLAYER</span></td>
-                            <td>admin@example.com</td>
-                            <td>Added new player: Jane Smith</td>
-                        </tr>
-                        <tr>
-                            <td>2024-01-20 10:20:45</td>
-                            <td><span class="action-badge action-update">UPDATE_COLLECTION</span></td>
-                            <td>jane.smith@example.com</td>
-                            <td>Updated collection amount: QAR 100.00</td>
-                        </tr>
-                        <tr>
-                            <td>2024-01-20 10:15:20</td>
-                            <td><span class="action-badge action-delete">DELETE_EXPENSE</span></td>
-                            <td>admin@example.com</td>
-                            <td>Deleted expense: Office supplies</td>
-                        </tr>
-                    </tbody>
-                </table>
-            `;
-        }
-    },
-    
-    // Get logs HTML
+    // Get logs HTML with unified styling
     getHTML: function() {
         return `
             <div class="logs-page">
                 <!-- Logs Header -->
                 <div class="page-header">
                     <div class="header-content">
-                        <div class="header-left">
-                            <h1><i class="fas fa-history"></i> System Logs</h1>
-                            <p>Track all system activities and user actions</p>
-                        </div>
-                        <div class="header-actions">
-                            <button id="refreshLogs" class="btn btn-secondary">
-                                <i class="fas fa-sync"></i> Refresh
-                            </button>
-                            <button id="clearLogs" class="btn btn-danger">
-                                <i class="fas fa-trash"></i> Clear All
-                            </button>
-                        </div>
+                        <h1><i class="fas fa-history"></i> System Logs</h1>
+                        <p>Monitor system activities and user actions</p>
+                    </div>
+                    <div class="header-actions">
+                        <button id="refreshLogs" class="btn-unified btn-unified-secondary">
+                            <i class="fas fa-sync"></i>
+                            Refresh
+                        </button>
+                        <button id="exportLogs" class="btn-unified btn-unified-primary">
+                            <i class="fas fa-download"></i>
+                            Export
+                        </button>
                     </div>
                 </div>
-                
-                <!-- Logs Filters -->
-                <div class="logs-filters">
-                    <div class="filter-group">
-                        <label for="logSearch">Search:</label>
-                        <input type="text" id="logSearch" placeholder="Search logs..." class="form-control">
-                    </div>
-                    <div class="filter-group">
-                        <label for="logAction">Action:</label>
-                        <select id="logAction" class="form-control">
-                            <option value="">All Actions</option>
-                            <option value="LOGIN">Login</option>
-                            <option value="LOGOUT">Logout</option>
-                            <option value="CREATE">Create</option>
-                            <option value="UPDATE">Update</option>
-                            <option value="DELETE">Delete</option>
-                            <option value="PASSWORD_CHANGE">Password Change</option>
-                            <option value="PASSWORD_RESET">Password Reset</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label for="logUser">User:</label>
-                        <select id="logUser" class="form-control">
-                            <option value="">All Users</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label for="logDate">Date:</label>
-                        <input type="date" id="logDate" class="form-control">
-                    </div>
-                    <button id="applyFilters" class="btn btn-info">
-                        <i class="fas fa-filter"></i> Apply Filters
-                    </button>
-                    <button id="clearFilters" class="btn btn-secondary">
-                        <i class="fas fa-times"></i> Clear
-                    </button>
-                </div>
-                
+
                 <!-- Logs Stats -->
                 <div class="logs-stats">
-                    <div class="stat-item">
-                        <span class="stat-label">Total Logs:</span>
-                        <span class="stat-value" id="totalLogsCount">0</span>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-list"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="totalLogs">0</h3>
+                            <p>Total Logs</p>
+                        </div>
                     </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Filtered:</span>
-                        <span class="stat-value" id="filteredLogsCount">0</span>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="userLogs">0</h3>
+                            <p>User Actions</p>
+                        </div>
                     </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Page:</span>
-                        <span class="stat-value" id="currentPageDisplay">1</span>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-cog"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="systemLogs">0</h3>
+                            <p>System Events</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="errorLogs">0</h3>
+                            <p>Errors</p>
+                        </div>
                     </div>
                 </div>
-                
-                <!-- Logs Table -->
-                <div class="logs-content">
-                    <div class="table-container">
-                        <table class="logs-table">
-                            <thead>
-                                <tr>
-                                    <th>Timestamp</th>
-                                    <th>User</th>
-                                    <th>Role</th>
-                                    <th>Action</th>
-                                    <th>Details</th>
-                                </tr>
-                            </thead>
-                            <tbody id="logsTableBody">
-                                <tr>
-                                    <td colspan="5" class="text-center">Loading logs...</td>
-                                </tr>
-                            </tbody>
-                        </table>
+
+                <!-- Logs Filters -->
+                <div class="unified-table-container">
+                    <div class="table-header">
+                        <div class="table-title">
+                            <h3><i class="fas fa-filter"></i> Activity Logs</h3>
+                            <p>Filter and monitor system activities</p>
+                        </div>
+                        <div class="table-actions">
+                            <div class="search-box">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="logsSearch" placeholder="Search logs...">
+                            </div>
+                            <select id="logsTypeFilter" class="filter-select">
+                                <option value="">All Types</option>
+                                <option value="user">User Actions</option>
+                                <option value="system">System Events</option>
+                                <option value="error">Errors</option>
+                                <option value="auth">Authentication</option>
+                            </select>
+                            <select id="logsDateFilter" class="filter-select">
+                                <option value="">All Time</option>
+                                <option value="today">Today</option>
+                                <option value="week">This Week</option>
+                                <option value="month">This Month</option>
+                            </select>
+                        </div>
                     </div>
                     
-                    <!-- Pagination -->
-                    <div class="pagination-container">
-                        <button id="prevPage" class="btn btn-outline-primary" disabled>
-                            <i class="fas fa-chevron-left"></i> Previous
-                        </button>
-                        <span class="pagination-info" id="paginationInfo">
-                            Page 1 of 1
-                        </span>
-                        <button id="nextPage" class="btn btn-outline-primary" disabled>
-                            Next <i class="fas fa-chevron-right"></i>
-                        </button>
+                    <div id="logsContainer" class="table-responsive">
+                        <div class="loading-placeholder">Loading logs...</div>
                     </div>
                 </div>
             </div>
@@ -196,268 +116,342 @@ const Logs = {
     
     // Setup event listeners
     setupEventListeners: function() {
-        // Refresh logs
+        // Refresh button
         const refreshBtn = document.getElementById('refreshLogs');
         if (refreshBtn) {
             refreshBtn.addEventListener('click', () => this.loadLogs());
         }
         
-        // Clear logs
-        const clearBtn = document.getElementById('clearLogs');
-        if (clearBtn) {
-            clearBtn.addEventListener('click', () => this.clearAllLogs());
+        // Export button
+        const exportBtn = document.getElementById('exportLogs');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', () => this.exportLogs());
         }
         
-        // Search input
-        const searchInput = document.getElementById('logSearch');
-        if (searchInput) {
-            searchInput.addEventListener('input', () => this.applyFilters());
+        // Search functionality
+        const logsSearch = document.getElementById('logsSearch');
+        if (logsSearch) {
+            logsSearch.addEventListener('input', () => this.filterLogs());
         }
         
-        // Filter controls
-        const actionFilter = document.getElementById('logAction');
-        const userFilter = document.getElementById('logUser');
-        const dateFilter = document.getElementById('logDate');
+        // Type filter
+        const typeFilter = document.getElementById('logsTypeFilter');
+        if (typeFilter) {
+            typeFilter.addEventListener('change', () => this.filterLogs());
+        }
         
-        if (actionFilter) actionFilter.addEventListener('change', () => this.applyFilters());
-        if (userFilter) userFilter.addEventListener('change', () => this.applyFilters());
-        if (dateFilter) dateFilter.addEventListener('change', () => this.applyFilters());
-        
-        // Apply/Clear filters
-        const applyBtn = document.getElementById('applyFilters');
-        const clearFiltersBtn = document.getElementById('clearFilters');
-        
-        if (applyBtn) applyBtn.addEventListener('click', () => this.applyFilters());
-        if (clearFiltersBtn) clearFiltersBtn.addEventListener('click', () => this.clearFilters());
-        
-        // Pagination
-        const prevBtn = document.getElementById('prevPage');
-        const nextBtn = document.getElementById('nextPage');
-        
-        if (prevBtn) prevBtn.addEventListener('click', () => this.previousPage());
-        if (nextBtn) nextBtn.addEventListener('click', () => this.nextPage());
+        // Date filter
+        const dateFilter = document.getElementById('logsDateFilter');
+        if (dateFilter) {
+            dateFilter.addEventListener('change', () => this.filterLogs());
+        }
     },
     
     // Load logs from API
     loadLogs: async function() {
         try {
-            Logger.info('Loading system logs');
-            
-            this.showLoadingState();
-            
-            const response = await API.getLogs();
+            UIUtils.showLoading();
+            const response = await API.makeRequest('get_logs');
             
             if (response.success) {
-                this.allLogs = response.data || [];
-                this.populateUserFilter();
-                this.applyFilters();
-                UIUtils.showNotification('Logs loaded successfully', 'success');
+                this.logs = response.logs || [];
+                this.renderLogs();
+                this.updateStats();
             } else {
-                throw new Error(response.message || 'Failed to load logs');
+                UIUtils.showNotification('Failed to load logs: ' + response.message, 'error');
+                this.showTestLogs(); // Fallback to test data
             }
-            
         } catch (error) {
-            Logger.error('Failed to load logs', error);
-            UIUtils.showNotification('Failed to load logs', 'error');
-            this.showErrorState();
+            console.error('Error loading logs:', error);
+            UIUtils.showNotification('Error loading logs', 'error');
+            this.showTestLogs(); // Fallback to test data
+        } finally {
+            UIUtils.hideLoading();
         }
     },
     
-    // Show loading state
-    showLoadingState: function() {
-        const tbody = document.getElementById('logsTableBody');
-        if (tbody) {
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center">Loading logs...</td></tr>';
-        }
-    },
-    
-    // Show error state
-    showErrorState: function() {
-        const tbody = document.getElementById('logsTableBody');
-        if (tbody) {
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Failed to load logs</td></tr>';
-        }
-    },
-    
-    // Populate user filter dropdown
-    populateUserFilter: function() {
-        const userSelect = document.getElementById('logUser');
-        if (!userSelect) return;
-        
-        // Get unique users from logs
-        const uniqueUsers = [...new Set(this.allLogs.map(log => log.user).filter(user => user))];
-        
-        // Clear existing options (except "All Users")
-        userSelect.innerHTML = '<option value="">All Users</option>';
-        
-        // Add user options
-        uniqueUsers.forEach(user => {
-            const option = document.createElement('option');
-            option.value = user;
-            option.textContent = user;
-            userSelect.appendChild(option);
-        });
-    },
-    
-    // Apply filters
-    applyFilters: function() {
-        const searchTerm = document.getElementById('logSearch')?.value.toLowerCase() || '';
-        const actionFilter = document.getElementById('logAction')?.value || '';
-        const userFilter = document.getElementById('logUser')?.value || '';
-        const dateFilter = document.getElementById('logDate')?.value || '';
-        
-        this.filteredLogs = this.allLogs.filter(log => {
-            // Search filter
-            if (searchTerm) {
-                const searchableText = `${log.user} ${log.action} ${log.details}`.toLowerCase();
-                if (!searchableText.includes(searchTerm)) return false;
+    // Show test logs as fallback
+    showTestLogs: function() {
+        this.logs = [
+            {
+                id: 1,
+                timestamp: '2024-01-20 10:30:15',
+                type: 'auth',
+                action: 'User Login',
+                user: 'admin@racketwarrior.com',
+                details: 'Successful login from 192.168.1.100',
+                status: 'success'
+            },
+            {
+                id: 2,
+                timestamp: '2024-01-20 10:25:32',
+                type: 'user',
+                action: 'Add Player',
+                user: 'john@example.com',
+                details: 'Added new player: John Smith',
+                status: 'success'
+            },
+            {
+                id: 3,
+                timestamp: '2024-01-20 10:20:45',
+                type: 'user',
+                action: 'Add Collection',
+                user: 'john@example.com',
+                details: 'Added collection: QAR 50.00 for January 2024',
+                status: 'success'
+            },
+            {
+                id: 4,
+                timestamp: '2024-01-20 10:15:23',
+                type: 'system',
+                action: 'Database Backup',
+                user: 'System',
+                details: 'Automatic backup completed successfully',
+                status: 'success'
+            },
+            {
+                id: 5,
+                timestamp: '2024-01-20 10:10:11',
+                type: 'auth',
+                action: 'Failed Login',
+                user: 'unknown@example.com',
+                details: 'Invalid credentials from 192.168.1.200',
+                status: 'error'
+            },
+            {
+                id: 6,
+                timestamp: '2024-01-20 10:05:55',
+                type: 'user',
+                action: 'Edit User',
+                user: 'admin@racketwarrior.com',
+                details: 'Updated role for jane@example.com to view_edit',
+                status: 'success'
+            },
+            {
+                id: 7,
+                timestamp: '2024-01-20 10:00:33',
+                type: 'error',
+                action: 'API Error',
+                user: 'System',
+                details: 'Failed to send email notification',
+                status: 'error'
+            },
+            {
+                id: 8,
+                timestamp: '2024-01-20 09:55:12',
+                type: 'user',
+                action: 'Delete Expense',
+                user: 'admin@racketwarrior.com',
+                details: 'Deleted expense: Court rental - QAR 100.00',
+                status: 'success'
             }
-            
-            // Action filter
-            if (actionFilter && log.action !== actionFilter) return false;
-            
-            // User filter
-            if (userFilter && log.user !== userFilter) return false;
-            
-            // Date filter
-            if (dateFilter) {
-                const logDate = new Date(log.timestamp).toISOString().split('T')[0];
-                if (logDate !== dateFilter) return false;
-            }
-            
-            return true;
-        });
-        
-        this.currentPage = 1;
-        this.updateStats();
+        ];
         this.renderLogs();
-        this.updatePagination();
-    },
-    
-    // Clear filters
-    clearFilters: function() {
-        document.getElementById('logSearch').value = '';
-        document.getElementById('logAction').value = '';
-        document.getElementById('logUser').value = '';
-        document.getElementById('logDate').value = '';
-        
-        this.applyFilters();
-    },
-    
-    // Update stats display
-    updateStats: function() {
-        const totalElement = document.getElementById('totalLogsCount');
-        const filteredElement = document.getElementById('filteredLogsCount');
-        const pageElement = document.getElementById('currentPageDisplay');
-        
-        if (totalElement) totalElement.textContent = this.allLogs.length;
-        if (filteredElement) filteredElement.textContent = this.filteredLogs.length;
-        if (pageElement) pageElement.textContent = this.currentPage;
+        this.updateStats();
     },
     
     // Render logs table
     renderLogs: function() {
-        const tbody = document.getElementById('logsTableBody');
-        if (!tbody) return;
+        const container = document.getElementById('logsContainer');
+        if (!container) return;
         
-        if (this.filteredLogs.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center">No logs found</td></tr>';
+        if (this.logs.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-history"></i>
+                    <h3>No Logs Found</h3>
+                    <p>System activity logs will appear here as actions are performed.</p>
+                </div>
+            `;
             return;
         }
         
-        const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-        const endIndex = startIndex + this.itemsPerPage;
-        const pageData = this.filteredLogs.slice(startIndex, endIndex);
+        const tableHTML = `
+            <table class="table logs-table">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Type</th>
+                        <th>Action</th>
+                        <th>User</th>
+                        <th>Details</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${this.logs.map(log => `
+                        <tr data-log-id="${log.id}" class="log-row-${log.status}">
+                            <td class="log-timestamp">
+                                <div class="timestamp-info">
+                                    <span class="date">${this.formatDate(log.timestamp)}</span>
+                                    <span class="time">${this.formatTime(log.timestamp)}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="type-badge type-${log.type}">
+                                    ${this.getTypeIcon(log.type)} ${this.getTypeLabel(log.type)}
+                                </span>
+                            </td>
+                            <td class="log-action">${log.action}</td>
+                            <td class="log-user">
+                                <div class="user-info">
+                                    <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(log.user)}&background=667eea&color=fff&size=32" 
+                                         alt="${log.user}" class="user-avatar-xs">
+                                    <span>${log.user}</span>
+                                </div>
+                            </td>
+                            <td class="log-details">${log.details}</td>
+                            <td>
+                                <span class="status-badge status-${log.status}">
+                                    ${log.status === 'success' ? '<i class="fas fa-check"></i>' : '<i class="fas fa-times"></i>'}
+                                    ${log.status.charAt(0).toUpperCase() + log.status.slice(1)}
+                                </span>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
         
-        tbody.innerHTML = pageData.map(log => `
-            <tr>
-                <td>${this.formatTimestamp(log.timestamp)}</td>
-                <td>
-                    <span class="user-badge">${log.user || 'System'}</span>
-                </td>
-                <td>
-                    <span class="role-badge role-${(log.role || 'system').toLowerCase()}">${log.role || 'System'}</span>
-                </td>
-                <td>
-                    <span class="action-badge action-${this.getActionType(log.action)}">${log.action}</span>
-                </td>
-                <td class="details-cell">${log.details || 'N/A'}</td>
-            </tr>
-        `).join('');
+        container.innerHTML = tableHTML;
     },
     
-    // Format timestamp
-    formatTimestamp: function(timestamp) {
-        if (!timestamp) return 'Unknown';
+    // Update statistics
+    updateStats: function() {
+        const totalLogs = this.logs.length;
+        const userLogs = this.logs.filter(l => l.type === 'user').length;
+        const systemLogs = this.logs.filter(l => l.type === 'system').length;
+        const errorLogs = this.logs.filter(l => l.status === 'error').length;
         
-        const date = new Date(timestamp);
-        return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+        const totalEl = document.getElementById('totalLogs');
+        const userEl = document.getElementById('userLogs');
+        const systemEl = document.getElementById('systemLogs');
+        const errorEl = document.getElementById('errorLogs');
+        
+        if (totalEl) totalEl.textContent = totalLogs;
+        if (userEl) userEl.textContent = userLogs;
+        if (systemEl) systemEl.textContent = systemLogs;
+        if (errorEl) errorEl.textContent = errorLogs;
     },
     
-    // Get action type for styling
-    getActionType: function(action) {
-        if (!action) return 'default';
-        
-        const actionLower = action.toLowerCase();
-        if (actionLower.includes('login')) return 'success';
-        if (actionLower.includes('logout')) return 'info';
-        if (actionLower.includes('delete') || actionLower.includes('remove')) return 'danger';
-        if (actionLower.includes('create') || actionLower.includes('add')) return 'primary';
-        if (actionLower.includes('update') || actionLower.includes('edit')) return 'warning';
-        
-        return 'secondary';
+    // Get type icon
+    getTypeIcon: function(type) {
+        const icons = {
+            'user': '<i class="fas fa-user"></i>',
+            'system': '<i class="fas fa-cog"></i>',
+            'auth': '<i class="fas fa-key"></i>',
+            'error': '<i class="fas fa-exclamation-triangle"></i>'
+        };
+        return icons[type] || '<i class="fas fa-info"></i>';
     },
     
-    // Update pagination
-    updatePagination: function() {
-        const totalPages = Math.ceil(this.filteredLogs.length / this.itemsPerPage);
+    // Get type label
+    getTypeLabel: function(type) {
+        const labels = {
+            'user': 'User',
+            'system': 'System',
+            'auth': 'Auth',
+            'error': 'Error'
+        };
+        return labels[type] || type;
+    },
+    
+    // Format date
+    formatDate: function(timestamp) {
+        return new Date(timestamp).toLocaleDateString();
+    },
+    
+    // Format time
+    formatTime: function(timestamp) {
+        return new Date(timestamp).toLocaleTimeString();
+    },
+    
+    // Filter logs
+    filterLogs: function() {
+        const searchTerm = document.getElementById('logsSearch').value.toLowerCase();
+        const typeFilter = document.getElementById('logsTypeFilter').value;
+        const dateFilter = document.getElementById('logsDateFilter').value;
         
-        const prevBtn = document.getElementById('prevPage');
-        const nextBtn = document.getElementById('nextPage');
-        const paginationInfo = document.getElementById('paginationInfo');
+        const filteredLogs = this.logs.filter(log => {
+            // Search filter
+            const matchesSearch = !searchTerm || 
+                                log.action.toLowerCase().includes(searchTerm) ||
+                                log.user.toLowerCase().includes(searchTerm) ||
+                                log.details.toLowerCase().includes(searchTerm);
+            
+            // Type filter
+            const matchesType = !typeFilter || log.type === typeFilter;
+            
+            // Date filter
+            let matchesDate = true;
+            if (dateFilter) {
+                const logDate = new Date(log.timestamp);
+                const now = new Date();
+                
+                switch (dateFilter) {
+                    case 'today':
+                        matchesDate = logDate.toDateString() === now.toDateString();
+                        break;
+                    case 'week':
+                        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                        matchesDate = logDate >= weekAgo;
+                        break;
+                    case 'month':
+                        const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                        matchesDate = logDate >= monthAgo;
+                        break;
+                }
+            }
+            
+            return matchesSearch && matchesType && matchesDate;
+        });
         
-        if (prevBtn) {
-            prevBtn.disabled = this.currentPage <= 1;
-        }
-        
-        if (nextBtn) {
-            nextBtn.disabled = this.currentPage >= totalPages;
-        }
-        
-        if (paginationInfo) {
-            paginationInfo.textContent = `Page ${this.currentPage} of ${totalPages}`;
+        // Temporarily replace logs array for rendering
+        const originalLogs = this.logs;
+        this.logs = filteredLogs;
+        this.renderLogs();
+        this.logs = originalLogs;
+    },
+    
+    // Export logs
+    exportLogs: function() {
+        try {
+            const csvContent = this.convertToCSV(this.logs);
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `racket-warrior-logs-${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            UIUtils.showNotification('Logs exported successfully!', 'success');
+        } catch (error) {
+            console.error('Error exporting logs:', error);
+            UIUtils.showNotification('Failed to export logs', 'error');
         }
     },
     
-    // Previous page
-    previousPage: function() {
-        if (this.currentPage > 1) {
-            this.currentPage--;
-            this.renderLogs();
-            this.updatePagination();
-            this.updateStats();
-        }
-    },
-    
-    // Next page
-    nextPage: function() {
-        const totalPages = Math.ceil(this.filteredLogs.length / this.itemsPerPage);
-        if (this.currentPage < totalPages) {
-            this.currentPage++;
-            this.renderLogs();
-            this.updatePagination();
-            this.updateStats();
-        }
-    },
-    
-    // Clear all logs
-    clearAllLogs: function() {
-        if (!confirm('Are you sure you want to clear all system logs? This action cannot be undone.')) {
-            return;
-        }
+    // Convert logs to CSV
+    convertToCSV: function(logs) {
+        const headers = ['Timestamp', 'Type', 'Action', 'User', 'Details', 'Status'];
+        const csvRows = [headers.join(',')];
         
-        // This would call an API to clear logs
-        UIUtils.showNotification('Log clearing functionality will be implemented', 'info');
+        logs.forEach(log => {
+            const row = [
+                log.timestamp,
+                log.type,
+                `"${log.action}"`,
+                log.user,
+                `"${log.details}"`,
+                log.status
+            ];
+            csvRows.push(row.join(','));
+        });
+        
+        return csvRows.join('\n');
     }
 };
 

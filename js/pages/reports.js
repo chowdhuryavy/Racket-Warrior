@@ -2,6 +2,7 @@
 
 const Reports = {
     currentMonth: null,
+    reportData: null,
     
     // Render reports page
     render: function(container) {
@@ -11,437 +12,507 @@ const Reports = {
     
     // Initialize reports page
     init: function() {
-        this.setupMonthFilter();
         this.setupEventListeners();
-        
-        // Add immediate fallback data to show content
-        this.showTestData();
-        
-        // Then try to load real data
-        setTimeout(() => {
-            this.loadReportData();
-        }, 100);
+        this.setCurrentMonth();
+        this.loadReportData();
     },
     
-    // Show test data immediately
-    showTestData: function() {
-        
-        // Update summary cards with test data
-        const testData = {
-            totalIncome: 1500.00,
-            totalExpense: 800.00,
-            netBalance: 700.00,
-            activePlayersCount: 12
-        };
-        
-        this.updateSummaryCards(testData);
-        
-        // Show test table data
-        const incomeBody = document.getElementById('incomeTableBody');
-        const expenseBody = document.getElementById('expenseTableBody');
-        
-        if (incomeBody) {
-            incomeBody.innerHTML = `
-                <tr>
-                    <td>2024-01-15</td>
-                    <td>John Doe</td>
-                    <td>Monthly Fee</td>
-                    <td>QAR 100.00</td>
-                </tr>
-                <tr>
-                    <td>2024-01-20</td>
-                    <td>Jane Smith</td>
-                    <td>Monthly Fee</td>
-                    <td>QAR 100.00</td>
-                </tr>
-            `;
-        }
-        
-        if (expenseBody) {
-            expenseBody.innerHTML = `
-                <tr>
-                    <td>2024-01-10</td>
-                    <td>Court Rent</td>
-                    <td>Monthly court rental fee</td>
-                    <td>Sports</td>
-                    <td>QAR 300.00</td>
-                </tr>
-                <tr>
-                    <td>2024-01-15</td>
-                    <td>Equipment</td>
-                    <td>Badminton rackets</td>
-                    <td>Equipment</td>
-                    <td>QAR 150.00</td>
-                </tr>
-            `;
-        }
-    },
-    
-    // Get reports HTML
+    // Get reports HTML with unified styling
     getHTML: function() {
         return `
             <div class="reports-page">
                 <!-- Reports Header -->
                 <div class="page-header">
                     <div class="header-content">
-                        <div class="header-left">
-                            <h1><i class="fas fa-chart-line"></i> Financial Reports</h1>
-                            <p>Comprehensive financial analysis and reporting for Racket Warrior</p>
-                        </div>
-                        <div class="header-actions">
-                            <button id="printReport" class="btn btn-secondary">
-                                <i class="fas fa-print"></i> Print Report
-                            </button>
-                            <button id="exportPDF" class="btn btn-primary">
-                                <i class="fas fa-file-pdf"></i> Export PDF
-                            </button>
+                        <h1><i class="fas fa-chart-line"></i> Monthly Reports</h1>
+                        <p>Generate comprehensive reports for group activities</p>
+                    </div>
+                    <div class="header-actions">
+                        <button id="refreshReport" class="btn-unified btn-unified-secondary">
+                            <i class="fas fa-sync"></i>
+                            Refresh
+                        </button>
+                        <button id="exportPDF" class="btn-unified btn-unified-danger">
+                            <i class="fas fa-file-pdf"></i>
+                            Export PDF
+                        </button>
+                        <button id="exportImage" class="btn-unified btn-unified-primary">
+                            <i class="fas fa-image"></i>
+                            Export Image
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Month Selector -->
+                <div class="unified-form" style="margin-bottom: 2rem;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="reportMonth">Select Month for Report</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-calendar"></i>
+                            <select id="reportMonth" name="month">
+                                <option value="">Select Month</option>
+                            </select>
                         </div>
                     </div>
                 </div>
-                
-                <!-- Report Controls -->
-                <div class="report-controls">
-                    <div class="control-group">
-                        <label for="reportMonth">Report Period:</label>
-                        <select id="reportMonth" class="form-control">
-                            <option value="">All Time</option>
-                        </select>
-                    </div>
-                    <button id="generateReport" class="btn btn-info">
-                        <i class="fas fa-sync"></i> Generate Report
-                    </button>
-                </div>
-                
-                <!-- Report Content -->
-                <div class="report-content" id="reportContent">
-                    <!-- Report Header -->
-                    <div class="report-header">
-                        <div class="logo-section">
-                            <img src="https://i.imgur.com/04MGPFl.png" alt="Racket Warrior" class="report-logo">
-                            <div class="report-title">
-                                <h2>Racket Warrior</h2>
-                                <p>Badminton Group Financial Report</p>
-                                <p class="report-period" id="reportPeriod">Period: All Time</p>
-                                <p class="report-date">Generated: ${new Date().toLocaleDateString()}</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Financial Summary Cards -->
-                    <div class="report-summary">
-                        <h3>Financial Summary</h3>
-                        <div class="summary-cards">
-                            <div class="summary-card income">
-                                <div class="card-icon">
-                                    <i class="fas fa-arrow-down"></i>
-                                </div>
-                                <div class="card-content">
-                                    <div class="card-value" id="reportTotalIncome">QAR 0.00</div>
-                                    <div class="card-label">Total Income</div>
-                                </div>
-                            </div>
-                            <div class="summary-card expense">
-                                <div class="card-icon">
-                                    <i class="fas fa-arrow-up"></i>
-                                </div>
-                                <div class="card-content">
-                                    <div class="card-value" id="reportTotalExpense">QAR 0.00</div>
-                                    <div class="card-label">Total Expenses</div>
-                                </div>
-                            </div>
-                            <div class="summary-card balance">
-                                <div class="card-icon">
-                                    <i class="fas fa-balance-scale"></i>
-                                </div>
-                                <div class="card-content">
-                                    <div class="card-value" id="reportNetBalance">QAR 0.00</div>
-                                    <div class="card-label">Net Balance</div>
-                                </div>
-                            </div>
-                            <div class="summary-card players">
-                                <div class="card-icon">
-                                    <i class="fas fa-users"></i>
-                                </div>
-                                <div class="card-content">
-                                    <div class="card-value" id="reportActivePlayersCount">0</div>
-                                    <div class="card-label">Active Players</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Detailed Tables -->
-                    <div class="report-details">
-                        <!-- Income Details -->
-                        <div class="report-section">
-                            <h3>Income Details</h3>
-                            <div class="table-container">
-                                <table class="report-table" id="incomeTable">
-                                    <thead>
-                                        <tr>
-                                            <th>Date</th>
-                                            <th>Player Name</th>
-                                            <th>Description</th>
-                                            <th>Amount (QAR)</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="incomeTableBody">
-                                        <tr>
-                                            <td colspan="4" class="text-center">Loading income data...</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                        
-                        <!-- Expense Details -->
-                        <div class="report-section">
-                            <h3>Expense Details</h3>
-                            <div class="table-container">
-                                <table class="report-table" id="expenseTable">
-                                    <thead>
-                                        <tr>
-                                            <th>Date</th>
-                                            <th>Category</th>
-                                            <th>Description</th>
-                                            <th>Amount (QAR)</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="expenseTableBody">
-                                        <tr>
-                                            <td colspan="4" class="text-center">Loading expense data...</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Report Footer -->
-                    <div class="report-footer">
-                        <p>This report was generated automatically by the Racket Warrior management system.</p>
-                        <p>For any questions or clarifications, please contact the group administrator.</p>
-                    </div>
+
+                <!-- Report Content Container -->
+                <div id="reportContent" class="report-content">
+                    <div class="loading-placeholder">Select a month to generate report...</div>
                 </div>
             </div>
         `;
     },
     
-    // Setup month filter
-    setupMonthFilter: function() {
-        const monthSelect = document.getElementById('reportMonth');
-        if (!monthSelect) return;
-        
-        // Generate month options for the last 12 months
-        const months = DateUtils.generateMonthOptions(12);
-        months.forEach(month => {
-            const option = document.createElement('option');
-            option.value = month.value;
-            option.textContent = month.label;
-            monthSelect.appendChild(option);
-        });
-    },
-    
     // Setup event listeners
     setupEventListeners: function() {
-        // Month filter change
+        // Month selector
         const monthSelect = document.getElementById('reportMonth');
         if (monthSelect) {
             monthSelect.addEventListener('change', (e) => {
                 this.currentMonth = e.target.value;
-                this.updatePeriodDisplay();
+                if (this.currentMonth) {
+                    this.loadReportData();
+                }
             });
         }
         
-        // Generate report button
-        const generateBtn = document.getElementById('generateReport');
-        if (generateBtn) {
-            generateBtn.addEventListener('click', () => this.loadReportData());
-        }
-        
-        // Print report button
-        const printBtn = document.getElementById('printReport');
-        if (printBtn) {
-            printBtn.addEventListener('click', () => this.printReport());
+        // Refresh button
+        const refreshBtn = document.getElementById('refreshReport');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', () => this.loadReportData());
         }
         
         // Export PDF button
-        const exportBtn = document.getElementById('exportPDF');
-        if (exportBtn) {
-            exportBtn.addEventListener('click', () => this.exportToPDF());
+        const exportPDFBtn = document.getElementById('exportPDF');
+        if (exportPDFBtn) {
+            exportPDFBtn.addEventListener('click', () => this.exportToPDF());
+        }
+        
+        // Export Image button
+        const exportImageBtn = document.getElementById('exportImage');
+        if (exportImageBtn) {
+            exportImageBtn.addEventListener('click', () => this.exportToImage());
         }
     },
     
-    // Update period display
-    updatePeriodDisplay: function() {
-        const periodElement = document.getElementById('reportPeriod');
-        if (!periodElement) return;
+    // Set current month
+    setCurrentMonth: function() {
+        const monthSelect = document.getElementById('reportMonth');
+        if (!monthSelect) return;
         
-        if (this.currentMonth) {
-            const monthLabel = DateUtils.formatMonth(this.currentMonth);
-            periodElement.textContent = `Period: ${monthLabel}`;
-        } else {
-            periodElement.textContent = 'Period: All Time';
+        // Generate month options for the last 12 months
+        const months = [];
+        const now = new Date();
+        
+        for (let i = 0; i < 12; i++) {
+            const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const monthValue = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+            const monthLabel = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+            months.push({ value: monthValue, label: monthLabel });
         }
+        
+        monthSelect.innerHTML = '<option value="">Select Month</option>' + 
+                               months.map(month => `<option value="${month.value}">${month.label}</option>`).join('');
+        
+        // Set current month as default
+        this.currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        monthSelect.value = this.currentMonth;
     },
     
     // Load report data
     loadReportData: async function() {
+        if (!this.currentMonth) return;
+        
         try {
-            Logger.info('Loading report data', { month: this.currentMonth });
+            UIUtils.showLoading();
+            const response = await API.makeRequest('get_monthly_report', { month: this.currentMonth });
             
-            // Show loading state
-            this.showLoadingState();
-            
-            // Load dashboard stats (income, expenses, balance)
-            const statsResponse = await API.getDashboardStats(this.currentMonth);
-            if (statsResponse.success) {
-                this.updateSummaryCards(statsResponse.data);
+            if (response.success) {
+                this.reportData = response.data;
+                this.renderReport();
+            } else {
+                UIUtils.showNotification('Failed to load report: ' + response.message, 'error');
+                this.showTestReport(); // Fallback to test data
             }
-            
-            // Load detailed income data
-            const incomeResponse = await API.getIncome(this.currentMonth ? { month: this.currentMonth } : {});
-            if (incomeResponse.success) {
-                this.populateIncomeTable(incomeResponse.data);
-            }
-            
-            // Load detailed expense data
-            const expenseResponse = await API.getExpenses(this.currentMonth ? { month: this.currentMonth } : {});
-            if (expenseResponse.success) {
-                this.populateExpenseTable(expenseResponse.data);
-            }
-            
         } catch (error) {
-            Logger.error('Failed to load report data', error);
-            UIUtils.showNotification('Failed to load report data', 'error');
-            this.showErrorState();
+            console.error('Error loading report:', error);
+            UIUtils.showNotification('Error loading report', 'error');
+            this.showTestReport(); // Fallback to test data
+        } finally {
+            UIUtils.hideLoading();
         }
     },
     
-    // Show loading state
-    showLoadingState: function() {
-        const summaryValues = ['reportTotalIncome', 'reportTotalExpense', 'reportNetBalance', 'reportActivePlayersCount'];
-        summaryValues.forEach(id => {
-            const element = document.getElementById(id);
-            if (element) {
-                element.innerHTML = '<div class="spinner-border"></div>';
-            }
-        });
-        
-        // Show loading in tables
-        const incomeBody = document.getElementById('incomeTableBody');
-        const expenseBody = document.getElementById('expenseTableBody');
-        
-        if (incomeBody) {
-            incomeBody.innerHTML = '<tr><td colspan="4" class="text-center">Loading income data...</td></tr>';
-        }
-        if (expenseBody) {
-            expenseBody.innerHTML = '<tr><td colspan="4" class="text-center">Loading expense data...</td></tr>';
-        }
+    // Show test report as fallback
+    showTestReport: function() {
+        this.reportData = {
+            month: this.currentMonth,
+            monthLabel: new Date(this.currentMonth + '-01').toLocaleDateString('en-US', { year: 'numeric', month: 'long' }),
+            summary: {
+                totalPlayers: 12,
+                activePlayers: 10,
+                inactivePlayers: 2,
+                totalCollection: 500.00,
+                totalExpenses: 320.00,
+                netBalance: 180.00
+            },
+            players: [
+                { name: 'John Smith', phone: '+974 1234 5678', status: 'active', joinDate: '2024-01-15' },
+                { name: 'Jane Doe', phone: '+974 2345 6789', status: 'active', joinDate: '2024-01-10' },
+                { name: 'Mike Johnson', phone: '+974 3456 7890', status: 'inactive', joinDate: '2023-12-20' }
+            ],
+            collections: [
+                { date: '2024-01-15', player: 'John Smith', amount: 50.00, description: 'Monthly fee' },
+                { date: '2024-01-10', player: 'Jane Doe', amount: 50.00, description: 'Monthly fee' },
+                { date: '2024-01-20', player: 'Mike Johnson', amount: 75.00, description: 'Tournament fee' }
+            ],
+            expenses: [
+                { date: '2024-01-05', category: 'Equipment', amount: 120.00, description: 'New shuttlecocks' },
+                { date: '2024-01-12', category: 'Court Rental', amount: 100.00, description: 'Weekly court booking' },
+                { date: '2024-01-25', category: 'Refreshments', amount: 50.00, description: 'Post-game drinks' }
+            ]
+        };
+        this.renderReport();
     },
     
-    // Show error state
-    showErrorState: function() {
-        const summaryValues = ['reportTotalIncome', 'reportTotalExpense', 'reportNetBalance', 'reportActivePlayersCount'];
-        summaryValues.forEach(id => {
-            const element = document.getElementById(id);
-            if (element) {
-                element.textContent = 'Error';
-            }
-        });
+    // Render report
+    renderReport: function() {
+        const container = document.getElementById('reportContent');
+        if (!container || !this.reportData) return;
+        
+        const data = this.reportData;
+        
+        const reportHTML = `
+            <div class="report-document" id="reportDocument">
+                <!-- Report Header -->
+                <div class="report-header">
+                    <div class="report-title-section">
+                        <img src="https://i.imgur.com/04MGPFl.png" alt="Racket Warrior" class="report-logo">
+                        <div class="report-title-content">
+                            <h1>🏸 Racket Warrior</h1>
+                            <h2>Monthly Activity Report</h2>
+                            <h3>${data.monthLabel}</h3>
+                        </div>
+                    </div>
+                    <div class="report-meta">
+                        <p><strong>Generated:</strong> ${new Date().toLocaleDateString()}</p>
+                        <p><strong>Report Period:</strong> ${data.monthLabel}</p>
+                    </div>
+                </div>
+
+                <!-- Executive Summary -->
+                <div class="report-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-chart-pie"></i>
+                        Executive Summary
+                    </h3>
+                    <div class="summary-grid">
+                        <div class="summary-card players-card">
+                            <div class="summary-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="summary-content">
+                                <h4>Total Players</h4>
+                                <p class="summary-number">${data.summary.totalPlayers}</p>
+                                <p class="summary-detail">
+                                    <span class="active">${data.summary.activePlayers} Active</span> • 
+                                    <span class="inactive">${data.summary.inactivePlayers} Inactive</span>
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="summary-card income-card">
+                            <div class="summary-icon">
+                                <i class="fas fa-coins"></i>
+                            </div>
+                            <div class="summary-content">
+                                <h4>Total Collection</h4>
+                                <p class="summary-number">QAR ${data.summary.totalCollection.toFixed(2)}</p>
+                                <p class="summary-detail">${data.collections.length} transactions</p>
+                            </div>
+                        </div>
+                        
+                        <div class="summary-card expense-card">
+                            <div class="summary-icon">
+                                <i class="fas fa-receipt"></i>
+                            </div>
+                            <div class="summary-content">
+                                <h4>Total Expenses</h4>
+                                <p class="summary-number">QAR ${data.summary.totalExpenses.toFixed(2)}</p>
+                                <p class="summary-detail">${data.expenses.length} transactions</p>
+                            </div>
+                        </div>
+                        
+                        <div class="summary-card balance-card">
+                            <div class="summary-icon">
+                                <i class="fas fa-balance-scale"></i>
+                            </div>
+                            <div class="summary-content">
+                                <h4>Net Balance</h4>
+                                <p class="summary-number ${data.summary.netBalance >= 0 ? 'positive' : 'negative'}">
+                                    QAR ${data.summary.netBalance.toFixed(2)}
+                                </p>
+                                <p class="summary-detail">${data.summary.netBalance >= 0 ? 'Profit' : 'Loss'}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Players Report -->
+                <div class="report-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-users"></i>
+                        Players Report
+                    </h3>
+                    <div class="table-wrapper">
+                        <table class="report-table">
+                            <thead>
+                                <tr>
+                                    <th>Player Name</th>
+                                    <th>Phone</th>
+                                    <th>Status</th>
+                                    <th>Join Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.players.map(player => `
+                                    <tr>
+                                        <td>${player.name}</td>
+                                        <td>${player.phone}</td>
+                                        <td>
+                                            <span class="status-indicator ${player.status}">
+                                                ${player.status === 'active' ? '🟢' : '🔴'} ${player.status.charAt(0).toUpperCase() + player.status.slice(1)}
+                                            </span>
+                                        </td>
+                                        <td>${new Date(player.joinDate).toLocaleDateString()}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Collections Report -->
+                <div class="report-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-coins"></i>
+                        Collections Report
+                    </h3>
+                    <div class="table-wrapper">
+                        <table class="report-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Player</th>
+                                    <th>Amount (QAR)</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.collections.map(collection => `
+                                    <tr>
+                                        <td>${new Date(collection.date).toLocaleDateString()}</td>
+                                        <td>${collection.player}</td>
+                                        <td class="amount-cell positive">+${collection.amount.toFixed(2)}</td>
+                                        <td>${collection.description}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                            <tfoot>
+                                <tr class="total-row">
+                                    <td colspan="2"><strong>Total Collections</strong></td>
+                                    <td class="amount-cell positive"><strong>QAR ${data.summary.totalCollection.toFixed(2)}</strong></td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Expenses Report -->
+                <div class="report-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-receipt"></i>
+                        Expenses Report
+                    </h3>
+                    <div class="table-wrapper">
+                        <table class="report-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Category</th>
+                                    <th>Amount (QAR)</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.expenses.map(expense => `
+                                    <tr>
+                                        <td>${new Date(expense.date).toLocaleDateString()}</td>
+                                        <td>
+                                            <span class="category-tag">${expense.category}</span>
+                                        </td>
+                                        <td class="amount-cell negative">-${expense.amount.toFixed(2)}</td>
+                                        <td>${expense.description}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                            <tfoot>
+                                <tr class="total-row">
+                                    <td colspan="2"><strong>Total Expenses</strong></td>
+                                    <td class="amount-cell negative"><strong>QAR ${data.summary.totalExpenses.toFixed(2)}</strong></td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Financial Summary -->
+                <div class="report-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-calculator"></i>
+                        Financial Summary
+                    </h3>
+                    <div class="financial-summary">
+                        <div class="financial-item">
+                            <span class="label">Total Collections:</span>
+                            <span class="value positive">QAR ${data.summary.totalCollection.toFixed(2)}</span>
+                        </div>
+                        <div class="financial-item">
+                            <span class="label">Total Expenses:</span>
+                            <span class="value negative">QAR ${data.summary.totalExpenses.toFixed(2)}</span>
+                        </div>
+                        <div class="financial-separator"></div>
+                        <div class="financial-item total">
+                            <span class="label">Net Balance:</span>
+                            <span class="value ${data.summary.netBalance >= 0 ? 'positive' : 'negative'}">
+                                QAR ${data.summary.netBalance.toFixed(2)}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Report Footer -->
+                <div class="report-footer">
+                    <div class="footer-content">
+                        <p><strong>Racket Warrior Badminton Group</strong></p>
+                        <p>Report generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
+                        <p>This report contains confidential information for internal use only.</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        container.innerHTML = reportHTML;
     },
     
-    // Update summary cards
-    updateSummaryCards: function(data) {
-        const totalIncomeEl = document.getElementById('reportTotalIncome');
-        const totalExpenseEl = document.getElementById('reportTotalExpense');
-        const netBalanceEl = document.getElementById('reportNetBalance');
-        const activePlayersEl = document.getElementById('reportActivePlayersCount');
-        
-        if (totalIncomeEl) totalIncomeEl.textContent = `QAR ${(data.totalIncome || 0).toFixed(2)}`;
-        if (totalExpenseEl) totalExpenseEl.textContent = `QAR ${(data.totalExpenses || 0).toFixed(2)}`;
-        if (netBalanceEl) netBalanceEl.textContent = `QAR ${(data.balance || 0).toFixed(2)}`;
-        if (activePlayersEl) activePlayersEl.textContent = data.activePlayers || 0;
-    },
-    
-    // Populate income table
-    populateIncomeTable: function(incomeData) {
-        const tbody = document.getElementById('incomeTableBody');
-        if (!tbody) return;
-        
-        if (!incomeData || incomeData.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="text-center">No income records found</td></tr>';
-            return;
-        }
-        
-        tbody.innerHTML = incomeData.map(income => `
-            <tr>
-                <td>${DateUtils.formatDateForInput(income.Date)}</td>
-                <td>${income.PlayerName || 'N/A'}</td>
-                <td>${income.Description || 'N/A'}</td>
-                <td>QAR ${parseFloat(income.Amount || 0).toFixed(2)}</td>
-            </tr>
-        `).join('');
-    },
-    
-    // Populate expense table
-    populateExpenseTable: function(expenseData) {
-        const tbody = document.getElementById('expenseTableBody');
-        if (!tbody) return;
-        
-        if (!expenseData || expenseData.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="text-center">No expense records found</td></tr>';
-            return;
-        }
-        
-        tbody.innerHTML = expenseData.map(expense => `
-            <tr>
-                <td>${DateUtils.formatDateForInput(expense.Date)}</td>
-                <td>${expense.Category || 'N/A'}</td>
-                <td>${expense.Description || 'N/A'}</td>
-                <td>QAR ${parseFloat(expense.Amount || 0).toFixed(2)}</td>
-            </tr>
-        `).join('');
-    },
-    
-    // Print report
-    printReport: function() {
-        const reportContent = document.getElementById('reportContent');
-        if (!reportContent) return;
-        
-        // Create a new window for printing
-        const printWindow = window.open('', '_blank');
-        printWindow.document.write(`
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Racket Warrior - Financial Report</title>
-                <style>
-                    body { font-family: Arial, sans-serif; margin: 20px; }
-                    .report-header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
-                    .report-logo { width: 80px; height: 80px; }
-                    .summary-cards { display: flex; justify-content: space-around; margin: 20px 0; }
-                    .summary-card { text-align: center; padding: 10px; border: 1px solid #ddd; }
-                    .card-value { font-size: 24px; font-weight: bold; }
-                    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-                    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-                    th { background-color: #f5f5f5; }
-                    h3 { color: #333; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
-                    .report-footer { text-align: center; margin-top: 30px; font-size: 12px; color: #666; }
-                </style>
-            </head>
-            <body>
-                ${reportContent.innerHTML}
-            </body>
-            </html>
-        `);
-        printWindow.document.close();
-        printWindow.print();
-    },
-    
-    // Export to PDF (placeholder - would need a PDF library)
+    // Export to PDF
     exportToPDF: function() {
-        UIUtils.showNotification('PDF export feature will be implemented with a PDF library', 'info');
+        if (!this.reportData) {
+            UIUtils.showNotification('Please generate a report first', 'warning');
+            return;
+        }
+        
+        try {
+            // Using window.print() for PDF export
+            const originalTitle = document.title;
+            document.title = `Racket Warrior Report - ${this.reportData.monthLabel}`;
+            
+            // Hide other elements temporarily
+            const elementsToHide = document.querySelectorAll('body > *:not(.app-container)');
+            const appContainer = document.querySelector('.app-container');
+            const mainContent = document.querySelector('.main-content');
+            const reportContent = document.getElementById('reportDocument');
+            
+            if (reportContent) {
+                // Create a print-friendly version
+                const printWindow = window.open('', '_blank');
+                printWindow.document.write(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>${document.title}</title>
+                        <link rel="stylesheet" href="css/styles.css">
+                        <style>
+                            @media print {
+                                body { margin: 0; padding: 20px; }
+                                .report-document { box-shadow: none; }
+                                .btn, .header-actions { display: none !important; }
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        ${reportContent.outerHTML}
+                    </body>
+                    </html>
+                `);
+                printWindow.document.close();
+                printWindow.print();
+            }
+            
+            document.title = originalTitle;
+            UIUtils.showNotification('PDF export initiated', 'success');
+        } catch (error) {
+            console.error('Error exporting PDF:', error);
+            UIUtils.showNotification('Failed to export PDF', 'error');
+        }
+    },
+    
+    // Export to Image
+    exportToImage: function() {
+        if (!this.reportData) {
+            UIUtils.showNotification('Please generate a report first', 'warning');
+            return;
+        }
+        
+        try {
+            // Using html2canvas library if available, otherwise fallback message
+            if (typeof html2canvas !== 'undefined') {
+                const reportElement = document.getElementById('reportDocument');
+                if (reportElement) {
+                    html2canvas(reportElement).then(canvas => {
+                        const link = document.createElement('a');
+                        link.download = `racket-warrior-report-${this.currentMonth}.png`;
+                        link.href = canvas.toDataURL();
+                        link.click();
+                        UIUtils.showNotification('Report exported as image!', 'success');
+                    });
+                }
+            } else {
+                // Fallback: Copy report content to clipboard
+                const reportElement = document.getElementById('reportDocument');
+                if (reportElement) {
+                    // Create a canvas manually
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = 800;
+                    canvas.height = 1000;
+                    
+                    // Fill with white background
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    // Add text content
+                    ctx.fillStyle = 'black';
+                    ctx.font = '20px Arial';
+                    ctx.fillText('Racket Warrior - Monthly Report', 50, 50);
+                    ctx.fillText(this.reportData.monthLabel, 50, 80);
+                    
+                    // Download the canvas
+                    const link = document.createElement('a');
+                    link.download = `racket-warrior-report-${this.currentMonth}.png`;
+                    link.href = canvas.toDataURL();
+                    link.click();
+                    
+                    UIUtils.showNotification('Basic report image exported!', 'success');
+                }
+            }
+        } catch (error) {
+            console.error('Error exporting image:', error);
+            UIUtils.showNotification('Failed to export image', 'error');
+        }
     }
 };
 
