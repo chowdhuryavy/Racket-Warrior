@@ -620,7 +620,7 @@ body {
 
 .password-toggle {
     position: absolute;
-    right: -40px;
+    right: -50px;
     top: 50%;
     transform: translateY(-50%);
     cursor: pointer;
@@ -3914,7 +3914,7 @@ body {
 
 .forgot-step .input-wrapper i:not(.password-toggle) {
     left: 15px !important;
-    top: 40% !important;
+    top: 30% !important;
     z-index: 5 !important;
     position: absolute !important;
     width: 16px !important;
