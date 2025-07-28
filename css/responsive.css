@@ -163,8 +163,14 @@
     }
     
     /* Login input fields mobile */
+    .login-card .input-wrapper {
+        height: 48px !important; /* Consistent wrapper height */
+    }
+    
     .login-card .input-wrapper input[type="email"],
     .login-card .input-wrapper input[type="password"] {
+        width: 100% !important;
+        box-sizing: border-box !important;
         padding: 14px 14px 14px 44px !important;
         font-size: 16px !important;
         border-radius: 10px !important;
@@ -173,6 +179,7 @@
     
     .login-card .input-wrapper input[type="password"] {
         padding-left: 70px !important; /* Space for icon + toggle */
+        /* Width and height same as email input */
     }
     
     /* Login input icons mobile */

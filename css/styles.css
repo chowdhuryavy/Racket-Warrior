@@ -4218,6 +4218,12 @@ body {
 /* ============ LOGIN PAGE SPECIFIC FIXES ============ */
 
 /* Login Input Icons */
+.login-card .input-wrapper {
+    position: relative;
+    width: 100% !important; /* Ensure wrapper takes full width */
+    height: 52px !important; /* Same height as inputs */
+}
+
 .login-card .input-wrapper .input-icon {
     position: absolute;
     left: 16px;
@@ -4236,7 +4242,10 @@ body {
 /* Login Input Fields - CONSISTENT SIZING */
 .login-card .input-wrapper input[type="email"],
 .login-card .input-wrapper input[type="password"] {
-    padding: 16px 16px 16px 48px !important; /* Same padding for both */
+    width: 100% !important; /* Ensure both take full width */
+    box-sizing: border-box !important; /* Include padding in width calculation */
+    height: 52px !important; /* Fixed height for consistency */
+    padding: 16px 16px 16px 48px !important; /* Base padding */
     font-size: 16px !important; /* Prevents iOS zoom */
     border: 2px solid #e5e7eb;
     border-radius: 12px;
@@ -4246,9 +4255,10 @@ body {
     transition: all 0.3s ease;
 }
 
-/* Password input specific - make room for toggle */
+/* Password input specific - adjust padding for toggle but keep same visual size */
 .login-card .input-wrapper input[type="password"] {
     padding-left: 80px !important; /* Extra space for password toggle on left */
+    /* Width and height remain the same as email input */
 }
 
 .login-card .input-wrapper input:focus {

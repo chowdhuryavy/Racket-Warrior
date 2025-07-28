@@ -285,6 +285,32 @@ const API = {
     // Debug function to check user data
     debugUserData: async function() {
         return await this.makeRequest('debug_user_data');
+    },
+
+    // Get available months from data
+    getAvailableMonths: async function() {
+        try {
+            // Generate recent months for the filter
+            const months = [];
+            const now = new Date();
+            
+            // Generate 12 months back from current month
+            for (let i = 0; i < 12; i++) {
+                const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                const monthLabel = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+                
+                months.push({
+                    value: monthKey,
+                    label: monthLabel
+                });
+            }
+            
+            return months;
+        } catch (error) {
+            Logger.error('Error getting available months', error);
+            return [];
+        }
     }
 };
 

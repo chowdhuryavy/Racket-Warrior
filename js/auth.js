@@ -73,7 +73,7 @@ const Auth = {
         UIUtils.showLoading(submitButton, 'Signing in...');
         
         try {
-            const response = await API.login(email, password);
+            const response = await API.login({ username: email, password });
             
             if (response.success) {
                 // Store user data and token
