@@ -161,6 +161,11 @@ const Collection = {
         document.getElementById('addCollectionForm').addEventListener('submit', (e) => {
             this.handleAddCollection(e);
         });
+
+        // Reload players when month changes
+        document.getElementById('collectionMonth').addEventListener('change', () => {
+            this.loadPlayersForDropdown();
+        });
     },
 
     // Initialize View Table
@@ -198,7 +203,7 @@ const Collection = {
                 if (playerSelect) {
                     playerSelect.innerHTML = '<option value="">Select Player</option>';
                     response.data.forEach(player => {
-                        if (player.Status === 'active') {
+                        if (this.isPlayerActiveForMonth(player, this.getCurrentSelectedMonth())) {
                             const option = document.createElement('option');
                             option.value = player.ID;
                             option.textContent = player.Name;
@@ -604,6 +609,33 @@ const Collection = {
             Logger.error('Error deleting collection:', error);
             UIUtils.showNotification('Error deleting collection. Please try again.', 'error');
         }
+    },
+
+    // Check if player is active for specific month
+    isPlayerActiveForMonth: function(player, month) {
+        if (!month) {
+            // If no month selected, fall back to general status
+            return player.Status === 'active';
+        }
+        
+        if (player.MonthlyStatus) {
+            try {
+                const monthlyStatus = JSON.parse(player.MonthlyStatus);
+                return monthlyStatus[month] === 'active';
+            } catch (e) {
+                // If monthly status is invalid, fall back to general status
+                return player.Status === 'active';
+            }
+        }
+        
+        // If no monthly status, fall back to general status
+        return player.Status === 'active';
+    },
+
+    // Get currently selected month from month dropdown
+    getCurrentSelectedMonth: function() {
+        const monthSelect = document.getElementById('collectionMonth');
+        return monthSelect ? monthSelect.value : null;
     },
 
     // Escape HTML to prevent XSS

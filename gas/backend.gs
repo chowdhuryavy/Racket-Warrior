@@ -106,6 +106,7 @@ function doGet(e) {
       case 'add_player': result = handleAddPlayer(e.parameter); break;
       case 'update_player': result = handleUpdatePlayer(e.parameter); break;
       case 'delete_player': result = handleDeletePlayer(e.parameter); break;
+      case 'update_player_monthly_status': result = handleUpdatePlayerMonthlyStatus(e.parameter); break;
       
       // Income/Collections
       case 'get_income': result = handleGetIncome(e.parameter); break;
@@ -209,6 +210,7 @@ function doPost(e) {
       case 'add_player': result = handleAddPlayer(e.parameter); break;
       case 'update_player': result = handleUpdatePlayer(e.parameter); break;
       case 'delete_player': result = handleDeletePlayer(e.parameter); break;
+      case 'update_player_monthly_status': result = handleUpdatePlayerMonthlyStatus(e.parameter); break;
         
       // Income/Collections
       case 'get_income': result = handleGetIncome(e.parameter); break;
@@ -2928,6 +2930,64 @@ function handleDebugUserData(params) {
       message: 'Debug failed: ' + error.toString(),
       error_details: error.stack 
     };
+  }
+}
+
+/**
+ * Update player monthly status
+ */
+function handleUpdatePlayerMonthlyStatus(params) {
+  try {
+    const { token, playerId, month, status } = params;
+    
+    const user = verifyToken(token);
+    if (!user || !hasPermission(user.role, 'edit')) {
+      return { success: false, message: 'Unauthorized access' };
+    }
+    
+    if (!playerId || !month || !status) {
+      return { success: false, message: 'Player ID, month, and status are required' };
+    }
+    
+    const playersSheet = getSheet(SHEETS.players.name);
+    const players = getSheetData(playersSheet);
+    const playerIndex = players.findIndex(p => p.ID === playerId);
+    
+    if (playerIndex === -1) {
+      return { success: false, message: 'Player not found' };
+    }
+    
+    const player = players[playerIndex];
+    let monthlyStatus = {};
+    
+    // Parse existing monthly status
+    if (player.MonthlyStatus) {
+      try {
+        monthlyStatus = JSON.parse(player.MonthlyStatus);
+      } catch (e) {
+        monthlyStatus = {};
+      }
+    }
+    
+    // Update the monthly status for the specific month
+    monthlyStatus[month] = status;
+    
+    // Update the sheet (MonthlyStatus is column 8, index 7)
+    const rowIndex = playerIndex + 2; // +2 because array is 0-indexed and sheet starts at row 2
+    const columnIndex = SHEETS.players.columns.indexOf('MonthlyStatus') + 1;
+    
+    playersSheet.getRange(rowIndex, columnIndex).setValue(JSON.stringify(monthlyStatus));
+    
+    addLog('PLAYER_STATUS_UPDATED', `Player ${player.Name} status updated for ${month}: ${status}`, user.email, user.role);
+    
+    return { 
+      success: true, 
+      message: 'Player monthly status updated successfully',
+      data: { playerId, month, status, monthlyStatus }
+    };
+    
+  } catch (error) {
+    return { success: false, message: 'Failed to update player status: ' + error.toString() };
   }
 }
 

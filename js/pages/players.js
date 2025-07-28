@@ -380,12 +380,14 @@ const Players = {
                 if (player.MonthlyStatus) {
                     try {
                         const monthlyStatus = JSON.parse(player.MonthlyStatus);
-                        return monthlyStatus[monthFilter] === true;
+                        return monthlyStatus[monthFilter] === 'active';
                     } catch (e) {
-                        return false;
+                        // If no monthly status, fall back to general Status
+                        return player.Status === 'active';
                     }
                 }
-                return false;
+                // If no monthly status, fall back to general Status
+                return player.Status === 'active';
             });
         }
         
@@ -434,6 +436,7 @@ const Players = {
                                 <span class="status-badge status-${player.Status}">
                                     ${player.Status === 'active' ? '🟢 Active' : '🔴 Inactive'}
                                 </span>
+                                ${this.getMonthlyStatusHTML(player)}
                             </td>
                             <td>${DateUtils.formatDate(player.JoinDate)}</td>
                             ${(canEdit || canDelete) ? `
@@ -655,6 +658,57 @@ const Players = {
         return div.innerHTML;
     },
     
+    // Get monthly status HTML for current month
+    getMonthlyStatusHTML: function(player) {
+        const currentMonth = document.getElementById('playersMonthFilter')?.value;
+        if (!currentMonth) return '';
+        
+        let monthlyStatus = {};
+        if (player.MonthlyStatus) {
+            try {
+                monthlyStatus = JSON.parse(player.MonthlyStatus);
+            } catch (e) {
+                monthlyStatus = {};
+            }
+        }
+        
+        const isActiveThisMonth = monthlyStatus[currentMonth] === 'active';
+        const user = Auth.getCurrentUser();
+        const canEdit = user && PermissionUtils.canPerformAction(user.role, 'edit');
+        
+        if (!canEdit) return '';
+        
+        return `
+            <div class="monthly-status-control">
+                <small>${currentMonth}:</small>
+                <button class="btn btn-xs monthly-status-btn ${isActiveThisMonth ? 'active' : 'inactive'}" 
+                        onclick="Players.toggleMonthlyStatus('${player.ID}', '${currentMonth}', ${!isActiveThisMonth})"
+                        title="Toggle status for ${currentMonth}">
+                    ${isActiveThisMonth ? '✅' : '❌'}
+                </button>
+            </div>
+        `;
+    },
+
+    // Toggle monthly status for a player
+    toggleMonthlyStatus: async function(playerId, month, makeActive) {
+        try {
+            const status = makeActive ? 'active' : 'inactive';
+            const response = await API.updatePlayerMonthlyStatus(playerId, month, status);
+            
+            if (response.success) {
+                UIUtils.showNotification(`Player status updated for ${month}`, 'success');
+                // Refresh the current data
+                this.loadPlayersData();
+            } else {
+                UIUtils.showNotification(response.message || 'Failed to update status', 'error');
+            }
+        } catch (error) {
+            Logger.error('Error updating monthly status', error);
+            UIUtils.showNotification('Error updating player status', 'error');
+        }
+    },
+
     debounce: function(func, wait) {
         let timeout;
         return function executedFunction(...args) {

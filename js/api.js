@@ -161,6 +161,10 @@ const API = {
         return await this.makeRequest('delete_player', { id: playerId });
     },
 
+    updatePlayerMonthlyStatus: async function(playerId, month, status) {
+        return await this.makeRequest('update_player_monthly_status', { playerId, month, status });
+    },
+
     // Income/Collection APIs
     getIncome: async function(filters = {}) {
         return await this.makeRequest('get_income', filters);
