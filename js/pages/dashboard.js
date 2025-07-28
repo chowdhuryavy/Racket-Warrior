@@ -615,6 +615,31 @@ const Dashboard = {
             viewMenu.style.display = 'none';
             viewBtn.querySelector('.toggle-icon').style.transform = 'rotate(0deg)';
         }
+    },
+
+    // Debug function to check user data and sheet structure
+    debugUserData: async function() {
+        try {
+            const response = await API.debugUserData();
+            console.log('🔧 DEBUG: User Data Check', response);
+            
+            if (response.success) {
+                const info = response.debug_info;
+                console.log('📋 Sheet Headers:', info.sheet_headers);
+                console.log('📋 Expected Columns:', info.expected_columns);
+                console.log('📋 img_url Column Index:', info.img_url_column_index);
+                console.log('👤 Current User Data:', info.current_user_data);
+                console.log('🖼️ Current User img_url:', info.current_user_img_url);
+                
+                UIUtils.showNotification(`Debug: img_url column index is ${info.img_url_column_index}. Your img_url value: "${info.current_user_img_url}"`, 'info');
+            } else {
+                console.error('Debug failed:', response.message);
+                UIUtils.showNotification('Debug failed: ' + response.message, 'error');
+            }
+        } catch (error) {
+            console.error('Debug error:', error);
+            UIUtils.showNotification('Debug error: ' + error.message, 'error');
+        }
     }
 };
 

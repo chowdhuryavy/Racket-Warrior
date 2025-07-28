@@ -280,6 +280,11 @@ const API = {
             reader.onerror = reject;
             reader.readAsDataURL(file);
         });
+    },
+
+    // Debug function to check user data
+    debugUserData: async function() {
+        return await this.makeRequest('debug_user_data');
     }
 };
 

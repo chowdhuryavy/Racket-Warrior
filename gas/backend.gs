@@ -96,6 +96,7 @@ function doGet(e) {
       case 'reset_password': result = handleResetPassword(e.parameter); break;
       case 'change_password': result = handleChangePassword(e.parameter); break;
       case 'get_user_profile': result = handleGetUserProfile(e.parameter); break;
+      case 'debug_user_data': result = handleDebugUserData(e.parameter); break;
       
       // Dashboard
       case 'get_dashboard_stats': result = handleGetDashboardStats(e.parameter); break;
@@ -1740,8 +1741,15 @@ function getSheetData(sheet) {
     return rows.map(row => {
       const obj = {};
       headers.forEach((header, index) => {
-        obj[header] = row[index];
+        obj[header] = row[index] || ''; // Handle undefined values
       });
+      
+      // Handle column name variations for img_url
+      if (headers.includes('img_url') && !obj.img_url) {
+        // Try alternative column names
+        obj.img_url = obj['image_url'] || obj['photo_url'] || obj['avatar_url'] || '';
+      }
+      
       return obj;
     });
   } catch (error) {
@@ -2397,7 +2405,8 @@ function handleUploadPhoto(params) {
     
     // Update the img_url column (column K - index 11)
     const rowIndex = userIndex + 2; // +2 because array is 0-indexed and sheet starts at row 2
-    usersSheet.getRange(rowIndex, 11).setValue(photoData); // Column K for img_url
+    const columnIndex = SHEETS.users.columns.indexOf('img_url') + 1; // Get correct column index
+    usersSheet.getRange(rowIndex, columnIndex).setValue(photoData); // Set the photo URL
     
     // Update the user data in storage
     const updatedUser = { ...user, img_url: photoData };
@@ -2875,12 +2884,43 @@ function initializeApplication() {
         settingsAdded: settingsData.length === 0
       }
     };
+}
+
+/**
+ * Debug function to check user data and sheet structure
+ */
+function handleDebugUserData(params) {
+  try {
+    const { token } = params;
     
-  } catch (error) {
+    const user = verifyToken(token);
+    if (!user) {
+      return { success: false, message: 'Unauthorized access' };
+    }
+    
+    const usersSheet = getSheet(SHEETS.users.name);
+    const headers = usersSheet.getRange(1, 1, 1, usersSheet.getLastColumn()).getValues()[0];
+    const users = getSheetData(usersSheet);
+    const currentUser = users.find(u => u.email === user.email);
+    
     return {
-      success: false,
-      message: 'Failed to initialize application: ' + error.toString()
+      success: true,
+      debug_info: {
+        sheet_headers: headers,
+        expected_columns: SHEETS.users.columns,
+        img_url_column_index: headers.indexOf('img_url'),
+        current_user_data: currentUser,
+        current_user_img_url: currentUser ? currentUser.img_url : 'User not found',
+        total_users: users.length
+      }
+    };
+    
+    } catch (error) {
+    return { 
+      success: false, 
+      message: 'Debug failed: ' + error.toString(),
+      error_details: error.stack 
     };
   }
-}
+
 
