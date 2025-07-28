@@ -827,7 +827,9 @@ const Auth = {
     // Logout user
     logout: async function() {
         // Show loading screen
-        this.showLoadingScreen();
+        document.getElementById('loadingScreen').style.display = 'flex';
+        document.getElementById('loginContainer').style.display = 'none';
+        document.getElementById('appContainer').style.display = 'none';
         
         try {
             // Log the logout
