@@ -2884,6 +2884,13 @@ function initializeApplication() {
         settingsAdded: settingsData.length === 0
       }
     };
+    
+  } catch (error) {
+    return {
+      success: false,
+      message: 'Failed to initialize application: ' + error.toString()
+    };
+  }
 }
 
 /**
@@ -2915,12 +2922,13 @@ function handleDebugUserData(params) {
       }
     };
     
-    } catch (error) {
+  } catch (error) {
     return { 
       success: false, 
       message: 'Debug failed: ' + error.toString(),
       error_details: error.stack 
     };
   }
+}
 
 
