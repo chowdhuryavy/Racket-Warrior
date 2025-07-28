@@ -4390,40 +4390,23 @@ body {
     display: block;
 }
 
-/* Report Export Optimization */
-#reportDocument {
-    /* Ensure good rendering for html2canvas */
+/* Report Export Optimization - Conservative approach */
+.reports-page #reportDocument {
+    /* Only apply when in reports page context */
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
-    color-adjust: exact;
     background: white;
-    overflow: visible;
 }
 
-#reportDocument * {
-    /* Force all text to be selectable and copyable */
-    -webkit-user-select: text;
-    -moz-user-select: text;
-    user-select: text;
-}
-
-#reportDocument img {
-    /* Ensure images render properly */
+.reports-page #reportDocument img {
+    /* Ensure images render properly in reports only */
     max-width: 100%;
     height: auto;
-    display: block;
 }
 
-#reportDocument .report-logo {
-    /* Ensure logo renders */
+.reports-page #reportDocument .report-logo {
+    /* Ensure logo renders in reports only */
     width: 60px;
     height: 60px;
     object-fit: contain;
-}
-
-/* Fix any gradients for better export */
-#reportDocument .summary-card,
-#reportDocument .activity-card {
-    background: #ffffff !important;
-    border: 1px solid #e5e7eb !important;
 }
