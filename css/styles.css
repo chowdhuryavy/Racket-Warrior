@@ -514,18 +514,9 @@ body {
     padding-left: 45px !important;
 }
 
-/* Special styling for password fields - toggle is now outside */
-.input-wrapper:has(input[type="password"]) {
-    margin-right: 50px;
-}
-
+/* Password input styling - cleaned up */
 .input-wrapper input[type="password"] {
-    padding-right: 16px !important;
-}
-
-/* Fallback for browsers that don't support :has() */
-.password-input-wrapper {
-    margin-right: 50px;
+    padding-right: 50px !important;
 }
 
 /* Enhanced Select Styling */
@@ -618,32 +609,33 @@ body {
     width: 100%;
 }
 
+/* New Professional Password Toggle System */
 .password-toggle {
     position: absolute;
-    right: -50px;
+    right: 12px;
     top: 50%;
     transform: translateY(-50%);
     cursor: pointer;
-    color: #6b7280;
-    font-size: 1.2rem;
+    color: #9ca3af;
+    font-size: 1.1rem;
     z-index: 10;
-    width: 32px;
-    height: 32px;
+    width: 24px;
+    height: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s ease;
-    background: rgba(255, 255, 255, 0.9);
-    border: 2px solid #e5e7eb;
-    border-radius: 8px;
-    padding: 0;
+    transition: all 0.2s ease;
+    border-radius: 4px;
+    background: transparent;
 }
 
 .password-toggle:hover {
     color: #667eea;
-    border-color: #667eea;
     background: rgba(102, 126, 234, 0.1);
-    transform: translateY(-50%) scale(1.05);
+}
+
+.password-toggle:active {
+    transform: translateY(-50%) scale(0.95);
 }
 
 /* Button Styling */

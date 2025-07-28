@@ -331,7 +331,7 @@ const Auth = {
                             <i class="fas fa-lock"></i>
                             New Password
                         </label>
-                        <div class="input-wrapper password-input-wrapper">
+                        <div class="input-wrapper">
                             <i class="fas fa-lock"></i>
                             <input type="password" id="newPassword" placeholder="Enter new password" required>
                             <span class="password-toggle" onclick="togglePassword('newPassword')">
@@ -344,7 +344,7 @@ const Auth = {
                             <i class="fas fa-check-circle"></i>
                             Confirm Password
                         </label>
-                        <div class="input-wrapper password-input-wrapper">
+                        <div class="input-wrapper">
                             <i class="fas fa-check-circle"></i>
                             <input type="password" id="confirmPassword" placeholder="Confirm new password" required>
                             <span class="password-toggle" onclick="togglePassword('confirmPassword')">
@@ -654,7 +654,7 @@ const Auth = {
                 ${!isFirstLogin ? `
                     <div class="form-group">
                         <label for="currentPassword">Current Password</label>
-                        <div class="input-wrapper password-input-wrapper">
+                        <div class="input-wrapper">
                             <i class="fas fa-lock"></i>
                             <input type="password" id="currentPassword" placeholder="Enter current password" required>
                             <i class="fas fa-eye password-toggle" onclick="togglePassword('currentPassword')"></i>
@@ -664,7 +664,7 @@ const Auth = {
                 
                 <div class="form-group">
                     <label for="changeNewPassword">New Password</label>
-                    <div class="input-wrapper password-input-wrapper">
+                    <div class="input-wrapper">
                         <i class="fas fa-lock"></i>
                         <input type="password" id="changeNewPassword" placeholder="Enter new password" required>
                         <i class="fas fa-eye password-toggle" onclick="togglePassword('changeNewPassword')"></i>
@@ -673,7 +673,7 @@ const Auth = {
                 
                 <div class="form-group">
                     <label for="changeConfirmPassword">Confirm New Password</label>
-                    <div class="input-wrapper password-input-wrapper">
+                    <div class="input-wrapper">
                         <i class="fas fa-lock"></i>
                         <input type="password" id="changeConfirmPassword" placeholder="Confirm new password" required>
                         <i class="fas fa-eye password-toggle" onclick="togglePassword('changeConfirmPassword')"></i>
