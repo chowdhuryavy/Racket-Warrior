@@ -774,7 +774,7 @@ body {
 }
 
 .sidebar-header {
-    padding: 2rem 1.5rem;
+    padding: 1.5rem 1.5rem; /* Reduced top/bottom padding */
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
     display: flex;
     align-items: center;
@@ -786,10 +786,10 @@ body {
 }
 
 .sidebar-logo {
-    width: 60px;
-    height: 60px;
+    width: 50px; /* Slightly smaller */
+    height: 50px;
     border-radius: 50%;
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem; /* Reduced margin */
     border: 3px solid rgba(255, 255, 255, 0.3);
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
     transition: all 0.3s ease;
@@ -811,8 +811,8 @@ body {
 
 .sidebar-header p {
     color: rgba(255, 255, 255, 0.8);
-    font-size: 0.9rem;
-    margin: 0.5rem 0 0 0;
+    font-size: 0.85rem; /* Slightly smaller text */
+    margin: 0.25rem 0 0 0; /* Reduced margin */
     font-weight: 500;
 }
 
@@ -826,7 +826,7 @@ body {
     color: white;
     cursor: pointer;
     transition: all 0.3s ease;
-    margin-top: 1rem;
+    margin-top: 0.75rem; /* Reduced margin */
 }
 
 .sidebar-toggle:hover {
@@ -838,11 +838,11 @@ body {
 /* Sidebar Navigation - Enhanced */
 .sidebar-nav ul {
     list-style: none;
-    padding: 1rem 0;
+    padding: 0.5rem 0; /* Reduced padding for tighter navigation */
 }
 
 .sidebar-nav li {
-    margin-bottom: 0.3rem;
+    margin-bottom: 0.1rem; /* Reduced gap between navigation items */
 }
 
 .sidebar-nav a {
@@ -3027,9 +3027,9 @@ body {
     padding: 0 2rem;
     position: fixed;
     top: 0;
-    left: 0;
+    left: var(--sidebar-width); /* Start after sidebar */
     right: 0;
-    z-index: 1000;
+    z-index: 999; /* Lower than sidebar */
 }
 
 

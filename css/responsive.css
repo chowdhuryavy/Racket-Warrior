@@ -884,6 +884,7 @@
     /* Mobile Header */
     .app-header {
         padding: 0 1rem;
+        left: 0; /* Full width on mobile */
     }
     
     #pageTitle {
