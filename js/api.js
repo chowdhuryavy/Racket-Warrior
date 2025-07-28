@@ -3,11 +3,14 @@
 const API = {
     // Base configuration
     baseURL: CONFIG.API_BASE_URL,
-    timeout: 30000, // 30 seconds
+    timeout: 10000, // 10 seconds (reduced for faster fail-over)
     
     // Request cache for performance
     cache: new Map(),
-    cacheTimeout: 30000, // 30 seconds cache
+    cacheTimeout: 60000, // 60 seconds cache (increased for better performance)
+    
+    // Request queue to prevent duplicate requests
+    requestQueue: new Map(),
     
     // Clear cache for specific data types
     clearCache: function(dataType = null) {
@@ -54,6 +57,12 @@ const API = {
             if (cached && (Date.now() - cached.timestamp) < this.cacheTimeout) {
                 Logger.debug(`API Cache Hit: ${endpoint} (${(performance.now() - startTime).toFixed(2)}ms)`, cached.data);
                 return cached.data;
+            }
+            
+            // Check if request is already in progress
+            if (this.requestQueue.has(cacheKey)) {
+                Logger.debug(`Request already in progress: ${endpoint}`);
+                return await this.requestQueue.get(cacheKey);
             }
         }
         

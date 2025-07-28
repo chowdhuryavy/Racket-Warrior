@@ -276,7 +276,7 @@ const Reports = {
                                 </tr>
                             </thead>
                             <tbody>
-                                ${data.players.map(player => `
+                                ${(data.players || []).map(player => `
                                     <tr>
                                         <td>${player.name}</td>
                                         <td>${player.phone}</td>
@@ -310,7 +310,7 @@ const Reports = {
                                 </tr>
                             </thead>
                             <tbody>
-                                ${data.collections.map(collection => `
+                                ${(data.collections || []).map(collection => `
                                     <tr>
                                         <td>${new Date(collection.date).toLocaleDateString()}</td>
                                         <td>${collection.player}</td>
@@ -347,7 +347,7 @@ const Reports = {
                                 </tr>
                             </thead>
                             <tbody>
-                                ${data.expenses.map(expense => `
+                                ${(data.expenses || []).map(expense => `
                                     <tr>
                                         <td>${new Date(expense.date).toLocaleDateString()}</td>
                                         <td>

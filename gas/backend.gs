@@ -1071,7 +1071,7 @@ function handleAddIncome(params) {
       id,
       date,
       playerId,
-      player.Name,
+      player.name || player.Name, // Handle both old and new formats
       parseFloat(amount),
       description || '',
       now,

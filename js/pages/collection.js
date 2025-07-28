@@ -274,7 +274,8 @@ const Collection = {
             playerId: formData.get('playerId'),
             amount: parseFloat(formData.get('amount')),
             month: formData.get('month'),
-            description: formData.get('description') || ''
+            description: formData.get('description') || '',
+            token: StorageUtils.get(CONFIG.STORAGE_KEYS.AUTH_TOKEN)
         };
         
         // Validation
