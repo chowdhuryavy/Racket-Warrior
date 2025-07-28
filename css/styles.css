@@ -1,3 +1,6 @@
+/* Import redesigned admin styles */
+@import url('./admin-new.css');
+
 /* CSS Reset and Variables */
 :root {
     --primary-color: #1e40af;

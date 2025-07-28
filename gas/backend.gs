@@ -1980,7 +1980,7 @@ function sendOTPEmail(email, name, otp) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OTP for Password Reset</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
         * {
             margin: 0;
@@ -1989,25 +1989,26 @@ function sendOTPEmail(email, name, otp) {
         }
         
         body {
-            font-family: 'Poppins', Arial, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             padding: 20px;
             min-height: 100vh;
+            line-height: 1.6;
         }
         
         .email-container {
             max-width: 600px;
             margin: 0 auto;
-            background: white;
-            border-radius: 20px;
+            background: #ffffff;
+            border-radius: 24px;
             overflow: hidden;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-            animation: slideIn 0.8s ease-out;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.2), 0 0 0 1px rgba(255,255,255,0.1);
+            animation: slideIn 1s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
         @keyframes slideIn {
             from {
-                transform: translateY(30px);
+                transform: translateY(40px);
                 opacity: 0;
             }
             to {
@@ -2018,7 +2019,7 @@ function sendOTPEmail(email, name, otp) {
         
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 40px 30px;
+            padding: 50px 40px;
             text-align: center;
             color: white;
             position: relative;
@@ -2030,72 +2031,88 @@ function sendOTPEmail(email, name, otp) {
             position: absolute;
             top: -50%;
             right: -50%;
-            width: 200px;
-            height: 200px;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
             border-radius: 50%;
-            animation: float 6s ease-in-out infinite;
+            animation: float 8s ease-in-out infinite;
         }
         
         @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(180deg); }
+            0%, 100% { transform: translateY(0px) rotate(0deg) scale(1); }
+            33% { transform: translateY(-15px) rotate(120deg) scale(1.05); }
+            66% { transform: translateY(10px) rotate(240deg) scale(0.95); }
         }
         
         .logo {
-            width: 80px;
-            height: 80px;
+            width: 100px;
+            height: 100px;
             border-radius: 50%;
-            margin: 0 auto 20px;
-            animation: pulse 2s ease-in-out infinite;
+            margin: 0 auto 25px;
+            animation: logoPulse 3s ease-in-out infinite;
+            border: 4px solid rgba(255,255,255,0.3);
+            position: relative;
+            z-index: 2;
         }
         
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+        @keyframes logoPulse {
+            0%, 100% { 
+                transform: scale(1) rotate(0deg); 
+                box-shadow: 0 0 0 0 rgba(255,255,255,0.4);
+            }
+            50% { 
+                transform: scale(1.08) rotate(5deg); 
+                box-shadow: 0 0 0 15px rgba(255,255,255,0);
+            }
         }
         
         .header h1 {
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 10px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            position: relative;
+            z-index: 2;
         }
         
         .header p {
-            font-size: 16px;
+            font-size: 18px;
             opacity: 0.9;
-            font-weight: 300;
+            font-weight: 400;
+            position: relative;
+            z-index: 2;
         }
         
         .content {
-            padding: 40px 30px;
-            background: white;
+            padding: 50px 40px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
         }
         
         .greeting {
-            font-size: 20px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 20px;
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 25px;
+            text-align: center;
         }
         
         .message {
-            font-size: 16px;
-            line-height: 1.6;
-            color: #666;
-            margin-bottom: 30px;
+            font-size: 17px;
+            line-height: 1.7;
+            color: #4a5568;
+            margin-bottom: 35px;
+            text-align: center;
         }
         
         .otp-container {
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            border-radius: 16px;
-            padding: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 40px;
             text-align: center;
-            margin: 30px 0;
-            border: 2px solid #e5e7eb;
+            margin: 40px 0;
             position: relative;
             overflow: hidden;
+            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3);
         }
         
         .otp-container::before {
@@ -2105,8 +2122,8 @@ function sendOTPEmail(email, name, otp) {
             left: -50%;
             width: 200%;
             height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(102, 126, 234, 0.05), transparent);
-            animation: shimmer 3s ease-in-out infinite;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            animation: shimmer 4s ease-in-out infinite;
         }
         
         @keyframes shimmer {
@@ -2115,106 +2132,134 @@ function sendOTPEmail(email, name, otp) {
         }
         
         .otp-label {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 600;
-            color: #667eea;
-            margin-bottom: 15px;
+            color: #ffffff;
+            margin-bottom: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-        }
-        
-        .otp-code {
-            font-size: 36px;
-            font-weight: 700;
-            color: #333;
-            letter-spacing: 8px;
-            margin-bottom: 15px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            gap: 12px;
             position: relative;
             z-index: 2;
         }
         
+        .otp-code {
+            font-size: 48px;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: 12px;
+            margin-bottom: 20px;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            position: relative;
+            z-index: 2;
+            font-family: 'Courier New', monospace;
+            background: rgba(255,255,255,0.1);
+            padding: 20px 30px;
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+        
         .otp-validity {
-            font-size: 14px;
-            color: #ef4444;
+            font-size: 16px;
+            color: #ffffff;
             font-weight: 500;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 10px;
             position: relative;
             z-index: 2;
+            opacity: 0.9;
         }
         
         .warning {
             background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-            border-left: 4px solid #f59e0b;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
+            border-left: 6px solid #f59e0b;
+            padding: 25px;
+            border-radius: 16px;
+            margin: 30px 0;
+            box-shadow: 0 10px 20px rgba(245, 158, 11, 0.2);
         }
         
         .warning-text {
-            font-size: 14px;
+            font-size: 16px;
             color: #92400e;
-            font-weight: 500;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            line-height: 1.5;
+        }
+        
+        .security-tips {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            border-radius: 16px;
+            padding: 30px;
+            margin-top: 30px;
+            border: 2px solid #93c5fd;
+        }
+        
+        .tips-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1e40af;
+            margin-bottom: 15px;
             display: flex;
             align-items: center;
             gap: 10px;
         }
         
+        .tips-list {
+            font-size: 15px;
+            color: #1e40af;
+            line-height: 1.7;
+            font-weight: 500;
+        }
+        
         .footer {
-            background: #f8fafc;
-            padding: 30px;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            padding: 40px;
             text-align: center;
-            border-top: 1px solid #e5e7eb;
+            border-top: 2px solid #e5e7eb;
         }
         
         .signature {
-            font-size: 16px;
+            font-size: 18px;
+            color: #4a5568;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        
+        .admin-text {
+            font-size: 20px;
             color: #667eea;
-            font-weight: 600;
-            margin-bottom: 5px;
+            font-weight: 700;
+            margin-bottom: 15px;
         }
         
         .company {
-            font-size: 18px;
-            font-weight: 700;
-            color: #333;
-            margin-bottom: 20px;
+            font-size: 24px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 25px;
         }
         
-        .icon {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            background-size: contain;
-            vertical-align: middle;
+        .footer-logo {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            animation: logoSpin 10s linear infinite;
+            border: 3px solid #667eea;
         }
         
-        .security-tips {
-            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-            border-radius: 12px;
-            padding: 20px;
-            margin-top: 20px;
-        }
-        
-        .tips-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #1e40af;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .tips-list {
-            font-size: 14px;
-            color: #1e40af;
-            line-height: 1.5;
+        @keyframes logoSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -2223,7 +2268,7 @@ function sendOTPEmail(email, name, otp) {
         <div class="header">
             <img src="https://i.imgur.com/04MGPFl.png" alt="Racket Warrior" class="logo">
             <h1>🏸 Racket Warrior</h1>
-            <p>Badminton Group Management</p>
+            <p>Badminton Group Management System</p>
         </div>
         
         <div class="content">
@@ -2237,7 +2282,7 @@ function sendOTPEmail(email, name, otp) {
             
             <div class="otp-container">
                 <div class="otp-label">
-                    🔐 Your OTP Code
+                    🔐 OTP Code
                 </div>
                 <div class="otp-code">${otp}</div>
                 <div class="otp-validity">
@@ -2257,17 +2302,18 @@ function sendOTPEmail(email, name, otp) {
                 </div>
                 <div class="tips-list">
                     • Never share your OTP with anyone<br>
-                    • Our team will never ask for your OTP<br>
-                    • Use this OTP only on the official Racket Warrior website
+                    • Our team will never ask for your OTP via phone or email<br>
+                    • Use this OTP only on the official Racket Warrior platform<br>
+                    • Report suspicious activity immediately
                 </div>
             </div>
         </div>
         
         <div class="footer">
             <div class="signature">Stay secure,</div>
-            <div class="signature">Admin</div>
+            <div class="admin-text">Admin</div>
             <div class="company">Racket Warrior</div>
-            <img src="https://i.imgur.com/04MGPFl.png" alt="Racket Warrior Logo" style="width: 40px; height: 40px; border-radius: 50%;">
+            <img src="https://i.imgur.com/04MGPFl.png" alt="Racket Warrior Logo" class="footer-logo">
         </div>
     </div>
 </body>
@@ -2389,7 +2435,7 @@ function sendWelcomeEmail(email, name, tempPassword) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Welcome! RACKET WARRIOR</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
         
         * {
             margin: 0;
@@ -2398,79 +2444,115 @@ function sendWelcomeEmail(email, name, tempPassword) {
         }
         
         body {
-            font-family: 'Poppins', Arial, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             padding: 20px;
             min-height: 100vh;
+            line-height: 1.6;
         }
         
         .email-container {
-            max-width: 600px;
+            max-width: 650px;
             margin: 0 auto;
-            background: white;
-            border-radius: 20px;
+            background: #ffffff;
+            border-radius: 28px;
             overflow: hidden;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-            animation: slideIn 0.8s ease-out;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.1);
+            animation: slideIn 1.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
         @keyframes slideIn {
             from {
-                transform: translateY(30px);
+                transform: translateY(50px) scale(0.95);
                 opacity: 0;
             }
             to {
-                transform: translateY(0);
+                transform: translateY(0) scale(1);
                 opacity: 1;
             }
         }
         
-        .content {
-            padding: 50px 40px;
-            background: white;
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            padding: 60px 40px 40px;
             text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .welcome-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3);
+            position: relative;
+            z-index: 2;
         }
         
         .main-title {
-            font-size: 32px;
-            font-weight: 800;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 30px;
-            text-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            animation: colorShift 3s ease-in-out infinite alternate;
+            font-size: 42px;
+            font-weight: 900;
+            margin-bottom: 15px;
+            text-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 2;
+            letter-spacing: -1px;
         }
         
-        @keyframes colorShift {
-            0% {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-            }
-            100% {
-                background: linear-gradient(135deg, #f093fb 0%, #667eea 50%, #764ba2 100%);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-            }
+        .header-subtitle {
+            font-size: 18px;
+            opacity: 0.9;
+            font-weight: 400;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .content {
+            padding: 60px 40px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            text-align: center;
         }
         
         .subtitle {
-            font-size: 18px;
-            color: #333;
-            margin-bottom: 40px;
-            line-height: 1.6;
+            font-size: 20px;
+            color: #374151;
+            margin-bottom: 50px;
+            line-height: 1.7;
+            font-weight: 500;
         }
         
         .credentials-section {
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            border-radius: 16px;
-            padding: 30px;
-            margin: 30px 0;
-            border: 2px solid #e5e7eb;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 24px;
+            padding: 40px;
+            margin: 40px 0;
             position: relative;
             overflow: hidden;
+            box-shadow: 0 25px 50px rgba(102, 126, 234, 0.3);
         }
         
         .credentials-section::before {
@@ -2480,8 +2562,8 @@ function sendWelcomeEmail(email, name, tempPassword) {
             left: -50%;
             width: 200%;
             height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(102, 126, 234, 0.05), transparent);
-            animation: shimmer 3s ease-in-out infinite;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            animation: shimmer 4s ease-in-out infinite;
         }
         
         @keyframes shimmer {
@@ -2489,138 +2571,229 @@ function sendWelcomeEmail(email, name, tempPassword) {
             50% { transform: translateX(100%) translateY(100%) rotate(30deg); }
         }
         
-        .credential-item {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            margin: 20px 0;
-            font-size: 18px;
+        .credentials-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 30px;
             position: relative;
             z-index: 2;
         }
         
+        .credential-item {
+            background: rgba(255,255,255,0.15);
+            border-radius: 16px;
+            padding: 25px;
+            margin: 20px 0;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            position: relative;
+            z-index: 2;
+        }
+        
+        .credential-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        
         .credential-icon {
-            font-size: 20px;
+            font-size: 24px;
         }
         
         .credential-label {
             font-weight: 600;
-            color: #374151;
+            color: #ffffff;
+            font-size: 18px;
         }
         
         .credential-value {
-            font-weight: 700;
-            color: #1f2937;
+            font-weight: 800;
+            color: #ffffff;
             font-family: 'Courier New', monospace;
-            background: white;
-            padding: 8px 12px;
-            border-radius: 6px;
-            border: 1px solid #d1d5db;
+            font-size: 20px;
+            background: rgba(255,255,255,0.1);
+            padding: 15px 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.2);
+            letter-spacing: 1px;
         }
         
         .warning-section {
-            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
-            border: 2px solid #fca5a5;
-            border-radius: 12px;
-            padding: 25px;
-            margin: 30px 0;
-            animation: pulse 2s ease-in-out infinite;
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            border: 3px solid #f87171;
+            border-radius: 20px;
+            padding: 30px;
+            margin: 40px 0;
+            position: relative;
+            animation: warningPulse 3s ease-in-out infinite;
         }
         
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
-            50% { transform: scale(1.02); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+        @keyframes warningPulse {
+            0%, 100% { 
+                transform: scale(1); 
+                box-shadow: 0 0 0 0 rgba(248, 113, 113, 0.4);
+            }
+            50% { 
+                transform: scale(1.02); 
+                box-shadow: 0 0 0 15px rgba(248, 113, 113, 0);
+            }
+        }
+        
+        .warning-icon {
+            font-size: 32px;
+            margin-bottom: 15px;
         }
         
         .warning-text {
-            font-size: 16px;
-            font-weight: 600;
+            font-size: 18px;
+            font-weight: 700;
             color: #dc2626;
+            line-height: 1.5;
+        }
+        
+        .features-section {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-radius: 20px;
+            padding: 35px;
+            margin: 40px 0;
+            border: 2px solid #7dd3fc;
+        }
+        
+        .features-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #0369a1;
+            margin-bottom: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
         }
         
-        .support-text {
+        .features-list {
+            color: #0369a1;
             font-size: 16px;
+            line-height: 1.8;
+            font-weight: 500;
+            text-align: left;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        .support-text {
+            font-size: 17px;
             color: #6b7280;
-            margin: 30px 0;
-            line-height: 1.6;
+            margin: 40px 0;
+            line-height: 1.7;
+            font-weight: 500;
         }
         
         .signature-section {
-            margin-top: 40px;
-            padding-top: 30px;
-            border-top: 2px solid #e5e7eb;
+            margin-top: 50px;
+            padding-top: 40px;
+            border-top: 3px solid #e5e7eb;
         }
         
         .signature-text {
-            font-size: 16px;
+            font-size: 18px;
             color: #374151;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
+            font-weight: 500;
         }
         
         .admin-name {
-            font-size: 18px;
-            font-weight: 700;
+            font-size: 22px;
+            font-weight: 800;
             color: #667eea;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
         }
         
         .company-name {
-            font-size: 20px;
-            font-weight: 800;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-size: 28px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            margin-bottom: 25px;
+            margin-bottom: 30px;
+            letter-spacing: -1px;
         }
         
         .logo {
-            width: 60px;
-            height: 60px;
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
-            animation: logoFloat 3s ease-in-out infinite;
+            animation: logoFloat 4s ease-in-out infinite;
+            border: 4px solid #667eea;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
         }
         
         @keyframes logoFloat {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-5px) rotate(5deg); }
+            0%, 100% { 
+                transform: translateY(0px) rotate(0deg) scale(1); 
+            }
+            50% { 
+                transform: translateY(-8px) rotate(10deg) scale(1.05); 
+            }
         }
     </style>
 </head>
 <body>
     <div class="email-container">
-        <div class="content">
+        <div class="header">
+            <div class="welcome-badge">🎉 Account Created</div>
             <h1 class="main-title">Welcome to Racket Warrior!</h1>
-            
-            <p class="subtitle">Your account has been successfully created.</p>
+            <p class="header-subtitle">Your Badminton Journey Begins Here</p>
+        </div>
+        
+        <div class="content">
+            <p class="subtitle">Your account has been successfully created and you're ready to start managing your badminton group!</p>
             
             <div class="credentials-section">
+                <div class="credentials-title">🔐 Your Login Credentials</div>
+                
                 <div class="credential-item">
-                    <span class="credential-icon">👤</span>
-                    <span class="credential-label">Username:</span>
-                    <span class="credential-value">${email}</span>
+                    <div class="credential-header">
+                        <span class="credential-icon">👤</span>
+                        <span class="credential-label">Username:</span>
+                    </div>
+                    <div class="credential-value">${email}</div>
                 </div>
                 
                 <div class="credential-item">
-                    <span class="credential-icon">🔐</span>
-                    <span class="credential-label">Temporary Password:</span>
-                    <span class="credential-value">${tempPassword}</span>
+                    <div class="credential-header">
+                        <span class="credential-icon">🔐</span>
+                        <span class="credential-label">Temporary Password:</span>
+                    </div>
+                    <div class="credential-value">${tempPassword}</div>
                 </div>
             </div>
             
             <div class="warning-section">
+                <div class="warning-icon">⚠️</div>
                 <div class="warning-text">
-                    ⚠️ Please change your password after your first login for security purposes.
+                    Please change your password after your first login for security purposes.
+                </div>
+            </div>
+            
+            <div class="features-section">
+                <div class="features-title">
+                    🏸 What You Can Do
+                </div>
+                <div class="features-list">
+                    • Manage player registrations and status<br>
+                    • Track monthly collections and expenses<br>
+                    • Generate detailed financial reports<br>
+                    • Monitor group activities and logs<br>
+                    • Access role-based features and permissions
                 </div>
             </div>
             
             <p class="support-text">
-                If you need any help, feel free to reach out to our support team.
+                If you need any help getting started or have questions about using the platform, feel free to reach out to our support team.
             </p>
             
             <div class="signature-section">

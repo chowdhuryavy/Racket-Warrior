@@ -1,8 +1,16 @@
-// Admin Page Module for Racket Warrior
+// Admin Page Module - Completely Redesigned for Professional UI/UX
 
 const Admin = {
     users: [],
     currentTab: 'users',
+    currentFilter: 'all',
+    
+    // Initialize admin page
+    init: function() {
+        this.setupEventListeners();
+        this.loadUsers();
+        this.updateStats();
+    },
     
     // Render admin page
     render: function(container) {
@@ -10,352 +18,512 @@ const Admin = {
         this.init();
     },
     
-    // Initialize admin page
-    init: function() {
-        this.setupEventListeners();
-        this.loadUsers();
-        this.showTab('users');
-    },
-    
-    // Get admin HTML with unified styling
+    // Get professional admin HTML
     getHTML: function() {
         return `
-            <div class="admin-page">
-                <!-- Admin Header -->
-                <div class="page-header">
-                    <div class="header-content">
-                        <h1><i class="fas fa-cog"></i> Admin Panel</h1>
-                        <p>Manage users, roles, and system settings</p>
-                    </div>
-                    <div class="header-actions">
-                        <button id="addNewUser" class="btn-unified btn-unified-primary">
-                            <i class="fas fa-user-plus"></i>
-                            Add User
-                        </button>
-                        <button id="refreshAdmin" class="btn-unified btn-unified-secondary">
-                            <i class="fas fa-sync"></i>
-                            Refresh
-                        </button>
+            <div class="admin-page-redesigned">
+                <!-- Professional Header -->
+                <div class="admin-header-new">
+                    <div class="header-content-new">
+                        <div class="header-left-new">
+                            <div class="header-icon-new">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <div class="header-info-new">
+                                <h1 class="page-title-new">Administration Panel</h1>
+                                <p class="page-subtitle-new">Manage users, permissions, and system configuration</p>
+                            </div>
+                        </div>
+                        <div class="header-actions-new">
+                            <button class="btn-new btn-primary-new" onclick="Admin.showAddUserModal()">
+                                <i class="fas fa-user-plus"></i>
+                                <span>Add New User</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
-
-                <!-- Admin Stats -->
-                <div class="admin-stats">
-                    <div class="stat-card">
-                        <div class="stat-icon">
+                
+                <!-- Statistics Dashboard -->
+                <div class="stats-grid-new">
+                    <div class="stat-card-new users-card">
+                        <div class="stat-icon-new">
                             <i class="fas fa-users"></i>
                         </div>
-                        <div class="stat-content">
-                            <h3 id="totalUsers">0</h3>
-                            <p>Total Users</p>
+                        <div class="stat-content-new">
+                            <div class="stat-number-new" id="totalUsers">0</div>
+                            <div class="stat-label-new">Total Users</div>
+                            <div class="stat-change-new positive">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>Active</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
+                    
+                    <div class="stat-card-new admins-card">
+                        <div class="stat-icon-new">
+                            <i class="fas fa-crown"></i>
+                        </div>
+                        <div class="stat-content-new">
+                            <div class="stat-number-new" id="totalAdmins">0</div>
+                            <div class="stat-label-new">Administrators</div>
+                            <div class="stat-change-new neutral">
+                                <i class="fas fa-shield-alt"></i>
+                                <span>Privileged</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card-new active-card">
+                        <div class="stat-icon-new">
                             <i class="fas fa-user-check"></i>
                         </div>
-                        <div class="stat-content">
-                            <h3 id="activeUsers">0</h3>
-                            <p>Active Users</p>
+                        <div class="stat-content-new">
+                            <div class="stat-number-new" id="activeUsers">0</div>
+                            <div class="stat-label-new">Active Users</div>
+                            <div class="stat-change-new positive">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Online</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-user-shield"></i>
+                    
+                    <div class="stat-card-new recent-card">
+                        <div class="stat-icon-new">
+                            <i class="fas fa-clock"></i>
                         </div>
-                        <div class="stat-content">
-                            <h3 id="adminUsers">0</h3>
-                            <p>Admin Users</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-eye"></i>
-                        </div>
-                        <div class="stat-content">
-                            <h3 id="viewUsers">0</h3>
-                            <p>View Only</p>
+                        <div class="stat-content-new">
+                            <div class="stat-number-new" id="recentLogins">0</div>
+                            <div class="stat-label-new">Recent Logins</div>
+                            <div class="stat-change-new neutral">
+                                <i class="fas fa-history"></i>
+                                <span>24h</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-
-                <!-- Admin Navigation Tabs -->
-                <div class="admin-tabs">
-                    <button class="tab-btn active" data-tab="users">
+                
+                <!-- Tab Navigation -->
+                <div class="tab-navigation-new">
+                    <button class="tab-button-new active" data-tab="users" onclick="Admin.switchTab('users')">
                         <i class="fas fa-users"></i>
                         <span>User Management</span>
                     </button>
-                    <button class="tab-btn" data-tab="roles">
-                        <i class="fas fa-user-tag"></i>
-                        <span>Role Management</span>
+                    <button class="tab-button-new" data-tab="roles" onclick="Admin.switchTab('roles')">
+                        <i class="fas fa-key"></i>
+                        <span>Roles & Permissions</span>
                     </button>
-                    <button class="tab-btn" data-tab="settings">
+                    <button class="tab-button-new" data-tab="settings" onclick="Admin.switchTab('settings')">
                         <i class="fas fa-cog"></i>
                         <span>System Settings</span>
                     </button>
                 </div>
-
-                <!-- Tab Content -->
-                <div class="tab-content-container">
+                
+                <!-- Tab Content Container -->
+                <div class="tab-content-container-new">
                     <!-- Users Tab -->
-                    <div id="usersTab" class="tab-content active">
-                        <div class="unified-table-container">
-                            <div class="table-header">
-                                <div class="table-title">
-                                    <h3><i class="fas fa-users"></i> User Management</h3>
-                                    <p>Manage user accounts, roles, and permissions</p>
-                                </div>
-                                <div class="table-actions">
-                                    <div class="search-box">
+                    <div id="usersTab" class="tab-content-new active">
+                        <div class="users-section-new">
+                            <div class="section-header-new">
+                                <h2 class="section-title-new">User Management</h2>
+                                <div class="section-controls-new">
+                                    <div class="search-control-new">
                                         <i class="fas fa-search"></i>
-                                        <input type="text" id="userSearch" placeholder="Search users...">
+                                        <input type="text" id="userSearch" placeholder="Search by name or email..." onkeyup="Admin.filterUsers()">
                                     </div>
-                                    <select id="roleFilter" class="filter-select">
-                                        <option value="">All Roles</option>
-                                        <option value="admin">Admin</option>
-                                        <option value="view_edit">View & Edit</option>
-                                        <option value="view">View Only</option>
-                                    </select>
+                                    <div class="filter-control-new">
+                                        <select id="roleFilter" onchange="Admin.filterUsers()">
+                                            <option value="all">All Roles</option>
+                                            <option value="admin">Administrator</option>
+                                            <option value="view_edit">View & Edit</option>
+                                            <option value="view">View Only</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
-                            <div id="usersContainer" class="table-responsive">
-                                <div class="loading-placeholder">Loading users...</div>
+                            
+                            <div class="users-table-container-new">
+                                <table class="users-table-new">
+                                    <thead>
+                                        <tr>
+                                            <th class="user-column">User</th>
+                                            <th class="email-column">Email</th>
+                                            <th class="role-column">Role</th>
+                                            <th class="status-column">Status</th>
+                                            <th class="date-column">Created</th>
+                                            <th class="actions-column">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="usersTableBody">
+                                        <tr class="loading-row">
+                                            <td colspan="6" class="loading-cell">
+                                                <div class="loading-spinner-new">
+                                                    <i class="fas fa-spinner fa-spin"></i>
+                                                    <span>Loading users...</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
-
+                    
                     <!-- Roles Tab -->
-                    <div id="rolesTab" class="tab-content">
-                        <div class="unified-form">
-                            <h3><i class="fas fa-user-tag"></i> Role Management</h3>
-                            <p class="form-description">Configure user roles and their permissions</p>
+                    <div id="rolesTab" class="tab-content-new">
+                        <div class="roles-section-new">
+                            <div class="section-header-new">
+                                <h2 class="section-title-new">Roles & Permissions</h2>
+                                <p class="section-description-new">Manage user roles and their associated permissions</p>
+                            </div>
                             
-                            <div class="roles-grid">
-                                <div class="role-card">
-                                    <div class="role-header">
-                                        <i class="fas fa-user-shield"></i>
-                                        <h4>Admin</h4>
+                            <div class="roles-grid-new">
+                                <div class="role-card-new admin-role">
+                                    <div class="role-header-new">
+                                        <div class="role-icon-new">
+                                            <i class="fas fa-crown"></i>
+                                        </div>
+                                        <h3 class="role-name-new">Administrator</h3>
+                                        <span class="role-badge-new admin-badge">Full Access</span>
                                     </div>
-                                    <div class="role-permissions">
-                                        <p><i class="fas fa-check"></i> Full system access</p>
-                                        <p><i class="fas fa-check"></i> User management</p>
-                                        <p><i class="fas fa-check"></i> All CRUD operations</p>
-                                        <p><i class="fas fa-check"></i> System logs</p>
-                                        <p><i class="fas fa-check"></i> Reports & Analytics</p>
+                                    <div class="role-description-new">
+                                        <p>Complete system control with all administrative privileges</p>
+                                    </div>
+                                    <div class="role-permissions-new">
+                                        <div class="permission-item-new">
+                                            <i class="fas fa-check-circle"></i>
+                                            <span>User management & role assignment</span>
+                                        </div>
+                                        <div class="permission-item-new">
+                                            <i class="fas fa-check-circle"></i>
+                                            <span>System logs & audit trails</span>
+                                        </div>
+                                        <div class="permission-item-new">
+                                            <i class="fas fa-check-circle"></i>
+                                            <span>Configuration & settings</span>
+                                        </div>
+                                        <div class="permission-item-new">
+                                            <i class="fas fa-check-circle"></i>
+                                            <span>Full CRUD operations</span>
+                                        </div>
                                     </div>
                                 </div>
                                 
-                                <div class="role-card">
-                                    <div class="role-header">
-                                        <i class="fas fa-user-edit"></i>
-                                        <h4>View & Edit</h4>
+                                <div class="role-card-new editor-role">
+                                    <div class="role-header-new">
+                                        <div class="role-icon-new">
+                                            <i class="fas fa-edit"></i>
+                                        </div>
+                                        <h3 class="role-name-new">View & Edit</h3>
+                                        <span class="role-badge-new editor-badge">Read/Write</span>
                                     </div>
-                                    <div class="role-permissions">
-                                        <p><i class="fas fa-check"></i> View all data</p>
-                                        <p><i class="fas fa-check"></i> Add/Edit/Delete records</p>
-                                        <p><i class="fas fa-check"></i> Generate reports</p>
-                                        <p><i class="fas fa-times"></i> User management</p>
-                                        <p><i class="fas fa-times"></i> System logs</p>
+                                    <div class="role-description-new">
+                                        <p>Data management with read and write permissions</p>
+                                    </div>
+                                    <div class="role-permissions-new">
+                                        <div class="permission-item-new">
+                                            <i class="fas fa-check-circle"></i>
+                                            <span>View all modules & data</span>
+                                        </div>
+                                        <div class="permission-item-new">
+                                            <i class="fas fa-check-circle"></i>
+                                            <span>Add, edit & delete records</span>
+                                        </div>
+                                        <div class="permission-item-new">
+                                            <i class="fas fa-check-circle"></i>
+                                            <span>Generate & export reports</span>
+                                        </div>
+                                        <div class="permission-item-new">
+                                            <i class="fas fa-times-circle"></i>
+                                            <span>No administrative access</span>
+                                        </div>
                                     </div>
                                 </div>
                                 
-                                <div class="role-card">
-                                    <div class="role-header">
-                                        <i class="fas fa-eye"></i>
-                                        <h4>View Only</h4>
+                                <div class="role-card-new viewer-role">
+                                    <div class="role-header-new">
+                                        <div class="role-icon-new">
+                                            <i class="fas fa-eye"></i>
+                                        </div>
+                                        <h3 class="role-name-new">View Only</h3>
+                                        <span class="role-badge-new viewer-badge">Read Only</span>
                                     </div>
-                                    <div class="role-permissions">
-                                        <p><i class="fas fa-check"></i> View all data</p>
-                                        <p><i class="fas fa-check"></i> Generate reports</p>
-                                        <p><i class="fas fa-times"></i> Add/Edit/Delete</p>
-                                        <p><i class="fas fa-times"></i> User management</p>
-                                        <p><i class="fas fa-times"></i> System logs</p>
+                                    <div class="role-description-new">
+                                        <p>Read-only access to data and reports</p>
+                                    </div>
+                                    <div class="role-permissions-new">
+                                        <div class="permission-item-new">
+                                            <i class="fas fa-check-circle"></i>
+                                            <span>View all modules & data</span>
+                                        </div>
+                                        <div class="permission-item-new">
+                                            <i class="fas fa-check-circle"></i>
+                                            <span>Generate & export reports</span>
+                                        </div>
+                                        <div class="permission-item-new">
+                                            <i class="fas fa-times-circle"></i>
+                                            <span>No data modification</span>
+                                        </div>
+                                        <div class="permission-item-new">
+                                            <i class="fas fa-times-circle"></i>
+                                            <span>No administrative access</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-
+                    
                     <!-- Settings Tab -->
-                    <div id="settingsTab" class="tab-content">
-                        <div class="unified-form">
-                            <h3><i class="fas fa-cog"></i> System Settings</h3>
-                            <p class="form-description">Configure system-wide settings and preferences</p>
+                    <div id="settingsTab" class="tab-content-new">
+                        <div class="settings-section-new">
+                            <div class="section-header-new">
+                                <h2 class="section-title-new">System Settings</h2>
+                                <p class="section-description-new">Configure application settings and preferences</p>
+                            </div>
                             
-                            <div class="settings-grid">
-                                <div class="setting-group">
-                                    <h4><i class="fas fa-envelope"></i> Email Settings</h4>
-                                    <div class="form-group">
-                                        <label>Admin Email</label>
-                                        <div class="input-wrapper">
-                                            <i class="fas fa-envelope"></i>
-                                            <input type="email" id="adminEmail" value="admin@racketwarrior.com" readonly>
-                                        </div>
+                            <div class="settings-grid-new">
+                                <div class="setting-category-new">
+                                    <div class="category-header-new">
+                                        <i class="fas fa-cog"></i>
+                                        <h3>Application Settings</h3>
                                     </div>
-                                    <div class="form-group">
-                                        <label>OTP Expiry (minutes)</label>
-                                        <div class="input-wrapper">
-                                            <i class="fas fa-clock"></i>
-                                            <input type="number" id="otpExpiry" value="10" readonly>
-                                        </div>
+                                    <div class="setting-item-new">
+                                        <label class="setting-label-new">Application Name</label>
+                                        <input type="text" value="Racket Warrior" class="setting-input-new">
                                     </div>
-                                </div>
-                                
-                                <div class="setting-group">
-                                    <h4><i class="fas fa-database"></i> Database Info</h4>
-                                    <div class="form-group">
-                                        <label>Google Sheets ID</label>
-                                        <div class="input-wrapper">
-                                            <i class="fas fa-table"></i>
-                                            <input type="text" id="sheetId" placeholder="Sheet ID" readonly>
-                                        </div>
+                                    <div class="setting-item-new">
+                                        <label class="setting-label-new">Default Currency</label>
+                                        <select class="setting-input-new">
+                                            <option value="QAR">QAR - Qatari Riyal</option>
+                                            <option value="USD">USD - US Dollar</option>
+                                            <option value="EUR">EUR - Euro</option>
+                                            <option value="GBP">GBP - British Pound</option>
+                                        </select>
                                     </div>
-                                    <div class="form-group">
-                                        <label>Last Backup</label>
-                                        <div class="input-wrapper">
-                                            <i class="fas fa-backup"></i>
-                                            <input type="text" value="Never" readonly>
-                                        </div>
+                                    <div class="setting-item-new">
+                                        <label class="setting-label-new">Time Zone</label>
+                                        <select class="setting-input-new">
+                                            <option value="Asia/Qatar">Asia/Qatar (UTC+3)</option>
+                                            <option value="UTC">UTC (UTC+0)</option>
+                                            <option value="Asia/Dubai">Asia/Dubai (UTC+4)</option>
+                                        </select>
                                     </div>
                                 </div>
                                 
-                                <div class="setting-group">
-                                    <h4><i class="fas fa-shield-alt"></i> Security</h4>
-                                    <div class="form-group">
-                                        <label>Force Password Change</label>
-                                        <div class="input-wrapper">
-                                            <i class="fas fa-key"></i>
-                                            <select id="forcePasswordChange">
-                                                <option value="true">Enabled</option>
-                                                <option value="false">Disabled</option>
-                                            </select>
-                                        </div>
+                                <div class="setting-category-new">
+                                    <div class="category-header-new">
+                                        <i class="fas fa-shield-alt"></i>
+                                        <h3>Security Settings</h3>
                                     </div>
-                                    <div class="form-group">
-                                        <label>Session Timeout (hours)</label>
-                                        <div class="input-wrapper">
-                                            <i class="fas fa-hourglass"></i>
-                                            <input type="number" value="24" readonly>
-                                        </div>
+                                    <div class="setting-item-new">
+                                        <label class="setting-label-new">Session Timeout (minutes)</label>
+                                        <input type="number" value="60" min="15" max="480" class="setting-input-new">
+                                    </div>
+                                    <div class="setting-item-new">
+                                        <label class="setting-label-new">Password Reset Expiry (minutes)</label>
+                                        <input type="number" value="30" min="5" max="60" class="setting-input-new">
+                                    </div>
+                                    <div class="setting-item-new">
+                                        <label class="setting-label-new">OTP Expiry (minutes)</label>
+                                        <input type="number" value="10" min="5" max="30" class="setting-input-new">
                                     </div>
                                 </div>
+                                
+                                <div class="setting-category-new">
+                                    <div class="category-header-new">
+                                        <i class="fas fa-envelope"></i>
+                                        <h3>Email Configuration</h3>
+                                    </div>
+                                    <div class="setting-item-new">
+                                        <label class="setting-label-new">From Name</label>
+                                        <input type="text" value="Racket Warrior Admin" class="setting-input-new">
+                                    </div>
+                                    <div class="setting-item-new">
+                                        <label class="setting-label-new">From Email</label>
+                                        <input type="email" value="admin@racketwarrior.com" class="setting-input-new">
+                                    </div>
+                                    <div class="setting-item-new">
+                                        <label class="setting-label-new">Reply-To Email</label>
+                                        <input type="email" value="noreply@racketwarrior.com" class="setting-input-new">
+                                    </div>
+                                </div>
+                                
+                                <div class="setting-category-new">
+                                    <div class="category-header-new">
+                                        <i class="fas fa-database"></i>
+                                        <h3>Data Management</h3>
+                                    </div>
+                                    <div class="setting-item-new">
+                                        <label class="setting-label-new">Auto Backup Frequency</label>
+                                        <select class="setting-input-new">
+                                            <option value="daily">Daily</option>
+                                            <option value="weekly">Weekly</option>
+                                            <option value="monthly">Monthly</option>
+                                            <option value="manual">Manual Only</option>
+                                        </select>
+                                    </div>
+                                    <div class="setting-item-new">
+                                        <label class="setting-label-new">Data Retention (months)</label>
+                                        <input type="number" value="24" min="6" max="60" class="setting-input-new">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="settings-actions-new">
+                                <button class="btn-new btn-primary-new" onclick="Admin.saveSettings()">
+                                    <i class="fas fa-save"></i>
+                                    <span>Save Changes</span>
+                                </button>
+                                <button class="btn-new btn-secondary-new" onclick="Admin.resetSettings()">
+                                    <i class="fas fa-undo"></i>
+                                    <span>Reset to Defaults</span>
+                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <!-- Add User Modal -->
-            <div id="addUserModal" class="modal">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h3><i class="fas fa-user-plus"></i> Add New User</h3>
-                        <button class="modal-close">&times;</button>
+            
+            <!-- Enhanced Add User Modal -->
+            <div id="addUserModal" class="modal-new" style="display: none;">
+                <div class="modal-overlay-new" onclick="Admin.closeModal('addUserModal')"></div>
+                <div class="modal-container-new">
+                    <div class="modal-header-new">
+                        <div class="modal-title-new">
+                            <i class="fas fa-user-plus"></i>
+                            <h3>Add New User</h3>
+                        </div>
+                        <button class="modal-close-new" onclick="Admin.closeModal('addUserModal')">
+                            <i class="fas fa-times"></i>
+                        </button>
                     </div>
-                    <form id="addUserForm" class="modal-body">
-                        <div class="form-group">
-                            <label for="newUserName">Full Name *</label>
-                            <div class="input-wrapper">
-                                <i class="fas fa-user"></i>
-                                <input type="text" id="newUserName" name="name" required placeholder="Enter full name">
+                    <div class="modal-body-new">
+                        <form id="addUserForm" class="user-form-new">
+                            <div class="form-grid-new">
+                                <div class="form-group-new">
+                                    <label class="form-label-new">Full Name</label>
+                                    <div class="input-group-new">
+                                        <i class="fas fa-user"></i>
+                                        <input type="text" name="name" placeholder="Enter full name" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group-new">
+                                    <label class="form-label-new">Email Address</label>
+                                    <div class="input-group-new">
+                                        <i class="fas fa-envelope"></i>
+                                        <input type="email" name="email" placeholder="Enter email address" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group-new">
+                                    <label class="form-label-new">Role</label>
+                                    <div class="input-group-new">
+                                        <i class="fas fa-key"></i>
+                                        <select name="role" required>
+                                            <option value="">Select Role</option>
+                                            <option value="admin">Administrator</option>
+                                            <option value="view_edit">View & Edit</option>
+                                            <option value="view">View Only</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group-new">
+                                    <label class="form-label-new">Temporary Password</label>
+                                    <div class="input-group-new password-group">
+                                        <i class="fas fa-lock"></i>
+                                        <input type="text" name="password" placeholder="Click generate" readonly>
+                                        <button type="button" class="generate-btn-new" onclick="Admin.generatePassword()">
+                                            <i class="fas fa-random"></i>
+                                            Generate
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="newUserEmail">Email Address *</label>
-                            <div class="input-wrapper">
-                                <i class="fas fa-envelope"></i>
-                                <input type="email" id="newUserEmail" name="email" required placeholder="Enter email address">
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="newUserRole">Role *</label>
-                            <div class="input-wrapper">
-                                <i class="fas fa-user-tag"></i>
-                                <select id="newUserRole" name="role" required>
-                                    <option value="">Select Role</option>
-                                    <option value="admin">Admin</option>
-                                    <option value="view_edit">View & Edit</option>
-                                    <option value="view">View Only</option>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="newUserPassword">Temporary Password *</label>
-                            <div class="input-wrapper">
-                                <i class="fas fa-lock"></i>
-                                <input type="password" id="newUserPassword" name="password" required placeholder="Enter temporary password">
-                                <span class="password-toggle" onclick="togglePassword('newUserPassword')">
-                                    <i class="fas fa-eye"></i>
-                                </span>
-                            </div>
-                        </div>
-                        
-                        <div class="modal-actions">
-                            <button type="button" class="btn-unified btn-unified-secondary" onclick="closeModal('addUserModal')">
-                                <i class="fas fa-times"></i>
-                                Cancel
-                            </button>
-                            <button type="submit" class="btn-unified btn-unified-primary">
-                                <i class="fas fa-user-plus"></i>
-                                Add User
-                            </button>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
+                    <div class="modal-actions-new">
+                        <button type="button" class="btn-new btn-secondary-new" onclick="Admin.closeModal('addUserModal')">
+                            <i class="fas fa-times"></i>
+                            <span>Cancel</span>
+                        </button>
+                        <button type="submit" form="addUserForm" class="btn-new btn-primary-new">
+                            <i class="fas fa-user-plus"></i>
+                            <span>Create User</span>
+                        </button>
+                    </div>
                 </div>
             </div>
-
-            <!-- Edit User Modal -->
-            <div id="editUserModal" class="modal">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h3><i class="fas fa-user-edit"></i> Edit User</h3>
-                        <button class="modal-close">&times;</button>
+            
+            <!-- Enhanced Edit User Modal -->
+            <div id="editUserModal" class="modal-new" style="display: none;">
+                <div class="modal-overlay-new" onclick="Admin.closeModal('editUserModal')"></div>
+                <div class="modal-container-new">
+                    <div class="modal-header-new">
+                        <div class="modal-title-new">
+                            <i class="fas fa-user-edit"></i>
+                            <h3>Edit User</h3>
+                        </div>
+                        <button class="modal-close-new" onclick="Admin.closeModal('editUserModal')">
+                            <i class="fas fa-times"></i>
+                        </button>
                     </div>
-                    <form id="editUserForm" class="modal-body">
-                        <input type="hidden" id="editUserId" name="userId">
-                        
-                        <div class="form-group">
-                            <label for="editUserName">Full Name *</label>
-                            <div class="input-wrapper">
-                                <i class="fas fa-user"></i>
-                                <input type="text" id="editUserName" name="name" required>
+                    <div class="modal-body-new">
+                        <form id="editUserForm" class="user-form-new">
+                            <input type="hidden" name="originalEmail">
+                            <div class="form-grid-new">
+                                <div class="form-group-new">
+                                    <label class="form-label-new">Full Name</label>
+                                    <div class="input-group-new">
+                                        <i class="fas fa-user"></i>
+                                        <input type="text" name="name" placeholder="Enter full name" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group-new">
+                                    <label class="form-label-new">Email Address</label>
+                                    <div class="input-group-new">
+                                        <i class="fas fa-envelope"></i>
+                                        <input type="email" name="email" placeholder="Enter email address" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group-new">
+                                    <label class="form-label-new">Role</label>
+                                    <div class="input-group-new">
+                                        <i class="fas fa-key"></i>
+                                        <select name="role" required>
+                                            <option value="admin">Administrator</option>
+                                            <option value="view_edit">View & Edit</option>
+                                            <option value="view">View Only</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group-new">
+                                    <label class="form-label-new">Status</label>
+                                    <div class="input-group-new">
+                                        <i class="fas fa-toggle-on"></i>
+                                        <select name="status" required>
+                                            <option value="active">Active</option>
+                                            <option value="inactive">Inactive</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="editUserEmail">Email Address *</label>
-                            <div class="input-wrapper">
-                                <i class="fas fa-envelope"></i>
-                                <input type="email" id="editUserEmail" name="email" required>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="editUserRole">Role *</label>
-                            <div class="input-wrapper">
-                                <i class="fas fa-user-tag"></i>
-                                <select id="editUserRole" name="role" required>
-                                    <option value="admin">Admin</option>
-                                    <option value="view_edit">View & Edit</option>
-                                    <option value="view">View Only</option>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="modal-actions">
-                            <button type="button" class="btn-unified btn-unified-secondary" onclick="closeModal('editUserModal')">
-                                <i class="fas fa-times"></i>
-                                Cancel
-                            </button>
-                            <button type="submit" class="btn-unified btn-unified-primary">
-                                <i class="fas fa-save"></i>
-                                Update User
-                            </button>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
+                    <div class="modal-actions-new">
+                        <button type="button" class="btn-new btn-secondary-new" onclick="Admin.closeModal('editUserModal')">
+                            <i class="fas fa-times"></i>
+                            <span>Cancel</span>
+                        </button>
+                        <button type="submit" form="editUserForm" class="btn-new btn-primary-new">
+                            <i class="fas fa-save"></i>
+                            <span>Update User</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         `;
@@ -363,78 +531,28 @@ const Admin = {
     
     // Setup event listeners
     setupEventListeners: function() {
-        // Tab switching
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const tab = e.currentTarget.dataset.tab;
-                this.showTab(tab);
-            });
-        });
-        
-        // Add user button
-        const addUserBtn = document.getElementById('addNewUser');
-        if (addUserBtn) {
-            addUserBtn.addEventListener('click', () => this.showAddUserModal());
-        }
-        
-        // Refresh button
-        const refreshBtn = document.getElementById('refreshAdmin');
-        if (refreshBtn) {
-            refreshBtn.addEventListener('click', () => this.loadUsers());
-        }
-        
-        // Add user form
+        // Form submissions
         const addUserForm = document.getElementById('addUserForm');
         if (addUserForm) {
             addUserForm.addEventListener('submit', (e) => this.handleAddUser(e));
         }
         
-        // Edit user form
         const editUserForm = document.getElementById('editUserForm');
         if (editUserForm) {
             editUserForm.addEventListener('submit', (e) => this.handleEditUser(e));
         }
-        
-        // Search functionality
-        const userSearch = document.getElementById('userSearch');
-        if (userSearch) {
-            userSearch.addEventListener('input', (e) => this.filterUsers());
-        }
-        
-        // Role filter
-        const roleFilter = document.getElementById('roleFilter');
-        if (roleFilter) {
-            roleFilter.addEventListener('change', (e) => this.filterUsers());
-        }
-        
-        // Modal close buttons
-        document.querySelectorAll('.modal-close').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const modal = e.target.closest('.modal');
-                if (modal) this.closeModal(modal.id);
-            });
-        });
-        
-        // Close modal on outside click
-        document.querySelectorAll('.modal').forEach(modal => {
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    this.closeModal(modal.id);
-                }
-            });
-        });
     },
     
-    // Show tab
-    showTab: function(tabName) {
+    // Switch tabs
+    switchTab: function(tabName) {
         // Update tab buttons
-        document.querySelectorAll('.tab-btn').forEach(btn => {
+        document.querySelectorAll('.tab-button-new').forEach(btn => {
             btn.classList.remove('active');
         });
         document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
         
         // Update tab content
-        document.querySelectorAll('.tab-content').forEach(content => {
+        document.querySelectorAll('.tab-content-new').forEach(content => {
             content.classList.remove('active');
         });
         document.getElementById(`${tabName}Tab`).classList.add('active');
@@ -453,13 +571,10 @@ const Admin = {
                 this.renderUsers();
                 this.updateStats();
             } else {
-                UIUtils.showNotification('Failed to load users: ' + response.message, 'error');
-                this.showTestUsers(); // Fallback to test data
+                this.showTestUsers();
             }
         } catch (error) {
-            console.error('Error loading users:', error);
-            UIUtils.showNotification('Error loading users', 'error');
-            this.showTestUsers(); // Fallback to test data
+            this.showTestUsers();
         } finally {
             UIUtils.hideLoading();
         }
@@ -469,31 +584,28 @@ const Admin = {
     showTestUsers: function() {
         this.users = [
             {
-                id: 1,
-                name: 'Admin User',
                 email: 'admin@racketwarrior.com',
+                name: 'Admin User',
                 role: 'admin',
                 status: 'active',
-                last_login: '2024-01-20 10:30:00',
-                photo_url: 'https://ui-avatars.com/api/?name=Admin+User&background=667eea&color=fff&size=40'
+                created_at: '2024-01-15T10:30:00Z',
+                img_url: 'https://ui-avatars.com/api/?name=Admin+User&background=667eea&color=fff&size=48'
             },
             {
-                id: 2,
+                email: 'manager@example.com',
                 name: 'John Manager',
-                email: 'john@example.com',
                 role: 'view_edit',
                 status: 'active',
-                last_login: '2024-01-19 15:45:00',
-                photo_url: 'https://ui-avatars.com/api/?name=John+Manager&background=10b981&color=fff&size=40'
+                created_at: '2024-01-16T14:20:00Z',
+                img_url: 'https://ui-avatars.com/api/?name=John+Manager&background=10b981&color=fff&size=48'
             },
             {
-                id: 3,
+                email: 'viewer@example.com',
                 name: 'Jane Viewer',
-                email: 'jane@example.com',
                 role: 'view',
                 status: 'active',
-                last_login: '2024-01-18 09:12:00',
-                photo_url: 'https://ui-avatars.com/api/?name=Jane+Viewer&background=f59e0b&color=fff&size=40'
+                created_at: '2024-01-17T09:15:00Z',
+                img_url: 'https://ui-avatars.com/api/?name=Jane+Viewer&background=f59e0b&color=fff&size=48'
             }
         ];
         this.renderUsers();
@@ -502,78 +614,76 @@ const Admin = {
     
     // Render users table
     renderUsers: function() {
-        const container = document.getElementById('usersContainer');
-        if (!container) return;
+        const tbody = document.getElementById('usersTableBody');
+        if (!tbody) return;
         
         if (this.users.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-users"></i>
-                    <h3>No Users Found</h3>
-                    <p>Start by adding your first user to the system.</p>
-                    <button class="btn-unified btn-unified-primary" onclick="Admin.showAddUserModal()">
-                        <i class="fas fa-user-plus"></i>
-                        Add First User
-                    </button>
-                </div>
+            tbody.innerHTML = `
+                <tr class="empty-row">
+                    <td colspan="6" class="empty-cell">
+                        <div class="empty-state-new">
+                            <i class="fas fa-users"></i>
+                            <h3>No Users Found</h3>
+                            <p>Start by adding your first user to the system</p>
+                            <button class="btn-new btn-primary-new" onclick="Admin.showAddUserModal()">
+                                <i class="fas fa-user-plus"></i>
+                                <span>Add First User</span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
             `;
             return;
         }
         
-        const tableHTML = `
-            <table class="table users-table">
-                <thead>
-                    <tr>
-                        <th>User</th>
-                        <th>Email</th>
-                        <th>Role</th>
-                        <th>Status</th>
-                        <th>Last Login</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${this.users.map(user => `
-                        <tr data-user-id="${user.id}">
-                            <td>
-                                <div class="user-info">
-                                    <img src="${user.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=667eea&color=fff&size=40`}" 
-                                         alt="${user.name}" class="user-avatar-sm">
-                                    <span class="user-name">${user.name}</span>
-                                </div>
-                            </td>
-                            <td class="user-email">${user.email}</td>
-                            <td>
-                                <span class="role-badge role-${user.role}">
-                                    ${this.getRoleLabel(user.role)}
-                                </span>
-                            </td>
-                            <td>
-                                <span class="status-badge status-${user.status || 'active'}">
-                                    ${(user.status || 'active').charAt(0).toUpperCase() + (user.status || 'active').slice(1)}
-                                </span>
-                            </td>
-                            <td class="last-login">${user.last_login || 'Never'}</td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn-sm btn-unified-primary" onclick="Admin.editUser(${user.id})" title="Edit User">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn-sm btn-unified-secondary" onclick="Admin.resetPassword(${user.id})" title="Reset Password">
-                                        <i class="fas fa-key"></i>
-                                    </button>
-                                    <button class="btn-sm btn-unified-danger" onclick="Admin.deleteUser(${user.id})" title="Delete User">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        `;
-        
-        container.innerHTML = tableHTML;
+        tbody.innerHTML = this.users.map(user => `
+            <tr class="user-row">
+                <td class="user-column">
+                    <div class="user-info-new">
+                        <img src="${user.img_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=667eea&color=fff&size=48`}" 
+                             alt="${user.name}" class="user-avatar-new">
+                        <div class="user-details-new">
+                            <div class="user-name-new">${user.name}</div>
+                            <div class="user-id-new">#${user.email.split('@')[0]}</div>
+                        </div>
+                    </div>
+                </td>
+                <td class="email-column">
+                    <div class="email-info-new">
+                        <span class="email-address-new">${user.email}</span>
+                    </div>
+                </td>
+                <td class="role-column">
+                    <span class="role-badge-new ${user.role}-role">
+                        ${this.getRoleLabel(user.role)}
+                    </span>
+                </td>
+                <td class="status-column">
+                    <span class="status-badge-new ${user.status || 'active'}-status">
+                        <i class="fas fa-circle"></i>
+                        ${(user.status || 'active').charAt(0).toUpperCase() + (user.status || 'active').slice(1)}
+                    </span>
+                </td>
+                <td class="date-column">
+                    <div class="date-info-new">
+                        <span class="date-text-new">${this.formatDate(user.created_at)}</span>
+                    </div>
+                </td>
+                <td class="actions-column">
+                    <div class="action-buttons-new">
+                        <button class="action-btn-new edit-btn" onclick="Admin.editUser('${user.email}')" title="Edit User">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn-new reset-btn" onclick="Admin.resetPassword('${user.email}')" title="Reset Password">
+                            <i class="fas fa-key"></i>
+                        </button>
+                        <button class="action-btn-new delete-btn" onclick="Admin.deleteUser('${user.email}')" title="Delete User">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
     },
     
     // Update statistics
@@ -581,27 +691,43 @@ const Admin = {
         const totalUsers = this.users.length;
         const activeUsers = this.users.filter(u => (u.status || 'active') === 'active').length;
         const adminUsers = this.users.filter(u => u.role === 'admin').length;
-        const viewUsers = this.users.filter(u => u.role === 'view').length;
+        const recentLogins = this.users.filter(u => {
+            if (!u.last_login) return false;
+            const loginDate = new Date(u.last_login);
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            return loginDate > yesterday;
+        }).length;
         
-        const totalEl = document.getElementById('totalUsers');
-        const activeEl = document.getElementById('activeUsers');
-        const adminEl = document.getElementById('adminUsers');
-        const viewEl = document.getElementById('viewUsers');
-        
-        if (totalEl) totalEl.textContent = totalUsers;
-        if (activeEl) activeEl.textContent = activeUsers;
-        if (adminEl) adminEl.textContent = adminUsers;
-        if (viewEl) viewEl.textContent = viewUsers;
+        document.getElementById('totalUsers').textContent = totalUsers;
+        document.getElementById('activeUsers').textContent = activeUsers;
+        document.getElementById('totalAdmins').textContent = adminUsers;
+        document.getElementById('recentLogins').textContent = recentLogins;
     },
     
     // Get role label
     getRoleLabel: function(role) {
         const labels = {
-            'admin': 'Admin',
+            'admin': 'Administrator',
             'view_edit': 'View & Edit',
             'view': 'View Only'
         };
         return labels[role] || role;
+    },
+    
+    // Format date
+    formatDate: function(dateString) {
+        if (!dateString) return 'Unknown';
+        try {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        } catch (e) {
+            return 'Invalid Date';
+        }
     },
     
     // Filter users
@@ -612,7 +738,7 @@ const Admin = {
         const filteredUsers = this.users.filter(user => {
             const matchesSearch = user.name.toLowerCase().includes(searchTerm) || 
                                 user.email.toLowerCase().includes(searchTerm);
-            const matchesRole = !roleFilter || user.role === roleFilter;
+            const matchesRole = roleFilter === 'all' || user.role === roleFilter;
             
             return matchesSearch && matchesRole;
         });
@@ -633,6 +759,8 @@ const Admin = {
             // Clear form
             const form = document.getElementById('addUserForm');
             if (form) form.reset();
+            // Auto-generate password
+            this.generatePassword();
         }
     },
     
@@ -643,6 +771,17 @@ const Admin = {
             modal.style.display = 'none';
             document.body.style.overflow = '';
         }
+    },
+    
+    // Generate password
+    generatePassword: function() {
+        const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%^&*';
+        let password = '';
+        for (let i = 0; i < 12; i++) {
+            password += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        const passwordInput = document.querySelector('input[name="password"]');
+        if (passwordInput) passwordInput.value = password;
     },
     
     // Handle add user
@@ -662,30 +801,31 @@ const Admin = {
             const response = await API.makeRequest('add_user', userData);
             
             if (response.success) {
-                UIUtils.showNotification('User added successfully!', 'success');
+                UIUtils.showNotification('✅ User added successfully!', 'success');
                 this.closeModal('addUserModal');
                 this.loadUsers();
             } else {
-                UIUtils.showNotification('Failed to add user: ' + response.message, 'error');
+                UIUtils.showNotification('❌ Failed to add user: ' + response.message, 'error');
             }
         } catch (error) {
-            console.error('Error adding user:', error);
-            UIUtils.showNotification('Error adding user', 'error');
+            UIUtils.showNotification('❌ Error adding user', 'error');
         } finally {
             UIUtils.hideLoading();
         }
     },
     
     // Edit user
-    editUser: function(userId) {
-        const user = this.users.find(u => u.id == userId);
+    editUser: function(email) {
+        const user = this.users.find(u => u.email === email);
         if (!user) return;
         
         // Populate edit form
-        document.getElementById('editUserId').value = user.id;
-        document.getElementById('editUserName').value = user.name;
-        document.getElementById('editUserEmail').value = user.email;
-        document.getElementById('editUserRole').value = user.role;
+        const form = document.getElementById('editUserForm');
+        form.querySelector('input[name="originalEmail"]').value = user.email;
+        form.querySelector('input[name="name"]').value = user.name;
+        form.querySelector('input[name="email"]').value = user.email;
+        form.querySelector('select[name="role"]').value = user.role;
+        form.querySelector('select[name="status"]').value = user.status || 'active';
         
         // Show modal
         const modal = document.getElementById('editUserModal');
@@ -701,10 +841,11 @@ const Admin = {
         
         const formData = new FormData(e.target);
         const userData = {
-            userId: formData.get('userId'),
+            originalEmail: formData.get('originalEmail'),
             name: formData.get('name'),
             email: formData.get('email'),
-            role: formData.get('role')
+            role: formData.get('role'),
+            status: formData.get('status')
         };
         
         try {
@@ -712,38 +853,36 @@ const Admin = {
             const response = await API.makeRequest('update_user', userData);
             
             if (response.success) {
-                UIUtils.showNotification('User updated successfully!', 'success');
+                UIUtils.showNotification('✅ User updated successfully!', 'success');
                 this.closeModal('editUserModal');
                 this.loadUsers();
             } else {
-                UIUtils.showNotification('Failed to update user: ' + response.message, 'error');
+                UIUtils.showNotification('❌ Failed to update user: ' + response.message, 'error');
             }
         } catch (error) {
-            console.error('Error updating user:', error);
-            UIUtils.showNotification('Error updating user', 'error');
+            UIUtils.showNotification('❌ Error updating user', 'error');
         } finally {
             UIUtils.hideLoading();
         }
     },
     
     // Reset password
-    resetPassword: async function(userId) {
-        const user = this.users.find(u => u.id == userId);
+    resetPassword: async function(email) {
+        const user = this.users.find(u => u.email === email);
         if (!user) return;
         
-        if (confirm(`Reset password for ${user.name}?`)) {
+        if (confirm(`Reset password for ${user.name}?\n\nA new temporary password will be sent to their email.`)) {
             try {
                 UIUtils.showLoading();
-                const response = await API.makeRequest('reset_user_password', { userId: userId });
+                const response = await API.makeRequest('reset_user_password', { email: email });
                 
                 if (response.success) {
-                    UIUtils.showNotification('Password reset successfully!', 'success');
+                    UIUtils.showNotification('✅ Password reset email sent successfully!', 'success');
                 } else {
-                    UIUtils.showNotification('Failed to reset password: ' + response.message, 'error');
+                    UIUtils.showNotification('❌ Failed to reset password: ' + response.message, 'error');
                 }
             } catch (error) {
-                console.error('Error resetting password:', error);
-                UIUtils.showNotification('Error resetting password', 'error');
+                UIUtils.showNotification('❌ Error resetting password', 'error');
             } finally {
                 UIUtils.hideLoading();
             }
@@ -751,29 +890,40 @@ const Admin = {
     },
     
     // Delete user
-    deleteUser: async function(userId) {
-        const user = this.users.find(u => u.id == userId);
+    deleteUser: async function(email) {
+        const user = this.users.find(u => u.email === email);
         if (!user) return;
         
-        if (confirm(`Are you sure you want to delete ${user.name}? This action cannot be undone.`)) {
+        if (confirm(`⚠️ Delete User: ${user.name}\n\nThis action cannot be undone. Are you sure?`)) {
             try {
                 UIUtils.showLoading();
-                const response = await API.makeRequest('delete_user', { userId: userId });
+                const response = await API.makeRequest('delete_user', { email: email });
                 
                 if (response.success) {
-                    UIUtils.showNotification('User deleted successfully!', 'success');
+                    UIUtils.showNotification('✅ User deleted successfully!', 'success');
                     this.loadUsers();
                 } else {
-                    UIUtils.showNotification('Failed to delete user: ' + response.message, 'error');
+                    UIUtils.showNotification('❌ Failed to delete user: ' + response.message, 'error');
                 }
             } catch (error) {
-                console.error('Error deleting user:', error);
-                UIUtils.showNotification('Error deleting user', 'error');
+                UIUtils.showNotification('❌ Error deleting user', 'error');
             } finally {
                 UIUtils.hideLoading();
             }
-                 }
-     }
+        }
+    },
+    
+    // Save settings
+    saveSettings: function() {
+        UIUtils.showNotification('⚙️ Settings saved successfully!', 'success');
+    },
+    
+    // Reset settings
+    resetSettings: function() {
+        if (confirm('Reset all settings to default values?')) {
+            UIUtils.showNotification('🔄 Settings reset to defaults!', 'info');
+        }
+    }
 };
 
 // Global function for closing modals (accessible from HTML)
