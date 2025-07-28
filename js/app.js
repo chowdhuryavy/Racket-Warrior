@@ -551,19 +551,19 @@ const App = {
             if (response.success) {
                 // Update user profile photo
                 const currentUser = Auth.getCurrentUser();
-                currentUser.photo_url = response.data.photo_url;
+                currentUser.photo_url = response.photo_url; // Updated to match API response
                 Auth.setCurrentUser(currentUser);
                 
                 // Update auth token if provided
-                if (response.data.token) {
-                    StorageUtils.set(CONFIG.STORAGE_KEYS.AUTH_TOKEN, response.data.token);
+                if (response.token) {
+                    StorageUtils.set(CONFIG.STORAGE_KEYS.AUTH_TOKEN, response.token);
                 }
                 
                 // Update UI
-                this.updateUserPhoto(response.data.photo_url);
+                this.updateUserPhoto(response.photo_url);
                 Auth.updateUserProfile();
                 
-                UIUtils.showNotification('✅ Profile photo updated successfully!', 'success');
+                UIUtils.showNotification(response.message || '✅ Profile photo updated successfully!', 'success');
                 
                 // Close modal
                 event.target.closest('.modal').remove();

@@ -187,7 +187,7 @@ const CONFIG = {
     },
     
     // Development/Debug Settings
-    DEBUG: true,
+    DEBUG: false, // Disabled for better performance
     LOG_LEVEL: 'debug' // debug, info, warn, error
 };
 
