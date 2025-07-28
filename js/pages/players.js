@@ -275,11 +275,14 @@ const Players = {
                 UIUtils.showNotification('Player added successfully!', 'success');
                 
                 // Log the action
-                await API.addLog('PLAYER_ADD', `Added new player: ${playerData.Name}`);
+                await API.addLog('PLAYER_ADD', `Added new player: ${playerData.name}`);
                 
                 // Reset form
                 event.target.reset();
                 document.getElementById('playerJoinDate').value = DateUtils.getCurrentDate();
+                
+                // Force refresh players data when navigating to view
+                this.currentData = null;
                 
                 // Redirect to view page
                 showPage('players-view');

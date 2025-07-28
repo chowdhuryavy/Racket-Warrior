@@ -229,7 +229,7 @@ const Reports = {
                             <div class="summary-content">
                                 <h4>Total Collection</h4>
                                 <p class="summary-number">QAR ${(data.summary.totalCollection || 0).toFixed(2)}</p>
-                                <p class="summary-detail">${data.collections.length} transactions</p>
+                                <p class="summary-detail">${(data.collections || []).length} transactions</p>
                             </div>
                         </div>
                         
@@ -240,7 +240,7 @@ const Reports = {
                             <div class="summary-content">
                                 <h4>Total Expenses</h4>
                                 <p class="summary-number">QAR ${(data.summary.totalExpenses || 0).toFixed(2)}</p>
-                                <p class="summary-detail">${data.expenses.length} transactions</p>
+                                <p class="summary-detail">${(data.expenses || []).length} transactions</p>
                             </div>
                         </div>
                         

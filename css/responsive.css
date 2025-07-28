@@ -305,12 +305,22 @@
     }
     
     .stat-card {
-        padding: 1rem;
+        padding: 0.75rem; /* SMALLER MOBILE PADDING */
         min-height: auto;
     }
     
-    .stat-content h3 {
-        font-size: 1.5rem;
+    .stat-card-value {
+        font-size: 1.2rem !important; /* SMALLER MOBILE TEXT */
+    }
+    
+    .stat-card-label {
+        font-size: 0.7rem !important; /* SMALLER MOBILE LABEL */
+    }
+    
+    .stat-card-icon {
+        width: 32px !important; /* SMALLER MOBILE ICON */
+        height: 32px !important;
+        font-size: 0.9rem !important;
     }
     
     .quick-actions {
@@ -1440,17 +1450,21 @@
     
     /* Dashboard Extra Small */
     .stat-card {
-        padding: 0.75rem;
+        padding: 0.5rem; /* EXTRA SMALL PADDING */
     }
     
-    .stat-icon {
-        width: 40px;
-        height: 40px;
-        font-size: 1rem;
+    .stat-card-value {
+        font-size: 1rem !important; /* EXTRA SMALL TEXT */
     }
     
-    .stat-content h3 {
-        font-size: 1.25rem;
+    .stat-card-label {
+        font-size: 0.65rem !important; /* EXTRA SMALL LABEL */
+    }
+    
+    .stat-card-icon {
+        width: 28px !important; /* EXTRA SMALL ICON */
+        height: 28px !important;
+        font-size: 0.8rem !important;
     }
     
     /* Table Extra Small */

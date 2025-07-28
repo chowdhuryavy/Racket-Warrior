@@ -838,6 +838,214 @@ body {
     background-color: var(--primary-color);
 }
 
+/* ============ DASHBOARD STYLES ============ */
+
+/* Dashboard Section */
+.dashboard-section {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(102, 126, 234, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+/* Section Header */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid rgba(102, 126, 234, 0.1);
+}
+
+.section-header h2 {
+    font-size: 1.1rem; /* SMALLER TEXT SIZE */
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.current-month {
+    font-size: 0.8rem; /* SMALLER TEXT SIZE */
+    font-weight: 600;
+    color: #667eea;
+    background: rgba(102, 126, 234, 0.1);
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    border: 1px solid rgba(102, 126, 234, 0.2);
+}
+
+/* Monthly Summary */
+.monthly-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+}
+
+.summary-item {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: 12px;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 2px solid rgba(102, 126, 234, 0.1);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.summary-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.summary-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+    border-color: rgba(102, 126, 234, 0.3);
+}
+
+.summary-item:hover::before {
+    transform: scaleX(1);
+}
+
+.summary-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.summary-label {
+    font-size: 0.75rem; /* SMALLER TEXT SIZE */
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.summary-value {
+    font-size: 1.1rem; /* SMALLER TEXT SIZE */
+    font-weight: 800;
+    color: #1f2937;
+    font-family: 'Courier New', monospace;
+}
+
+.summary-value.positive {
+    color: #10b981;
+}
+
+.summary-value.negative {
+    color: #ef4444;
+}
+
+.summary-icon {
+    width: 36px; /* SMALLER ICON SIZE */
+    height: 36px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.9rem; /* SMALLER ICON SIZE */
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* Activity Summary */
+.activity-summary {
+    margin-bottom: 1.5rem;
+}
+
+.activity-summary h2 {
+    font-size: 1.1rem; /* SMALLER TEXT SIZE */
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.activity-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.activity-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%);
+    border-radius: 12px;
+    padding: 1rem;
+    border: 1px solid rgba(102, 126, 234, 0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.activity-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+}
+
+.activity-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+.activity-header h3 {
+    font-size: 0.9rem; /* SMALLER TEXT SIZE */
+    font-weight: 600;
+    color: #374151;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.view-all-link {
+    font-size: 0.75rem; /* SMALLER TEXT SIZE */
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+.view-all-link:hover {
+    color: #4f46e5;
+}
+
+.activity-content {
+    min-height: 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.loading-item {
+    color: #6b7280;
+    font-size: 0.8rem; /* SMALLER TEXT SIZE */
+    text-align: center;
+    padding: 1rem;
+    font-style: italic;
+}
+
 /* Admin Page Styles */
 .admin-stats {
     display: grid;
@@ -2890,8 +3098,8 @@ body {
 
 .stat-card {
     background: linear-gradient(135deg, #fff 0%, #f8fafc 100%);
-    padding: 2rem;
-    border-radius: 16px;
+    padding: 1.25rem; /* SMALLER PADDING */
+    border-radius: 12px; /* SMALLER RADIUS */
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     border: 1px solid rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(20px);
@@ -2901,7 +3109,7 @@ body {
 }
 
 .stat-card:hover {
-    transform: translateY(-4px) scale(1.02);
+    transform: translateY(-2px) scale(1.01); /* SMALLER HOVER EFFECT */
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
@@ -2924,30 +3132,30 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem; /* SMALLER MARGIN */
 }
 
 .stat-card-icon {
-    width: 50px;
-    height: 50px;
-    border-radius: 12px;
+    width: 40px; /* SMALLER ICON SIZE */
+    height: 40px;
+    border-radius: 10px; /* SMALLER RADIUS */
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    font-size: 1.5rem;
+    font-size: 1.1rem; /* SMALLER ICON FONT */
 }
 
 .stat-card-value {
-    font-size: 2rem;
+    font-size: 1.5rem; /* SMALLER VALUE TEXT */
     font-weight: 700;
     color: var(--text-primary);
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.25rem; /* SMALLER MARGIN */
 }
 
 .stat-card-label {
     color: var(--text-secondary);
-    font-size: 0.9rem;
+    font-size: 0.8rem; /* SMALLER LABEL TEXT */
 }
 
 /* Tables */

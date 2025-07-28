@@ -2,6 +2,9 @@
 
 const Dashboard = {
     currentMonth: null,
+    isLoading: false,
+    cachedData: null,
+    lastLoadTime: null,
     
     // Render dashboard page
     render: async function(container) {
@@ -226,37 +229,7 @@ const Dashboard = {
                         </div>
                     </div>
                 </div>
-                
-                <!-- Quick Actions -->
-                <div class="quick-actions" id="quickActions">
-                    <h2>Quick Actions</h2>
-                    <div class="action-cards">
-                        <div class="action-card" onclick="showPage('players-add')" data-role="admin,view_edit">
-                            <div class="action-icon">
-                                <i class="fas fa-user-plus"></i>
-                            </div>
-                            <span>Add Player</span>
-                        </div>
-                        <div class="action-card" onclick="showPage('collection-add')" data-role="admin,view_edit">
-                            <div class="action-icon">
-                                <i class="fas fa-plus"></i>
-                            </div>
-                            <span>Add Collection</span>
-                        </div>
-                        <div class="action-card" onclick="showPage('expenses-add')" data-role="admin,view_edit">
-                            <div class="action-icon">
-                                <i class="fas fa-receipt"></i>
-                            </div>
-                            <span>Add Expense</span>
-                        </div>
-                        <div class="action-card" onclick="showPage('reports')">
-                            <div class="action-icon">
-                                <i class="fas fa-chart-bar"></i>
-                            </div>
-                            <span>View Reports</span>
-                        </div>
-                    </div>
-                </div>
+
             </div>
         `;
     },
@@ -329,18 +302,39 @@ const Dashboard = {
         });
     },
     
-    // Load dashboard data
+    // Load dashboard data with performance optimization
     loadDashboardData: async function() {
         try {
+            // Prevent multiple simultaneous loads
+            if (this.isLoading) return;
+            
+            // Use cache if data is recent (within 30 seconds)
+            const now = Date.now();
+            if (this.cachedData && this.lastLoadTime && (now - this.lastLoadTime) < 30000) {
+                this.updateStats(this.cachedData);
+                this.updateCurrentMonthDisplay();
+                return;
+            }
+            
+            this.isLoading = true;
             Logger.info('Loading dashboard data', { month: this.currentMonth });
             
             // Show loading state
             this.showLoadingState();
             
-            // Get dashboard stats
-            const response = await API.getDashboardStats(this.currentMonth);
+            // Get dashboard stats with timeout
+            const timeout = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Request timeout')), 8000)
+            );
+            
+            const response = await Promise.race([
+                API.getDashboardStats(this.currentMonth),
+                timeout
+            ]);
             
             if (response.success) {
+                this.cachedData = response.data;
+                this.lastLoadTime = now;
                 this.updateStats(response.data);
                 await this.loadRecentActivities();
                 this.updateCurrentMonthDisplay();
@@ -350,8 +344,14 @@ const Dashboard = {
             
         } catch (error) {
             Logger.error('Failed to load dashboard data', error);
-            UIUtils.showNotification('Failed to load dashboard data', 'error');
+            if (error.message === 'Request timeout') {
+                UIUtils.showNotification('Dashboard loading slowly. Please check your connection.', 'warning');
+            } else {
+                UIUtils.showNotification('Failed to load dashboard data', 'error');
+            }
             this.showErrorState();
+        } finally {
+            this.isLoading = false;
         }
     },
     
