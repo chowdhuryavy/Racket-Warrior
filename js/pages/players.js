@@ -195,6 +195,16 @@ const Players = {
         
         // Setup role-based visibility
         this.setupRoleBasedVisibility();
+        
+        // Listen for global month changes
+        window.addEventListener('monthFilterChanged', (event) => {
+            const globalMonth = event.detail;
+            if (monthFilter && monthFilter.value !== globalMonth) {
+                monthFilter.value = globalMonth || '';
+                this.currentMonth = globalMonth;
+                this.filterAndRenderTable();
+            }
+        });
     },
     
     // Setup role-based visibility

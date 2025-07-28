@@ -62,7 +62,6 @@
                                 <div class="input-wrapper">
                                     <i class="fas fa-lock input-icon"></i>
                                     <input type="password" id="password" name="password" placeholder="Enter your password" required>
-                                    <i class="fas fa-eye password-toggle" onclick="togglePassword('password')"></i>
                                     <div class="input-focus-line"></div>
                                 </div>
                             </div>
@@ -319,21 +318,7 @@
         }
         
         // Setup mobile menu toggle
-        // Password toggle function
-        function togglePassword(inputId) {
-            const passwordInput = document.getElementById(inputId);
-            const toggleIcon = passwordInput.parentElement.querySelector('.password-toggle');
-            
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                toggleIcon.classList.remove('fa-eye');
-                toggleIcon.classList.add('fa-eye-slash');
-            } else {
-                passwordInput.type = 'password';
-                toggleIcon.classList.remove('fa-eye-slash');
-                toggleIcon.classList.add('fa-eye');
-            }
-        }
+        // Password toggle function removed
 
         document.addEventListener('DOMContentLoaded', function() {
             const mobileToggle = document.getElementById('mobileMenuToggle');

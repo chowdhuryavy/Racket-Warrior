@@ -23,6 +23,19 @@ const Logger = {
 
 // Date and Time Utilities
 const DateUtils = {
+    // Global month filter state
+    _globalMonth: null,
+    
+    setGlobalMonth: function(month) {
+        this._globalMonth = month;
+        // Notify all pages of month change
+        window.dispatchEvent(new CustomEvent('monthFilterChanged', { detail: month }));
+    },
+    
+    getGlobalMonth: function() {
+        return this._globalMonth;
+    },
+
     // Format date to display string
     formatDate: function(date, format = 'DD/MM/YYYY') {
         if (!date) return '';
@@ -119,8 +132,8 @@ const DateUtils = {
         const options = [];
         const currentDate = new Date();
         
-        // Generate last 12 months
-        for (let i = 11; i >= 0; i--) {
+        // Generate last 6 months
+        for (let i = 5; i >= 0; i--) {
             const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
             const year = date.getFullYear();
             const month = (date.getMonth() + 1).toString().padStart(2, '0');

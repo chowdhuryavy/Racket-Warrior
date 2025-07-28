@@ -154,7 +154,7 @@ const Logs = {
             const response = await API.makeRequest('get_logs');
             
             if (response.success) {
-                this.logs = response.logs || [];
+                this.logs = response.data || [];
                 this.renderLogs();
                 this.updateStats();
             } else {

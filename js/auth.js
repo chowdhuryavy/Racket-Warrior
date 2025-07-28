@@ -109,6 +109,13 @@ const Auth = {
         // You can add real-time password strength indicator here
     },
     
+    // Show loading screen
+    showLoadingScreen: function() {
+        document.getElementById('loadingScreen').style.display = 'flex';
+        document.getElementById('loginContainer').style.display = 'none';
+        document.getElementById('appContainer').style.display = 'none';
+    },
+
     // Show login page
     showLogin: function() {
         document.getElementById('loadingScreen').style.display = 'none';

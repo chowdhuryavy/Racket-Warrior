@@ -19,6 +19,9 @@ const Dashboard = {
         // Load dashboard data
         await this.loadDashboardData();
         
+        // Load recent activities
+        await this.loadRecentActivities();
+        
         // Setup event listeners
         this.setupEventListeners();
     },
@@ -251,10 +254,12 @@ const Dashboard = {
                 
                 // Set current month as default if available
                 const currentMonth = DateUtils.getMonthYear(new Date());
-                if (months.includes(currentMonth)) {
-                    monthFilter.value = currentMonth;
-                    this.currentMonth = currentMonth;
-                }
+                        if (months.includes(currentMonth)) {
+            monthFilter.value = currentMonth;
+            this.currentMonth = currentMonth;
+            // Set as global month
+            DateUtils.setGlobalMonth(currentMonth);
+        }
             }
         } catch (error) {
             Logger.error('Failed to setup month filter', error);
@@ -268,6 +273,10 @@ const Dashboard = {
         if (monthFilter) {
             monthFilter.addEventListener('change', (event) => {
                 this.currentMonth = event.target.value || null;
+                
+                // Set global month for all pages
+                DateUtils.setGlobalMonth(this.currentMonth);
+                
                 this.loadDashboardData();
                 this.updateCurrentMonthDisplay();
             });

@@ -203,7 +203,14 @@ const Collection = {
                 if (playerSelect) {
                     playerSelect.innerHTML = '<option value="">Select Player</option>';
                     response.data.forEach(player => {
-                        if (this.isPlayerActiveForMonth(player, this.getCurrentSelectedMonth())) {
+                        // If no month selected, show all active players
+                        // If month selected, show only players active for that month
+                        const selectedMonth = this.getCurrentSelectedMonth();
+                        const shouldShow = selectedMonth ? 
+                            this.isPlayerActiveForMonth(player, selectedMonth) : 
+                            player.Status === 'active';
+                        
+                        if (shouldShow) {
                             const option = document.createElement('option');
                             option.value = player.ID;
                             option.textContent = player.Name;
