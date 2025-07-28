@@ -79,7 +79,7 @@ function doGet(e) {
         break;
         
       case 'list_users':
-        result = listAllUsers();
+        result = handleGetUsers(e.parameter);
         break;
       
       case 'upload_photo':

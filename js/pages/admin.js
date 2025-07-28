@@ -564,16 +564,24 @@ const Admin = {
     loadUsers: async function() {
         try {
             UIUtils.showLoading();
-            const response = await API.makeRequest('list_users');
+            Logger.info('Loading users from API...');
+            const response = await API.makeRequest('get_users');
+            
+            Logger.info('API response received:', response);
             
             if (response.success) {
-                this.users = response.users || [];
+                this.users = response.data || [];
+                Logger.info(`Loaded ${this.users.length} users:`, this.users);
                 this.renderUsers();
                 this.updateStats();
             } else {
+                Logger.warn('Failed to load users:', response.message);
+                Logger.warn('Falling back to test users');
                 this.showTestUsers();
             }
         } catch (error) {
+            Logger.error('Error loading users:', error);
+            Logger.warn('Falling back to test users due to error');
             this.showTestUsers();
         } finally {
             UIUtils.hideLoading();
@@ -640,7 +648,7 @@ const Admin = {
             <tr class="user-row">
                 <td class="user-column">
                     <div class="user-info-new">
-                        <img src="${user.img_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=667eea&color=fff&size=48`}" 
+                        <img src="${user.photo_url || user.img_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=667eea&color=fff&size=48`}" 
                              alt="${user.name}" class="user-avatar-new">
                         <div class="user-details-new">
                             <div class="user-name-new">${user.name}</div>
@@ -802,6 +810,8 @@ const Admin = {
             
             if (response.success) {
                 UIUtils.showNotification('✅ User added successfully!', 'success');
+                // Clear API cache to ensure fresh data
+                API.clearCache('users');
                 this.closeModal('addUserModal');
                 this.loadUsers();
             } else {
@@ -854,6 +864,8 @@ const Admin = {
             
             if (response.success) {
                 UIUtils.showNotification('✅ User updated successfully!', 'success');
+                // Clear API cache to ensure fresh data
+                API.clearCache('users');
                 this.closeModal('editUserModal');
                 this.loadUsers();
             } else {
@@ -901,6 +913,8 @@ const Admin = {
                 
                 if (response.success) {
                     UIUtils.showNotification('✅ User deleted successfully!', 'success');
+                    // Clear API cache to ensure fresh data
+                    API.clearCache('users');
                     this.loadUsers();
                 } else {
                     UIUtils.showNotification('❌ Failed to delete user: ' + response.message, 'error');

@@ -46,7 +46,7 @@ const API = {
         }
         
         // Check cache for GET-like requests (non-mutating operations)
-        const cacheableEndpoints = ['get_players', 'get_income', 'get_expenses', 'get_users', 'get_dashboard_stats'];
+        const cacheableEndpoints = ['get_players', 'get_income', 'get_expenses', 'get_users', 'get_dashboard_stats', 'list_users'];
         if (cacheableEndpoints.includes(endpoint)) {
             const cacheKey = endpoint + JSON.stringify(data);
             const cached = this.cache.get(cacheKey);
