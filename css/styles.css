@@ -612,29 +612,33 @@ body {
     width: 100%;
 }
 
-/* New Professional Password Toggle System */
+/* New Professional Password Toggle System - RIGHT SIDE */
 .password-toggle {
     position: absolute;
-    right: 12px;
+    left: 12px; /* MOVED TO LEFT SIDE AS REQUESTED */
     top: 50%;
     transform: translateY(-50%);
     cursor: pointer;
     color: #9ca3af;
-    font-size: 1.1rem;
-    z-index: 10;
-    width: 24px;
-    height: 24px;
+    font-size: 1rem;
+    z-index: 15;
+    width: 22px;
+    height: 22px;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s ease;
-    border-radius: 4px;
-    background: transparent;
+    transition: all 0.3s ease;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .password-toggle:hover {
     color: #667eea;
     background: rgba(102, 126, 234, 0.1);
+    border-color: #667eea;
+    transform: translateY(-50%) scale(1.05);
 }
 
 .password-toggle:active {
@@ -3883,14 +3887,18 @@ body {
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
+/* ============ MODAL & FORGOT PASSWORD FIXES ============ */
+
+/* Modal input icons positioning - PROPERLY ALIGNED */
 .modal .input-wrapper i:not(.password-toggle) {
     position: absolute;
-    left: 15px;
-    top: 40%;
+    left: 16px !important;
+    top: 50% !important; /* CENTERED PROPERLY */
     transform: translateY(-50%);
-    color: #6b7280;
+    color: #9ca3af;
     font-size: 1rem;
-    z-index: 2;
+    z-index: 5;
+    transition: color 0.3s ease;
     pointer-events: none;
 }
 
@@ -3898,41 +3906,96 @@ body {
     color: #667eea;
 }
 
-/* Forgot Password Modal Specific Fixes */
-.forgot-step .input-wrapper input {
-    padding: 16px 16px 16px 45px !important;
+/* Modal input fields - CONSISTENT STYLING */
+.modal .input-wrapper input[type="email"],
+.modal .input-wrapper input[type="text"],
+.modal .input-wrapper input[type="password"] {
+    padding: 16px 16px 16px 48px !important;
+    font-size: 16px !important; /* Prevents iOS zoom */
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.9);
+    color: #374151;
+    font-weight: 500;
+    transition: all 0.3s ease;
 }
 
-.forgot-step .input-wrapper input[type="email"] {
-    padding-left: 45px !important;
+/* Password fields with toggle need extra left padding */
+.modal .input-wrapper input[type="password"] {
+    padding-left: 80px !important; /* Extra space for toggle */
 }
 
-.forgot-step .input-wrapper i:not(.password-toggle) {
-    left: 15px !important;
-    top: 30% !important;
-    z-index: 5 !important;
-    position: absolute !important;
-    width: 16px !important;
-    height: 16px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    transform: translateY(-50%) !important;
-}
-
-/* Fix forgot password modal password toggle */
+/* Forgot password modal password toggle - LEFT SIDE */
 .forgot-step .password-toggle {
-    right: -40px !important;
+    left: 48px !important; /* Position after the icon */
     top: 50% !important;
+    transform: translateY(-50%);
+    z-index: 10 !important;
+    width: 20px;
+    height: 20px;
+    font-size: 0.9rem;
+    background: rgba(102, 126, 234, 0.1);
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    color: #667eea;
 }
 
-/* Fix for login page inputs */
+/* ============ LOGIN PAGE SPECIFIC FIXES ============ */
+
+/* Login Input Icons */
+.login-card .input-wrapper .input-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    font-size: 1rem;
+    z-index: 5;
+    transition: color 0.3s ease;
+}
+
+.login-card .input-wrapper:focus-within .input-icon {
+    color: #667eea;
+}
+
+/* Login Input Fields - CONSISTENT SIZING */
 .login-card .input-wrapper input[type="email"],
 .login-card .input-wrapper input[type="password"] {
-    padding-left: 45px !important;
+    padding: 16px 16px 16px 48px !important; /* Same padding for both */
+    font-size: 16px !important; /* Prevents iOS zoom */
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.9);
+    color: #374151;
+    font-weight: 500;
+    transition: all 0.3s ease;
 }
 
-.login-card .input-wrapper i {
-    left: 15px !important;
-    z-index: 3 !important;
+/* Password input specific - make room for toggle */
+.login-card .input-wrapper input[type="password"] {
+    padding-left: 80px !important; /* Extra space for password toggle on left */
+}
+
+.login-card .input-wrapper input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    outline: none;
+}
+
+/* Login Password Toggle - LEFT SIDE POSITIONING */
+.login-card .password-toggle {
+    left: 48px !important; /* Position after the lock icon */
+    top: 50% !important;
+    transform: translateY(-50%);
+    z-index: 10 !important;
+    width: 20px;
+    height: 20px;
+    font-size: 0.9rem;
+    background: rgba(102, 126, 234, 0.1);
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    color: #667eea;
+}
+
+.login-card .password-toggle:hover {
+    background: rgba(102, 126, 234, 0.2);
+    border-color: #667eea;
 }

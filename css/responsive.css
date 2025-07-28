@@ -115,10 +115,133 @@
     
     /* Password Toggle Mobile */
     .password-toggle {
-        right: 12px !important;
-        width: 20px !important;
-        height: 20px !important;
+        left: 40px !important; /* MOVED TO LEFT SIDE FOR MOBILE */
+        width: 18px !important;
+        height: 18px !important;
+        font-size: 0.8rem !important;
+    }
+    
+    /* ============ LOGIN PAGE MOBILE FIXES ============ */
+    
+    /* Login container mobile */
+    .login-container {
+        padding: 1rem !important;
+        min-height: 100vh !important;
+    }
+    
+    .login-card {
+        padding: 1.5rem !important;
+        margin: 0 !important;
+        border-radius: 16px !important;
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+    
+    .login-header h1 {
+        font-size: 1.75rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .login-header p {
         font-size: 0.9rem !important;
+        margin-bottom: 1.5rem !important;
+    }
+    
+    /* Login form groups mobile */
+    .login-card .form-group {
+        margin-bottom: 1rem !important;
+    }
+    
+    .login-card .form-label {
+        font-size: 0.9rem !important;
+        margin-bottom: 0.5rem !important;
+        gap: 0.25rem !important;
+    }
+    
+    .login-card .form-label i {
+        font-size: 0.8rem !important;
+    }
+    
+    /* Login input fields mobile */
+    .login-card .input-wrapper input[type="email"],
+    .login-card .input-wrapper input[type="password"] {
+        padding: 14px 14px 14px 44px !important;
+        font-size: 16px !important;
+        border-radius: 10px !important;
+        height: 48px !important; /* Fixed height for consistency */
+    }
+    
+    .login-card .input-wrapper input[type="password"] {
+        padding-left: 70px !important; /* Space for icon + toggle */
+    }
+    
+    /* Login input icons mobile */
+    .login-card .input-wrapper .input-icon {
+        left: 14px !important;
+        font-size: 0.9rem !important;
+    }
+    
+    /* Login password toggle mobile */
+    .login-card .password-toggle {
+        left: 42px !important;
+        width: 18px !important;
+        height: 18px !important;
+        font-size: 0.8rem !important;
+    }
+    
+    /* Login form options mobile */
+    .form-options {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 0.75rem !important;
+        margin: 1rem 0 !important;
+    }
+    
+    .remember-me {
+        justify-content: flex-start !important;
+    }
+    
+    .forgot-password-inline {
+        text-align: center !important;
+        font-size: 0.9rem !important;
+    }
+    
+    /* Login button mobile */
+    .login-card .btn {
+        padding: 14px 24px !important;
+        font-size: 1rem !important;
+        width: 100% !important;
+        height: 50px !important;
+        margin-top: 0.5rem !important;
+    }
+    
+    /* ============ MODAL MOBILE FIXES ============ */
+    
+    /* Modal input icons mobile */
+    .modal .input-wrapper i:not(.password-toggle) {
+        left: 14px !important;
+        font-size: 0.9rem !important;
+    }
+    
+    /* Modal input fields mobile */
+    .modal .input-wrapper input[type="email"],
+    .modal .input-wrapper input[type="text"],
+    .modal .input-wrapper input[type="password"] {
+        padding: 14px 14px 14px 44px !important;
+        font-size: 16px !important;
+        height: 48px !important;
+    }
+    
+    .modal .input-wrapper input[type="password"] {
+        padding-left: 70px !important;
+    }
+    
+    /* Modal password toggle mobile */
+    .forgot-step .password-toggle {
+        left: 42px !important;
+        width: 18px !important;
+        height: 18px !important;
+        font-size: 0.8rem !important;
     }
     
     /* Button Mobile Styles */
@@ -706,31 +829,38 @@
     
     /* Designer Credit Mobile */
     .designer-credit-wrapper {
-        bottom: 10px;
-        right: 10px;
+        bottom: 8px;
+        right: 8px;
+        left: auto !important; /* Ensure it stays on the right */
     }
     
     .credit-container {
-        transform: scale(0.85);
-        padding: 6px 12px;
+        transform: scale(0.8);
+        padding: 5px 10px;
+        max-width: none;
     }
     
     .credit-container:hover {
-        transform: scale(0.9) translateY(-1px);
+        transform: scale(0.85) translateY(-1px);
     }
     
     .credit-text-section {
-        font-size: 0.7rem !important;
+        font-size: 0.65rem !important;
+        white-space: nowrap;
     }
     
     .credit-icon {
-        width: 16px !important;
-        height: 16px !important;
-        font-size: 0.6rem !important;
+        width: 14px !important;
+        height: 14px !important;
+        font-size: 0.55rem !important;
     }
     
     .sparkle {
-        font-size: 0.5rem !important;
+        font-size: 0.45rem !important;
+    }
+    
+    .credit-content {
+        gap: 6px !important;
     }
     
     .main-content {
@@ -1170,10 +1300,120 @@
     }
     
     .password-toggle {
-        right: 10px !important;
-        width: 18px !important;
-        height: 18px !important;
-        font-size: 0.8rem !important;
+        left: 38px !important; /* LEFT SIDE FOR EXTRA SMALL SCREENS */
+        width: 16px !important;
+        height: 16px !important;
+        font-size: 0.75rem !important;
+    }
+    
+    /* ============ LOGIN PAGE EXTRA SMALL MOBILE ============ */
+    
+    .login-container {
+        padding: 0.5rem !important;
+    }
+    
+    .login-card {
+        padding: 1rem !important;
+        border-radius: 12px !important;
+    }
+    
+    .login-header h1 {
+        font-size: 1.5rem !important;
+    }
+    
+    .login-header p {
+        font-size: 0.85rem !important;
+    }
+    
+    /* Extra small login inputs */
+    .login-card .input-wrapper input[type="email"],
+    .login-card .input-wrapper input[type="password"] {
+        padding: 12px 12px 12px 40px !important;
+        height: 44px !important;
+        font-size: 16px !important; /* Keep 16px to prevent zoom */
+    }
+    
+    .login-card .input-wrapper input[type="password"] {
+        padding-left: 64px !important;
+    }
+    
+    .login-card .input-wrapper .input-icon {
+        left: 12px !important;
+        font-size: 0.85rem !important;
+    }
+    
+    .login-card .password-toggle {
+        left: 38px !important;
+        width: 16px !important;
+        height: 16px !important;
+        font-size: 0.75rem !important;
+    }
+    
+    .login-card .form-label {
+        font-size: 0.85rem !important;
+    }
+    
+    .login-card .btn {
+        padding: 12px 20px !important;
+        height: 46px !important;
+        font-size: 0.95rem !important;
+    }
+    
+    /* Extra small modal inputs */
+    .modal .input-wrapper input[type="email"],
+    .modal .input-wrapper input[type="text"],
+    .modal .input-wrapper input[type="password"] {
+        padding: 12px 12px 12px 40px !important;
+        height: 44px !important;
+    }
+    
+    .modal .input-wrapper input[type="password"] {
+        padding-left: 64px !important;
+    }
+    
+    .modal .input-wrapper i:not(.password-toggle) {
+        left: 12px !important;
+        font-size: 0.85rem !important;
+    }
+    
+    .forgot-step .password-toggle {
+        left: 38px !important;
+        width: 16px !important;
+        height: 16px !important;
+        font-size: 0.75rem !important;
+    }
+    
+    /* Designer Credit Extra Small */
+    .designer-credit-wrapper {
+        bottom: 6px !important;
+        right: 6px !important;
+    }
+    
+    .credit-container {
+        transform: scale(0.7) !important;
+        padding: 4px 8px !important;
+    }
+    
+    .credit-container:hover {
+        transform: scale(0.75) translateY(-1px) !important;
+    }
+    
+    .credit-text-section {
+        font-size: 0.6rem !important;
+    }
+    
+    .credit-icon {
+        width: 12px !important;
+        height: 12px !important;
+        font-size: 0.5rem !important;
+    }
+    
+    .sparkle {
+        font-size: 0.4rem !important;
+    }
+    
+    .credit-content {
+        gap: 4px !important;
     }
     
     /* Modal Extra Small */
