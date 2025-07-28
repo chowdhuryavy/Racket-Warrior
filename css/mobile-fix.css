@@ -1,0 +1,409 @@
+/* ========================================
+   COMPREHENSIVE MOBILE RESPONSIVENESS FIX
+   ======================================== */
+
+@media (max-width: 768px) {
+    /* === SIDEBAR & NAVIGATION === */
+    .sidebar {
+        transform: translateX(-100%);
+        z-index: 2000;
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: var(--sidebar-width);
+        transition: transform 0.3s ease;
+    }
+    
+    .sidebar.show {
+        transform: translateX(0);
+    }
+    
+    .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1500;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .sidebar-overlay.show {
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    /* === HEADER === */
+    .app-header {
+        left: 0;
+        padding: 0 1rem;
+    }
+    
+    .mobile-menu-toggle {
+        display: block;
+    }
+    
+    .main-content {
+        margin-left: 0;
+        padding-top: var(--header-height);
+    }
+    
+    /* === MODALS === */
+    .modal {
+        padding: 1rem 0.5rem;
+        align-items: flex-start;
+        padding-top: 2rem;
+    }
+    
+    .modal-content {
+        width: 100%;
+        max-width: calc(100vw - 1rem);
+        max-height: calc(100vh - 2rem);
+        margin: 0;
+        border-radius: 16px;
+    }
+    
+    .modal-header {
+        padding: 1rem;
+        font-size: 1rem;
+    }
+    
+    .modal-body {
+        padding: 1rem;
+        max-height: calc(100vh - 8rem);
+        overflow-y: auto;
+    }
+    
+    .modal-actions {
+        padding: 1rem;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .modal-actions .btn-unified {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    /* === FORMS === */
+    .unified-form {
+        padding: 1rem;
+    }
+    
+    .form-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .form-actions .btn-unified {
+        width: 100%;
+    }
+    
+    /* === TABLES === */
+    .unified-table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .unified-table-container table {
+        min-width: 600px;
+        font-size: 0.875rem;
+    }
+    
+    .unified-table-container th,
+    .unified-table-container td {
+        padding: 0.5rem 0.375rem;
+        white-space: nowrap;
+    }
+    
+    /* === DASHBOARD === */
+    .dashboard-stats {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+        padding: 0.5rem;
+    }
+    
+    .stat-card {
+        padding: 0.75rem;
+        min-height: auto;
+    }
+    
+    .stat-card-icon {
+        width: 32px;
+        height: 32px;
+        font-size: 0.9rem;
+    }
+    
+    .stat-card-value {
+        font-size: 1.2rem;
+    }
+    
+    .stat-card-label {
+        font-size: 0.7rem;
+    }
+    
+    /* === ADMIN PAGE === */
+    .admin-stats {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 0.75rem;
+    }
+    
+    .admin-tabs {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .tab-btn {
+        justify-content: flex-start;
+        padding: 10px 12px;
+        font-size: 0.875rem;
+    }
+    
+    .table-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+    
+    .search-box,
+    .filter-select {
+        width: 100%;
+    }
+    
+    .users-table {
+        font-size: 0.75rem;
+    }
+    
+    .user-avatar-sm {
+        width: 24px;
+        height: 24px;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .btn-sm {
+        padding: 4px 8px;
+        font-size: 0.7rem;
+    }
+    
+    /* === LOGS PAGE === */
+    .logs-stats {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 0.75rem;
+    }
+    
+    .logs-table {
+        font-size: 0.75rem;
+    }
+    
+    .timestamp-info .date {
+        font-size: 0.75rem;
+    }
+    
+    .timestamp-info .time {
+        font-size: 0.7rem;
+    }
+    
+    .type-badge {
+        font-size: 0.65rem;
+        padding: 2px 6px;
+    }
+    
+    .user-avatar-xs {
+        width: 24px;
+        height: 24px;
+    }
+    
+    .log-details {
+        font-size: 0.75rem;
+    }
+    
+    /* === REPORTS PAGE === */
+    .report-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+    
+    .report-title-section {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .report-logo {
+        width: 40px;
+        height: 40px;
+        margin-bottom: 0.5rem;
+    }
+    
+    .report-title-content h1 {
+        font-size: 1.5rem;
+    }
+    
+    .report-meta {
+        flex-direction: column;
+        gap: 0.5rem;
+        text-align: center;
+    }
+    
+    .summary-grid {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 0.75rem;
+    }
+    
+    .summary-card {
+        padding: 0.75rem;
+    }
+    
+    .summary-icon {
+        width: 24px;
+        height: 24px;
+        font-size: 0.875rem;
+    }
+    
+    .summary-number {
+        font-size: 1rem;
+    }
+    
+    .report-table {
+        font-size: 0.75rem;
+    }
+    
+    .financial-summary {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+    
+    .financial-item {
+        font-size: 0.875rem;
+    }
+    
+    /* === BUTTONS & CONTROLS === */
+    .btn-unified {
+        padding: 10px 16px;
+        font-size: 0.875rem;
+    }
+    
+    .action-btn-group {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .action-submenu {
+        position: static;
+        box-shadow: none;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        margin-top: 0.5rem;
+    }
+    
+    /* === PAGE CONTENT === */
+    .page-content {
+        padding: 1rem;
+    }
+    
+    .page-header {
+        padding: 1rem;
+        text-align: center;
+    }
+    
+    .page-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .page-header p {
+        font-size: 0.875rem;
+    }
+    
+    /* === FILTERS === */
+    .filters-section {
+        padding: 1rem;
+    }
+    
+    .filter-group {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .filter-item {
+        width: 100%;
+    }
+    
+    .filter-item label {
+        font-size: 0.875rem;
+    }
+    
+    .filter-item input,
+    .filter-item select {
+        width: 100%;
+        font-size: 0.875rem;
+    }
+}
+
+/* === MOBILE LANDSCAPE === */
+@media (max-width: 768px) and (orientation: landscape) {
+    .modal-content {
+        max-height: calc(100vh - 1rem);
+    }
+    
+    .modal-body {
+        max-height: calc(100vh - 6rem);
+    }
+    
+    .stat-card {
+        padding: 0.5rem;
+    }
+    
+    .dashboard-stats {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+}
+
+/* === SMALL MOBILE === */
+@media (max-width: 480px) {
+    .sidebar {
+        width: 280px;
+    }
+    
+    .modal-content {
+        border-radius: 12px;
+    }
+    
+    .btn-unified {
+        padding: 8px 12px;
+        font-size: 0.8rem;
+    }
+    
+    .stat-card-value {
+        font-size: 1rem;
+    }
+    
+    .stat-card-label {
+        font-size: 0.65rem;
+    }
+    
+    .summary-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .admin-stats,
+    .logs-stats {
+        grid-template-columns: 1fr;
+    }
+}
