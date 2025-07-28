@@ -819,6 +819,9 @@ const Auth = {
     
     // Logout user
     logout: async function() {
+        // Show loading screen
+        this.showLoadingScreen();
+        
         try {
             // Log the logout
             if (this.currentUser) {
@@ -827,6 +830,9 @@ const Auth = {
         } catch (error) {
             Logger.warn('Failed to log logout event', error);
         }
+        
+        // Add small delay for UX
+        await new Promise(resolve => setTimeout(resolve, 800));
         
         // Clear user data
         this.currentUser = null;

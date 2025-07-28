@@ -680,7 +680,8 @@ function handleAddUser(params) {
       '',     // last_login
       'active', // status
       '',     // resetToken
-      ''      // resetTokenExpiry
+      '',     // resetTokenExpiry
+      ''      // img_url
     ]);
     
     // Send welcome email

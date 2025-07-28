@@ -445,8 +445,12 @@ const App = {
                 }
             });
             
-            fileUploadArea.addEventListener('click', () => {
-                photoFile.click();
+            fileUploadArea.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (e.target !== photoFile) {
+                    photoFile.click();
+                }
             });
         }
         
@@ -551,16 +555,16 @@ const App = {
             if (response.success) {
                 // Update user profile photo
                 const currentUser = Auth.getCurrentUser();
-                currentUser.photo_url = response.photo_url; // Updated to match API response
+                currentUser.photo_url = response.data.photo_url; // Fixed to match backend response structure
                 Auth.setCurrentUser(currentUser);
                 
                 // Update auth token if provided
-                if (response.token) {
-                    StorageUtils.set(CONFIG.STORAGE_KEYS.AUTH_TOKEN, response.token);
+                if (response.data.token) {
+                    StorageUtils.set(CONFIG.STORAGE_KEYS.AUTH_TOKEN, response.data.token);
                 }
                 
                 // Update UI
-                this.updateUserPhoto(response.photo_url);
+                this.updateUserPhoto(response.data.photo_url);
                 Auth.updateUserProfile();
                 
                 UIUtils.showNotification(response.message || '✅ Profile photo updated successfully!', 'success');

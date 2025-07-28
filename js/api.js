@@ -246,27 +246,28 @@ const API = {
     // File Upload APIs - Simplified for better performance
     uploadPhoto: async function(photoData, fileName) {
         try {
-            // Generate a UI Avatar based on user's name for better performance
+            // Get user data
             const user = JSON.parse(StorageUtils.get(CONFIG.STORAGE_KEYS.USER_DATA) || '{}');
             const userName = user.name || 'User';
-            
-            // Simulate upload delay for better UX
-            await new Promise(resolve => setTimeout(resolve, 1000));
             
             // Generate a UI Avatar URL with random background color for variety
             const colors = ['667eea', '764ba2', '5a67d8', '10b981', 'f59e0b', 'ef4444', '8b5cf6', 'ec4899'];
             const randomColor = colors[Math.floor(Math.random() * colors.length)];
-            
             const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=${randomColor}&color=fff&size=200&bold=true`;
             
-            Logger.info('Photo upload completed successfully');
+            // Save to Google Sheet via backend
+            const response = await this.makeRequest('upload_photo', {
+                token: StorageUtils.get(CONFIG.STORAGE_KEYS.AUTH_TOKEN),
+                photoData: avatarUrl
+            });
             
-            return {
-                success: true,
-                message: 'Profile photo updated successfully!',
-                photo_url: avatarUrl,
-                token: StorageUtils.get(CONFIG.STORAGE_KEYS.AUTH_TOKEN)
-            };
+            if (response.success) {
+                Logger.info('Photo upload completed successfully');
+                return response;
+            } else {
+                throw new Error(response.message || 'Failed to save photo');
+            }
+            
         } catch (error) {
             Logger.error('Photo upload error', error);
             return {
