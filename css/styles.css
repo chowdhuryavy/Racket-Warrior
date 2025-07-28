@@ -612,10 +612,10 @@ body {
     width: 100%;
 }
 
-/* New Professional Password Toggle System - RIGHT SIDE */
+/* Professional Password Toggle System - RIGHT SIDE */
 .password-toggle {
     position: absolute;
-    left: 12px; /* MOVED TO LEFT SIDE AS REQUESTED */
+    right: 16px; /* MOVED TO RIGHT SIDE */
     top: 50%;
     transform: translateY(-50%);
     cursor: pointer;
@@ -4234,7 +4234,7 @@ body {
 }
 
 .login-card .input-wrapper input[type="password"] {
-    padding-left: 80px;
+    padding-right: 80px; /* Space for toggle on RIGHT side */
 }
 
 .login-card .input-wrapper .input-icon {

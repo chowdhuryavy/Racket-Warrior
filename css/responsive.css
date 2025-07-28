@@ -162,31 +162,9 @@
         font-size: 0.8rem !important;
     }
     
-    /* Mobile login inputs */
-    .login-card .input-wrapper input[type="email"],
-    .login-card .input-wrapper input[type="password"] {
-        height: 48px;
-        padding: 14px 14px 14px 44px;
-        border-radius: 10px;
-    }
+    /* Login styles moved to mobile-fix.css */
     
-    .login-card .input-wrapper input[type="password"] {
-        padding-left: 70px;
-    }
-    
-    /* Login input icons mobile */
-    .login-card .input-wrapper .input-icon {
-        left: 14px !important;
-        font-size: 0.9rem !important;
-    }
-    
-    /* Login password toggle mobile */
-    .login-card .password-toggle {
-        left: 42px !important;
-        width: 18px !important;
-        height: 18px !important;
-        font-size: 0.8rem !important;
-    }
+    /* Login icon styles moved to mobile-fix.css */
     
     /* Login form options mobile */
     .form-options {

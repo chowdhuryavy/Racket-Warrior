@@ -3,7 +3,7 @@
 const API = {
     // Base configuration
     baseURL: CONFIG.API_BASE_URL,
-    timeout: 10000, // 10 seconds (reduced for faster fail-over)
+    timeout: 30000, // 30 seconds for Google Apps Script
     
     // Request cache for performance
     cache: new Map(),
