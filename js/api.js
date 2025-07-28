@@ -263,7 +263,7 @@ const API = {
                 token: StorageUtils.get(CONFIG.STORAGE_KEYS.AUTH_TOKEN)
             };
             
-            return await this.makeRequest('upload_photo', params);
+            return await this.makeRequest(CONFIG.ENDPOINTS.UPLOAD_PHOTO, params);
         } catch (error) {
             Logger.error('Photo upload error', error);
             return {

@@ -228,7 +228,7 @@ const Reports = {
                             </div>
                             <div class="summary-content">
                                 <h4>Total Collection</h4>
-                                <p class="summary-number">QAR ${data.summary.totalCollection.toFixed(2)}</p>
+                                <p class="summary-number">QAR ${(data.summary.totalCollection || 0).toFixed(2)}</p>
                                 <p class="summary-detail">${data.collections.length} transactions</p>
                             </div>
                         </div>
@@ -239,7 +239,7 @@ const Reports = {
                             </div>
                             <div class="summary-content">
                                 <h4>Total Expenses</h4>
-                                <p class="summary-number">QAR ${data.summary.totalExpenses.toFixed(2)}</p>
+                                <p class="summary-number">QAR ${(data.summary.totalExpenses || 0).toFixed(2)}</p>
                                 <p class="summary-detail">${data.expenses.length} transactions</p>
                             </div>
                         </div>
@@ -250,8 +250,8 @@ const Reports = {
                             </div>
                             <div class="summary-content">
                                 <h4>Net Balance</h4>
-                                <p class="summary-number ${data.summary.netBalance >= 0 ? 'positive' : 'negative'}">
-                                    QAR ${data.summary.netBalance.toFixed(2)}
+                                <p class="summary-number ${(data.summary.netBalance || 0) >= 0 ? 'positive' : 'negative'}">
+                                    QAR ${(data.summary.netBalance || 0).toFixed(2)}
                                 </p>
                                 <p class="summary-detail">${data.summary.netBalance >= 0 ? 'Profit' : 'Loss'}</p>
                             </div>

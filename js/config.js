@@ -92,6 +92,7 @@ const CONFIG = {
         ADD_USER: 'add_user',
         UPDATE_USER: 'update_user',
         DELETE_USER: 'delete_user',
+        UPLOAD_PHOTO: 'upload_photo',
         
         // Players
         GET_PLAYERS: 'get_players',

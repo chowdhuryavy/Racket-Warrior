@@ -224,46 +224,43 @@ const Players = {
         const statusInput = document.getElementById('playerStatus');
         
         const playerData = {
-            Name: nameInput ? nameInput.value.trim() : '',
-            Phone: phoneInput ? phoneInput.value.trim() : '',
-            Email: emailInput ? emailInput.value.trim() || '' : '',
-            JoinDate: joinDateInput ? joinDateInput.value : '',
-            Status: statusInput ? statusInput.value : '',
-            CreatedAt: new Date().toISOString(),
-            MonthlyStatus: JSON.stringify({
-                [DateUtils.getMonthYear(new Date())]: (statusInput ? statusInput.value : '') === 'active'
-            })
+            name: nameInput ? nameInput.value.trim() : '', // Fixed: lowercase for backend
+            phone: phoneInput ? phoneInput.value.trim() : '', // Fixed: lowercase for backend
+            email: emailInput ? emailInput.value.trim() || '' : '', // Fixed: lowercase for backend
+            status: statusInput ? statusInput.value : '', // Fixed: lowercase for backend
+            joinDate: joinDateInput ? joinDateInput.value : '',
+            token: StorageUtils.get(CONFIG.STORAGE_KEYS.AUTH_TOKEN) // Added missing token
         };
         
         // Manual validation with better error messages
-        if (!playerData.Name || playerData.Name.trim() === '') {
+        if (!playerData.name || playerData.name.trim() === '') {
             UIUtils.showNotification('Player name is required', 'error');
             return;
         }
         
-        if (!playerData.Phone || playerData.Phone.trim() === '') {
+        if (!playerData.phone || playerData.phone.trim() === '') {
             UIUtils.showNotification('Phone number is required', 'error');
             return;
         }
         
-        if (!playerData.JoinDate) {
+        if (!playerData.joinDate) {
             UIUtils.showNotification('Join date is required', 'error');
             return;
         }
         
-        if (!playerData.Status) {
+        if (!playerData.status) {
             UIUtils.showNotification('Status is required', 'error');
             return;
         }
         
         // Validate email if provided
-        if (playerData.Email && !ValidationUtils.isValidEmail(playerData.Email)) {
+        if (playerData.email && !ValidationUtils.isValidEmail(playerData.email)) {
             UIUtils.showNotification('Please enter a valid email address', 'error');
             return;
         }
         
         // Validate phone
-        if (!ValidationUtils.isValidPhone(playerData.Phone)) {
+        if (!ValidationUtils.isValidPhone(playerData.phone)) {
             UIUtils.showNotification('Please enter a valid phone number', 'error');
             return;
         }
