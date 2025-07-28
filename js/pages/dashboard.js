@@ -383,11 +383,11 @@ const Dashboard = {
         const finalBalanceElement = document.getElementById('finalBalanceAmount');
         
         if (activePlayersElement) {
-            activePlayersElement.textContent = data.totalPlayers || 0;
+            activePlayersElement.textContent = data.activePlayersCount || 0;
         }
         
         if (totalCollectionElement) {
-            totalCollectionElement.textContent = CurrencyUtils.format(data.totalIncome || 0);
+            totalCollectionElement.textContent = CurrencyUtils.format(data.totalCollection || 0);
         }
         
         if (totalExpenseElement) {
@@ -395,7 +395,7 @@ const Dashboard = {
         }
         
         if (finalBalanceElement) {
-            const balance = (data.totalIncome || 0) - (data.totalExpenses || 0);
+            const balance = data.finalBalance || 0;
             finalBalanceElement.textContent = CurrencyUtils.format(balance);
             
             // Update color based on balance

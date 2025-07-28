@@ -338,7 +338,9 @@
         document.addEventListener('DOMContentLoaded', function() {
             const mobileToggle = document.getElementById('mobileMenuToggle');
             if (mobileToggle) {
-                mobileToggle.addEventListener('click', toggleMobileSidebar);
+                mobileToggle.addEventListener('click', function() {
+                    App.toggleMobileMenu();
+                });
             }
             
             // Close sidebar when clicking on navigation links (mobile only)

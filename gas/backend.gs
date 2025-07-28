@@ -854,7 +854,7 @@ function handleGetPlayers(params) {
  */
 function handleAddPlayer(params) {
   try {
-    const { token, name, phone, email, status } = params;
+    const { token, name, phone, email, status, joinDate } = params;
     
     const user = verifyToken(token);
     if (!user || !hasPermission(user.role, 'add')) {
@@ -880,7 +880,13 @@ function handleAddPlayer(params) {
     
     const id = generateId();
     const now = new Date().toISOString();
-    const joinDate = new Date().toISOString().split('T')[0];
+    const playerJoinDate = joinDate || new Date().toISOString().split('T')[0];
+    
+    // Set player as active for current month
+    const currentDate = new Date();
+    const currentMonth = currentDate.getFullYear() + '-' + String(currentDate.getMonth() + 1).padStart(2, '0');
+    const monthlyStatus = {};
+    monthlyStatus[currentMonth] = 'active';
     
     playersSheet.appendRow([
       id,
@@ -888,9 +894,9 @@ function handleAddPlayer(params) {
       phone,
       email || '',
       status || 'active',
-      joinDate,
+      playerJoinDate,
       now,
-      JSON.stringify({}) // Empty monthly status object
+      JSON.stringify(monthlyStatus) // Monthly status with current month active
     ]);
     
     addLog('PLAYER_ADDED', `New player added: ${name} (${phone})`, user.email, user.role);

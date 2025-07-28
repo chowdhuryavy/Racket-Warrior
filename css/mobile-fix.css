@@ -320,13 +320,16 @@
     .login-card .input-wrapper input[type="password"] {
         width: 100% !important;
         height: 48px !important;
-        padding: 14px 14px 14px 44px !important;
-        border-radius: 10px;
+        padding: 14px 44px 14px 44px !important; /* Same padding for both */
+        border-radius: 10px !important;
         box-sizing: border-box !important;
+        border: 2px solid #e5e7eb !important;
+        font-size: 16px !important;
+        line-height: 1.2 !important;
     }
     
     .login-card .input-wrapper input[type="password"] {
-        padding-right: 70px !important; /* Space for toggle on RIGHT side */
+        padding-right: 70px !important; /* Extra space for toggle on RIGHT side */
         padding-left: 44px !important; /* Same as email input */
     }
     

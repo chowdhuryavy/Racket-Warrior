@@ -534,11 +534,19 @@ const Players = {
                 </div>
                 
                 <div class="form-group">
-                    <label for="editPlayerStatus">Status <span class="required">*</span></label>
+                    <label for="editPlayerStatus">Overall Status <span class="required">*</span></label>
                     <select id="editPlayerStatus" name="status" required>
                         <option value="active" ${player.Status === 'active' ? 'selected' : ''}>🟢 Active</option>
                         <option value="inactive" ${player.Status === 'inactive' ? 'selected' : ''}>🔴 Inactive</option>
                     </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Monthly Status Management</label>
+                    <div class="monthly-status-manager">
+                        ${this.getMonthlyStatusManagerHTML(player)}
+                    </div>
+                    <small class="form-help">Set active/inactive status for specific months</small>
                 </div>
                 
                 <div class="form-actions">
@@ -706,6 +714,86 @@ const Players = {
         } catch (error) {
             Logger.error('Error updating monthly status', error);
             UIUtils.showNotification('Error updating player status', 'error');
+        }
+    },
+
+    // Get monthly status manager HTML for edit modal
+    getMonthlyStatusManagerHTML: function(player) {
+        let monthlyStatus = {};
+        if (player.MonthlyStatus) {
+            try {
+                monthlyStatus = JSON.parse(player.MonthlyStatus);
+            } catch (e) {
+                monthlyStatus = {};
+            }
+        }
+        
+        // Get last 6 months and next 6 months
+        const months = [];
+        const currentDate = new Date();
+        
+        // Generate months (6 previous + current + 6 future)
+        for (let i = -6; i <= 6; i++) {
+            const date = new Date(currentDate.getFullYear(), currentDate.getMonth() + i, 1);
+            const monthKey = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
+            const monthName = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+            months.push({ key: monthKey, name: monthName });
+        }
+        
+        return `
+            <div class="monthly-status-grid">
+                ${months.map(month => {
+                    const isActive = monthlyStatus[month.key] === 'active';
+                    const hasStatus = monthlyStatus.hasOwnProperty(month.key);
+                    return `
+                        <div class="month-status-item">
+                            <span class="month-name">${month.name}</span>
+                            <div class="status-toggle-group">
+                                <button type="button" 
+                                        class="status-toggle-btn ${isActive ? 'active' : ''}" 
+                                        onclick="Players.setMonthlyStatusInModal('${player.ID}', '${month.key}', 'active', this)"
+                                        ${isActive ? 'data-active="true"' : ''}>
+                                    ✅
+                                </button>
+                                <button type="button" 
+                                        class="status-toggle-btn ${!isActive && hasStatus ? 'active' : ''}" 
+                                        onclick="Players.setMonthlyStatusInModal('${player.ID}', '${month.key}', 'inactive', this)"
+                                        ${!isActive && hasStatus ? 'data-active="true"' : ''}>
+                                    ❌
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+    },
+
+    // Set monthly status in modal (temporary, until saved)
+    setMonthlyStatusInModal: async function(playerId, month, status, buttonElement) {
+        try {
+            // Update immediately
+            const response = await API.updatePlayerMonthlyStatus(playerId, month, status);
+            
+            if (response.success) {
+                // Update button states
+                const monthItem = buttonElement.closest('.month-status-item');
+                const allButtons = monthItem.querySelectorAll('.status-toggle-btn');
+                allButtons.forEach(btn => {
+                    btn.classList.remove('active');
+                    btn.removeAttribute('data-active');
+                });
+                
+                buttonElement.classList.add('active');
+                buttonElement.setAttribute('data-active', 'true');
+                
+                UIUtils.showNotification(`Status updated for ${month}`, 'success');
+            } else {
+                UIUtils.showNotification(response.message || 'Failed to update status', 'error');
+            }
+        } catch (error) {
+            Logger.error('Error updating monthly status', error);
+            UIUtils.showNotification('Error updating status', 'error');
         }
     },
 
