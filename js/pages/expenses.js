@@ -8,61 +8,78 @@ const Expenses = {
         container.innerHTML = `
             <div class="expenses-add-page">
                 <div class="page-header">
-                    <h1>Add Expense</h1>
-                    <p class="page-description">Record a new expense for the badminton group</p>
+                    <div class="header-content">
+                        <h1><i class="fas fa-receipt"></i> Add Expense</h1>
+                        <p>Record a new expense for the badminton group</p>
+                    </div>
                 </div>
 
                 <div class="form-container">
                     <form id="addExpenseForm" class="unified-form">
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="expenseDate">Date *</label>
-                                <input type="date" id="expenseDate" name="date" required>
+                                <label for="expenseDate">Date <span class="required">*</span></label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-calendar"></i>
+                                    <input type="date" id="expenseDate" name="date" required>
+                                </div>
                             </div>
                             
                             <div class="form-group">
-                                <label for="expenseCategory">Category *</label>
-                                <select id="expenseCategory" name="category" required>
-                                    <option value="">Select Category</option>
-                                    <option value="Equipment">Equipment</option>
-                                    <option value="Court Rental">Court Rental</option>
-                                    <option value="Tournament">Tournament</option>
-                                    <option value="Refreshments">Refreshments</option>
-                                    <option value="Transport">Transport</option>
-                                    <option value="Other">Other</option>
-                                </select>
+                                <label for="expenseCategory">Category <span class="required">*</span></label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-tags"></i>
+                                    <select id="expenseCategory" name="category" required>
+                                        <option value="">Select Category</option>
+                                        <option value="Equipment">🏸 Equipment</option>
+                                        <option value="Court Rental">🏢 Court Rental</option>
+                                        <option value="Tournament">🏆 Tournament</option>
+                                        <option value="Refreshments">🥤 Refreshments</option>
+                                        <option value="Transport">🚗 Transport</option>
+                                        <option value="Other">📋 Other</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="expenseAmount">Amount (QAR) *</label>
-                                <input type="number" id="expenseAmount" name="amount" min="0" step="0.01" required>
+                                <label for="expenseAmount">Amount (QAR) <span class="required">*</span></label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-money-bill"></i>
+                                    <input type="number" id="expenseAmount" name="amount" min="0" step="0.01" placeholder="Enter amount" required>
+                                </div>
                             </div>
                             
                             <div class="form-group">
-                                <label for="expenseMonth">Month *</label>
-                                <select id="expenseMonth" name="month" required>
-                                    <option value="">Select Month</option>
-                                </select>
+                                <label for="expenseMonth">Month <span class="required">*</span></label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-calendar-month"></i>
+                                    <select id="expenseMonth" name="month" required>
+                                        <option value="">Select Month</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group full-width">
-                                <label for="expenseDescription">Description *</label>
-                                <input type="text" id="expenseDescription" name="description" placeholder="Describe the expense" required>
+                                <label for="expenseDescription">Description <span class="required">*</span></label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-file-text"></i>
+                                    <input type="text" id="expenseDescription" name="description" placeholder="Describe the expense" required>
+                                </div>
                             </div>
                         </div>
 
                         <div class="form-actions">
-                            <button type="submit" class="btn-unified btn-unified-primary">
-                                <i class="fas fa-plus"></i>
-                                Add Expense
+                            <button type="button" class="btn-unified btn-unified-secondary" onclick="showPage('expenses-view')">
+                                <i class="fas fa-arrow-left"></i>
+                                Back to Expenses
                             </button>
-                            <button type="button" class="btn-unified btn-unified-secondary" onclick="this.closest('form').reset()">
-                                <i class="fas fa-undo"></i>
-                                Reset
+                            <button type="submit" class="btn-unified btn-unified-primary">
+                                <i class="fas fa-save"></i>
+                                Save Expense
                             </button>
                         </div>
                     </form>
@@ -78,8 +95,8 @@ const Expenses = {
             <div class="expenses-view-page">
                 <div class="page-header">
                     <div class="header-content">
-                        <h1>Expenses</h1>
-                        <p class="page-description">View and manage all group expenses</p>
+                        <h1><i class="fas fa-receipt"></i> Expenses</h1>
+                        <p>View and manage all group expenses</p>
                     </div>
                     <div class="header-actions" data-role="admin,view_edit">
                         <button class="btn-unified btn-unified-primary" onclick="showPage('expenses-add')">
@@ -89,27 +106,30 @@ const Expenses = {
                     </div>
                 </div>
 
-                <div class="table-filters">
+                <div class="filters-section">
                     <div class="filter-group">
-                        <div class="search-box">
-                            <i class="fas fa-search"></i>
-                            <input type="text" id="expenseSearch" placeholder="Search expenses...">
+                        <div class="filter-item">
+                            <label for="expenseSearch">Search Expenses:</label>
+                            <input type="text" id="expenseSearch" placeholder="Search by category, amount, or description...">
                         </div>
-                        
-                        <select id="expenseMonthFilter" class="month-filter">
-                            <option value="">All Months</option>
-                        </select>
-                        
-                        <select id="expenseCategoryFilter" class="filter-select">
-                            <option value="">All Categories</option>
-                            <option value="Equipment">Equipment</option>
-                            <option value="Court Rental">Court Rental</option>
-                            <option value="Tournament">Tournament</option>
-                            <option value="Refreshments">Refreshments</option>
-                            <option value="Transport">Transport</option>
-                            <option value="Other">Other</option>
-                        </select>
-                        
+                        <div class="filter-item">
+                            <label for="expenseMonthFilter">Month:</label>
+                            <select id="expenseMonthFilter">
+                                <option value="">All Months</option>
+                            </select>
+                        </div>
+                        <div class="filter-item">
+                            <label for="expenseCategoryFilter">Category:</label>
+                            <select id="expenseCategoryFilter">
+                                <option value="">All Categories</option>
+                                <option value="Equipment">🏸 Equipment</option>
+                                <option value="Court Rental">🏢 Court Rental</option>
+                                <option value="Tournament">🏆 Tournament</option>
+                                <option value="Refreshments">🥤 Refreshments</option>
+                                <option value="Transport">🚗 Transport</option>
+                                <option value="Other">📋 Other</option>
+                            </select>
+                        </div>
                         <button id="refreshExpenses" class="btn-unified btn-unified-secondary">
                             <i class="fas fa-sync-alt"></i>
                             Refresh

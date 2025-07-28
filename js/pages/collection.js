@@ -8,55 +8,72 @@ const Collection = {
         container.innerHTML = `
             <div class="collection-add-page">
                 <div class="page-header">
-                    <h1>Add Collection</h1>
-                    <p class="page-description">Record a new payment collection from players</p>
+                    <div class="header-content">
+                        <h1><i class="fas fa-coins"></i> Add Collection</h1>
+                        <p>Record a new payment collection from players</p>
+                    </div>
                 </div>
 
                 <div class="form-container">
                     <form id="addCollectionForm" class="unified-form">
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="collectionDate">Date *</label>
-                                <input type="date" id="collectionDate" name="date" required>
+                                <label for="collectionDate">Date <span class="required">*</span></label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-calendar"></i>
+                                    <input type="date" id="collectionDate" name="date" required>
+                                </div>
                             </div>
                             
                             <div class="form-group">
-                                <label for="collectionPlayer">Player *</label>
-                                <select id="collectionPlayer" name="playerId" required>
-                                    <option value="">Select Player</option>
-                                </select>
+                                <label for="collectionPlayer">Player <span class="required">*</span></label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-user"></i>
+                                    <select id="collectionPlayer" name="playerId" required>
+                                        <option value="">Select Player</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="collectionAmount">Amount (QAR) *</label>
-                                <input type="number" id="collectionAmount" name="amount" min="0" step="0.01" required>
+                                <label for="collectionAmount">Amount (QAR) <span class="required">*</span></label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-coins"></i>
+                                    <input type="number" id="collectionAmount" name="amount" min="0" step="0.01" placeholder="Enter amount" required>
+                                </div>
                             </div>
                             
                             <div class="form-group">
-                                <label for="collectionMonth">Month *</label>
-                                <select id="collectionMonth" name="month" required>
-                                    <option value="">Select Month</option>
-                                </select>
+                                <label for="collectionMonth">Month <span class="required">*</span></label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-calendar-month"></i>
+                                    <select id="collectionMonth" name="month" required>
+                                        <option value="">Select Month</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group full-width">
                                 <label for="collectionDescription">Description</label>
-                                <input type="text" id="collectionDescription" name="description" placeholder="Optional description">
+                                <div class="input-wrapper">
+                                    <i class="fas fa-sticky-note"></i>
+                                    <input type="text" id="collectionDescription" name="description" placeholder="Optional description">
+                                </div>
                             </div>
                         </div>
 
                         <div class="form-actions">
-                            <button type="submit" class="btn-unified btn-unified-primary">
-                                <i class="fas fa-plus"></i>
-                                Add Collection
+                            <button type="button" class="btn-unified btn-unified-secondary" onclick="showPage('collection-view')">
+                                <i class="fas fa-arrow-left"></i>
+                                Back to Collections
                             </button>
-                            <button type="button" class="btn-unified btn-unified-secondary" onclick="this.closest('form').reset()">
-                                <i class="fas fa-undo"></i>
-                                Reset
+                            <button type="submit" class="btn-unified btn-unified-primary">
+                                <i class="fas fa-save"></i>
+                                Save Collection
                             </button>
                         </div>
                     </form>
@@ -72,8 +89,8 @@ const Collection = {
             <div class="collection-view-page">
                 <div class="page-header">
                     <div class="header-content">
-                        <h1>Collections</h1>
-                        <p class="page-description">View and manage all payment collections</p>
+                        <h1><i class="fas fa-coins"></i> Collections</h1>
+                        <p>View and manage all payment collections</p>
                     </div>
                     <div class="header-actions" data-role="admin,view_edit">
                         <button class="btn-unified btn-unified-primary" onclick="showPage('collection-add')">
@@ -83,21 +100,24 @@ const Collection = {
                     </div>
                 </div>
 
-                <div class="table-filters">
+                <div class="filters-section">
                     <div class="filter-group">
-                        <div class="search-box">
-                            <i class="fas fa-search"></i>
-                            <input type="text" id="collectionSearch" placeholder="Search collections...">
+                        <div class="filter-item">
+                            <label for="collectionSearch">Search Collections:</label>
+                            <input type="text" id="collectionSearch" placeholder="Search by player, amount, or description...">
                         </div>
-                        
-                        <select id="collectionMonthFilter" class="month-filter">
-                            <option value="">All Months</option>
-                        </select>
-                        
-                        <select id="collectionPlayerFilter" class="filter-select">
-                            <option value="">All Players</option>
-                        </select>
-                        
+                        <div class="filter-item">
+                            <label for="collectionMonthFilter">Month:</label>
+                            <select id="collectionMonthFilter">
+                                <option value="">All Months</option>
+                            </select>
+                        </div>
+                        <div class="filter-item">
+                            <label for="collectionPlayerFilter">Player:</label>
+                            <select id="collectionPlayerFilter">
+                                <option value="">All Players</option>
+                            </select>
+                        </div>
                         <button id="refreshCollections" class="btn-unified btn-unified-secondary">
                             <i class="fas fa-sync-alt"></i>
                             Refresh
