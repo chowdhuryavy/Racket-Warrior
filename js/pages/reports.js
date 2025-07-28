@@ -490,57 +490,102 @@ const Reports = {
     },
     
     // Export to Image
-    exportToImage: function() {
+    exportToImage: async function() {
         if (!this.reportData) {
             UIUtils.showNotification('Please generate a report first', 'warning');
             return;
         }
         
+        const exportButton = document.getElementById('exportImage');
+        if (exportButton) {
+            UIUtils.showLoading(exportButton, 'Exporting...');
+        }
+        
         try {
-            // Using html2canvas library if available, otherwise fallback message
-            if (typeof html2canvas !== 'undefined') {
-                const reportElement = document.getElementById('reportDocument');
-                if (reportElement) {
-                    html2canvas(reportElement).then(canvas => {
-                        const link = document.createElement('a');
-                        link.download = `racket-warrior-report-${this.currentMonth}.png`;
-                        link.href = canvas.toDataURL();
-                        link.click();
-                        UIUtils.showNotification('Report exported as image!', 'success');
-                    });
-                }
-            } else {
-                // Fallback: Copy report content to clipboard
-                const reportElement = document.getElementById('reportDocument');
-                if (reportElement) {
-                    // Create a canvas manually
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    canvas.width = 800;
-                    canvas.height = 1000;
-                    
-                    // Fill with white background
-                    ctx.fillStyle = 'white';
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    
-                    // Add text content
-                    ctx.fillStyle = 'black';
-                    ctx.font = '20px Arial';
-                    ctx.fillText('Racket Warrior - Monthly Report', 50, 50);
-                    ctx.fillText(this.reportData.monthLabel, 50, 80);
-                    
-                    // Download the canvas
-                    const link = document.createElement('a');
-                    link.download = `racket-warrior-report-${this.currentMonth}.png`;
-                    link.href = canvas.toDataURL();
-                    link.click();
-                    
-                    UIUtils.showNotification('Basic report image exported!', 'success');
-                }
+            // Check if html2canvas is available
+            if (typeof html2canvas === 'undefined') {
+                throw new Error('html2canvas library not loaded');
             }
+            
+            const reportElement = document.getElementById('reportDocument');
+            if (!reportElement) {
+                throw new Error('Report element not found');
+            }
+            
+            // Configure html2canvas options for better quality
+            const options = {
+                allowTaint: true,
+                useCORS: true,
+                scale: 2, // Higher resolution
+                backgroundColor: '#ffffff',
+                width: reportElement.scrollWidth,
+                height: reportElement.scrollHeight,
+                scrollX: 0,
+                scrollY: 0,
+                imageTimeout: 15000, // 15 second timeout
+                logging: false,
+                ignoreElements: function(element) {
+                    // Ignore any hidden elements
+                    return element.style.display === 'none' || element.style.visibility === 'hidden';
+                }
+            };
+            
+            // Ensure all images are loaded before capturing
+            const images = reportElement.querySelectorAll('img');
+            const imagePromises = Array.from(images).map(img => {
+                return new Promise((resolve) => {
+                    if (img.complete) {
+                        resolve();
+                    } else {
+                        img.onload = resolve;
+                        img.onerror = resolve; // Don't fail on image errors
+                        // Fallback timeout
+                        setTimeout(resolve, 3000);
+                    }
+                });
+            });
+            
+            await Promise.all(imagePromises);
+            
+            // Generate canvas
+            const canvas = await html2canvas(reportElement, options);
+            
+            // Create download link
+            const link = document.createElement('a');
+            const monthLabel = this.reportData.monthLabel || 'report';
+            link.download = `racket-warrior-${monthLabel.replace(/\s+/g, '-').toLowerCase()}.png`;
+            link.href = canvas.toDataURL('image/png', 1.0);
+            
+            // Trigger download
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            UIUtils.showNotification('📸 Report exported as image successfully!', 'success');
+            
         } catch (error) {
-            console.error('Error exporting image:', error);
-            UIUtils.showNotification('Failed to export image', 'error');
+            console.error('Export to image error:', error);
+            console.log('Report element:', reportElement);
+            console.log('html2canvas available:', typeof html2canvas !== 'undefined');
+            
+            UIUtils.showNotification('Failed to export image: ' + error.message, 'error');
+            
+            // Fallback: Try a simple screenshot approach
+            try {
+                if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
+                    UIUtils.showNotification('💡 Try using your browser\'s screenshot feature (F12 → Console → Screenshot)', 'info');
+                } else {
+                    UIUtils.showNotification('💡 Try the PDF export instead, or right-click the report to save', 'info');
+                }
+            } catch (fallbackError) {
+                UIUtils.showNotification('Try using the PDF export instead', 'info');
+            }
+            
+        } finally {
+            // Hide loading state
+            if (exportButton) {
+                UIUtils.hideLoading(exportButton);
+            }
         }
     }
 };
