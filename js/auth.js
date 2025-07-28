@@ -14,9 +14,20 @@ const Auth = {
         if (userData && token) {
             this.currentUser = userData;
             Logger.info('Existing session found', userData);
-            this.showApp();
-            // Refresh user data from server to get latest photo
-            this.refreshUserData();
+            
+            // Check if password change is required FIRST
+            if (userData.needs_password_change) {
+                Logger.info('Password change required for user');
+                // Show login container but immediately show password change modal
+                this.showLogin();
+                setTimeout(() => {
+                    this.showChangePasswordModal(true);
+                }, 500);
+            } else {
+                this.showApp();
+                // Refresh user data from server to get latest photo
+                this.refreshUserData();
+            }
         } else {
             this.showLogin();
         }

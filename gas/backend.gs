@@ -293,7 +293,7 @@ function handleLogin(params) {
         'Doha@2580',
         'admin',
         'Avy Chowdhury',
-        'FALSE',
+        'TRUE', // FORCE PASSWORD CHANGE FOR NEW USERS
         new Date().toISOString(),
         '',
         'active',
@@ -312,7 +312,7 @@ function handleLogin(params) {
         'admin123',
         'admin',
         'Admin User',
-        'FALSE',
+        'TRUE', // FORCE PASSWORD CHANGE FOR NEW USERS
         new Date().toISOString(),
         '',
         'active',
@@ -2839,7 +2839,7 @@ function initializeApplication() {
         'Doha@2580',              // password
         'admin',                  // role
         'Avy Chowdhury',          // name
-        'FALSE',                  // needs_password_change
+        'TRUE',                   // needs_password_change - FORCE PASSWORD CHANGE
         new Date().toISOString(), // created_at
         '',                       // last_login
         'active',                 // status

@@ -274,6 +274,10 @@ const Players = {
             if (response.success) {
                 UIUtils.showNotification('Player added successfully!', 'success');
                 
+                // Clear API cache to ensure fresh data
+                API.clearCache('players');
+                API.clearCache('dashboard');
+                
                 // Log the action
                 await API.addLog('PLAYER_ADD', `Added new player: ${playerData.name}`);
                 

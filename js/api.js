@@ -5,8 +5,35 @@ const API = {
     baseURL: CONFIG.API_BASE_URL,
     timeout: 30000, // 30 seconds
     
+    // Request cache for performance
+    cache: new Map(),
+    cacheTimeout: 30000, // 30 seconds cache
+    
+    // Clear cache for specific data types
+    clearCache: function(dataType = null) {
+        if (!dataType) {
+            this.cache.clear();
+            Logger.debug('Cleared all API cache');
+            return;
+        }
+        
+        // Clear specific data type cache
+        const keysToDelete = [];
+        for (const key of this.cache.keys()) {
+            if (key.includes(dataType)) {
+                keysToDelete.push(key);
+            }
+        }
+        
+        keysToDelete.forEach(key => this.cache.delete(key));
+        Logger.debug(`Cleared API cache for: ${dataType}`);
+    },
+    
     // Make HTTP request to Google Apps Script using JSONP
     makeRequest: async function(endpoint, data = {}) {
+        // Performance monitoring
+        const startTime = performance.now();
+        
         const requestData = {
             action: endpoint,
             ...data
@@ -16,6 +43,18 @@ const API = {
         const token = StorageUtils.get(CONFIG.STORAGE_KEYS.AUTH_TOKEN);
         if (token) {
             requestData.token = token;
+        }
+        
+        // Check cache for GET-like requests (non-mutating operations)
+        const cacheableEndpoints = ['get_players', 'get_income', 'get_expenses', 'get_users', 'get_dashboard_stats'];
+        if (cacheableEndpoints.includes(endpoint)) {
+            const cacheKey = endpoint + JSON.stringify(data);
+            const cached = this.cache.get(cacheKey);
+            
+            if (cached && (Date.now() - cached.timestamp) < this.cacheTimeout) {
+                Logger.debug(`API Cache Hit: ${endpoint} (${(performance.now() - startTime).toFixed(2)}ms)`, cached.data);
+                return cached.data;
+            }
         }
         
         // Debug logging (hide sensitive data)
@@ -47,7 +86,24 @@ const API = {
             // Set up global callback
             window[callbackName] = (result) => {
                 cleanup();
-                Logger.debug(`API Response: ${endpoint}`, result);
+                const endTime = performance.now();
+                const duration = endTime - startTime;
+                Logger.debug(`API Response: ${endpoint} (${duration.toFixed(2)}ms)`, result);
+                
+                // Warn about slow requests
+                if (duration > 5000) {
+                    Logger.warn(`Slow API request detected: ${endpoint} took ${duration.toFixed(2)}ms`);
+                }
+                
+                // Cache successful GET-like responses
+                if (cacheableEndpoints.includes(endpoint) && result.success) {
+                    const cacheKey = endpoint + JSON.stringify(data);
+                    this.cache.set(cacheKey, {
+                        data: result,
+                        timestamp: Date.now()
+                    });
+                }
+                
                 resolve(result);
             };
             
