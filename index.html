@@ -320,11 +320,36 @@
         // Setup mobile menu toggle
         // Password toggle function removed
 
+        function setupMobileMenu() {
+            // Ensure overlay exists
+            let overlay = document.querySelector('.sidebar-overlay');
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.className = 'sidebar-overlay';
+                document.body.appendChild(overlay);
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
+            setupMobileMenu();
             const mobileToggle = document.getElementById('mobileMenuToggle');
             if (mobileToggle) {
                 mobileToggle.addEventListener('click', function() {
-                    App.toggleMobileMenu();
+                    console.log('Mobile menu button clicked');
+                    if (window.App && typeof window.App.toggleMobileMenu === 'function') {
+                        window.App.toggleMobileMenu();
+                    } else {
+                        console.error('App.toggleMobileMenu not available');
+                        // Fallback implementation
+                        const sidebar = document.getElementById('sidebar');
+                        const overlay = document.querySelector('.sidebar-overlay');
+                        if (sidebar) {
+                            sidebar.classList.toggle('show');
+                        }
+                        if (overlay) {
+                            overlay.classList.toggle('show');
+                        }
+                    }
                 });
             }
             
@@ -332,9 +357,31 @@
             document.querySelectorAll('.sidebar-nav a').forEach(link => {
                 link.addEventListener('click', function() {
                     if (window.innerWidth <= 768) {
-                        closeMobileSidebar();
+                        // Close mobile sidebar
+                        const sidebar = document.getElementById('sidebar');
+                        const overlay = document.querySelector('.sidebar-overlay');
+                        if (sidebar) {
+                            sidebar.classList.remove('show');
+                        }
+                        if (overlay) {
+                            overlay.classList.remove('show');
+                        }
                     }
                 });
+            });
+            
+            // Close sidebar when clicking on overlay
+            document.addEventListener('click', function(event) {
+                if (event.target.classList.contains('sidebar-overlay')) {
+                    const sidebar = document.getElementById('sidebar');
+                    const overlay = document.querySelector('.sidebar-overlay');
+                    if (sidebar) {
+                        sidebar.classList.remove('show');
+                    }
+                    if (overlay) {
+                        overlay.classList.remove('show');
+                    }
+                }
             });
         });
     </script>

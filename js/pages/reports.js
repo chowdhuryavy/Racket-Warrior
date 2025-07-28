@@ -146,31 +146,43 @@ const Reports = {
     
     // Show test report as fallback
     showTestReport: function() {
+        const monthLabel = this.currentMonth ? 
+            new Date(this.currentMonth + '-01').toLocaleDateString('en-US', { year: 'numeric', month: 'long' }) :
+            'Current Month';
+            
         this.reportData = {
-            month: this.currentMonth,
-            monthLabel: new Date(this.currentMonth + '-01').toLocaleDateString('en-US', { year: 'numeric', month: 'long' }),
+            month: this.currentMonth || DateUtils.getMonthYear(new Date()),
+            monthLabel: monthLabel,
             summary: {
-                totalPlayers: 12,
-                activePlayers: 10,
+                totalPlayers: 8,
+                activePlayers: 6,
                 inactivePlayers: 2,
-                totalCollection: 500.00,
-                totalExpenses: 320.00,
-                netBalance: 180.00
+                totalCollection: 450.00,
+                totalExpenses: 280.00,
+                netBalance: 170.00
             },
             players: [
-                { name: 'John Smith', phone: '+974 1234 5678', status: 'active', joinDate: '2024-01-15' },
-                { name: 'Jane Doe', phone: '+974 2345 6789', status: 'active', joinDate: '2024-01-10' },
-                { name: 'Mike Johnson', phone: '+974 3456 7890', status: 'inactive', joinDate: '2023-12-20' }
+                { name: 'Ahmed Al-Mansouri', phone: '+974 5555 1234', status: 'active', joinDate: '2024-01-15' },
+                { name: 'Fatima Al-Rashid', phone: '+974 5555 2345', status: 'active', joinDate: '2024-01-10' },
+                { name: 'Omar Hassan', phone: '+974 5555 3456', status: 'active', joinDate: '2024-01-08' },
+                { name: 'Sarah Mohamed', phone: '+974 5555 4567', status: 'active', joinDate: '2024-01-12' },
+                { name: 'Ali Al-Thani', phone: '+974 5555 5678', status: 'active', joinDate: '2024-01-05' },
+                { name: 'Maryam Abdullah', phone: '+974 5555 6789', status: 'active', joinDate: '2024-01-18' },
+                { name: 'Hassan Al-Kuwari', phone: '+974 5555 7890', status: 'inactive', joinDate: '2023-12-20' },
+                { name: 'Nora Al-Naimi', phone: '+974 5555 8901', status: 'inactive', joinDate: '2023-12-15' }
             ],
             collections: [
-                { date: '2024-01-15', player: 'John Smith', amount: 50.00, description: 'Monthly fee' },
-                { date: '2024-01-10', player: 'Jane Doe', amount: 50.00, description: 'Monthly fee' },
-                { date: '2024-01-20', player: 'Mike Johnson', amount: 75.00, description: 'Tournament fee' }
+                { date: '2024-01-15', player: 'Ahmed Al-Mansouri', amount: 75.00, description: 'Monthly membership fee' },
+                { date: '2024-01-10', player: 'Fatima Al-Rashid', amount: 75.00, description: 'Monthly membership fee' },
+                { date: '2024-01-08', player: 'Omar Hassan', amount: 75.00, description: 'Monthly membership fee' },
+                { date: '2024-01-12', player: 'Sarah Mohamed', amount: 75.00, description: 'Monthly membership fee' },
+                { date: '2024-01-05', player: 'Ali Al-Thani', amount: 75.00, description: 'Monthly membership fee' },
+                { date: '2024-01-18', player: 'Maryam Abdullah', amount: 75.00, description: 'Monthly membership fee' }
             ],
             expenses: [
-                { date: '2024-01-05', category: 'Equipment', amount: 120.00, description: 'New shuttlecocks' },
-                { date: '2024-01-12', category: 'Court Rental', amount: 100.00, description: 'Weekly court booking' },
-                { date: '2024-01-25', category: 'Refreshments', amount: 50.00, description: 'Post-game drinks' }
+                { date: '2024-01-05', category: 'Equipment', amount: 150.00, description: 'Professional shuttlecocks (12 tubes)' },
+                { date: '2024-01-12', category: 'Court Rental', amount: 80.00, description: 'Weekly court booking fee' },
+                { date: '2024-01-25', category: 'Refreshments', amount: 50.00, description: 'Post-game refreshments' }
             ]
         };
         this.renderReport();
@@ -182,6 +194,23 @@ const Reports = {
         if (!container || !this.reportData) return;
         
         const data = this.reportData;
+        
+        // Ensure data structure exists with defaults
+        if (!data.summary) {
+            data.summary = {
+                totalPlayers: 0,
+                activePlayers: 0,
+                inactivePlayers: 0,
+                totalCollection: 0,
+                totalExpenses: 0,
+                netBalance: 0
+            };
+        }
+        
+        // Ensure arrays exist
+        data.players = data.players || [];
+        data.collections = data.collections || [];
+        data.expenses = data.expenses || [];
         
         const reportHTML = `
             <div class="report-document" id="reportDocument">
@@ -314,7 +343,7 @@ const Reports = {
                                     <tr>
                                         <td>${new Date(collection.date).toLocaleDateString()}</td>
                                         <td>${collection.player}</td>
-                                        <td class="amount-cell positive">+${collection.amount.toFixed(2)}</td>
+                                        <td class="amount-cell positive">+${(collection.amount || 0).toFixed(2)}</td>
                                         <td>${collection.description}</td>
                                     </tr>
                                 `).join('')}
@@ -322,7 +351,7 @@ const Reports = {
                             <tfoot>
                                 <tr class="total-row">
                                     <td colspan="2"><strong>Total Collections</strong></td>
-                                    <td class="amount-cell positive"><strong>QAR ${data.summary.totalCollection.toFixed(2)}</strong></td>
+                                    <td class="amount-cell positive"><strong>QAR ${(data.summary.totalCollection || 0).toFixed(2)}</strong></td>
                                     <td></td>
                                 </tr>
                             </tfoot>
@@ -353,7 +382,7 @@ const Reports = {
                                         <td>
                                             <span class="category-tag">${expense.category}</span>
                                         </td>
-                                        <td class="amount-cell negative">-${expense.amount.toFixed(2)}</td>
+                                        <td class="amount-cell negative">-${(expense.amount || 0).toFixed(2)}</td>
                                         <td>${expense.description}</td>
                                     </tr>
                                 `).join('')}
@@ -361,7 +390,7 @@ const Reports = {
                             <tfoot>
                                 <tr class="total-row">
                                     <td colspan="2"><strong>Total Expenses</strong></td>
-                                    <td class="amount-cell negative"><strong>QAR ${data.summary.totalExpenses.toFixed(2)}</strong></td>
+                                    <td class="amount-cell negative"><strong>QAR ${(data.summary.totalExpenses || 0).toFixed(2)}</strong></td>
                                     <td></td>
                                 </tr>
                             </tfoot>
@@ -378,17 +407,17 @@ const Reports = {
                     <div class="financial-summary">
                         <div class="financial-item">
                             <span class="label">Total Collections:</span>
-                            <span class="value positive">QAR ${data.summary.totalCollection.toFixed(2)}</span>
+                            <span class="value positive">QAR ${(data.summary.totalCollection || 0).toFixed(2)}</span>
                         </div>
                         <div class="financial-item">
                             <span class="label">Total Expenses:</span>
-                            <span class="value negative">QAR ${data.summary.totalExpenses.toFixed(2)}</span>
+                            <span class="value negative">QAR ${(data.summary.totalExpenses || 0).toFixed(2)}</span>
                         </div>
                         <div class="financial-separator"></div>
                         <div class="financial-item total">
                             <span class="label">Net Balance:</span>
                             <span class="value ${data.summary.netBalance >= 0 ? 'positive' : 'negative'}">
-                                QAR ${data.summary.netBalance.toFixed(2)}
+                                QAR ${(data.summary.netBalance || 0).toFixed(2)}
                             </span>
                         </div>
                     </div>
