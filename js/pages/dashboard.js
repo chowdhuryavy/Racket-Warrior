@@ -16,9 +16,6 @@ const Dashboard = {
     
     // Initialize dashboard
     init: async function() {
-        // Setup month filter
-        await this.setupMonthFilter();
-        
         // Load dashboard data
         await this.loadDashboardData();
         

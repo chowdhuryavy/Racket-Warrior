@@ -162,24 +162,16 @@
         font-size: 0.8rem !important;
     }
     
-    /* Login input fields mobile */
-    .login-card .input-wrapper {
-        height: 48px !important; /* Consistent wrapper height */
-    }
-    
+    /* Mobile login inputs */
     .login-card .input-wrapper input[type="email"],
     .login-card .input-wrapper input[type="password"] {
-        width: 100% !important;
-        box-sizing: border-box !important;
-        padding: 14px 14px 14px 44px !important;
-        font-size: 16px !important;
-        border-radius: 10px !important;
-        height: 48px !important; /* Fixed height for consistency */
+        height: 48px;
+        padding: 14px 14px 14px 44px;
+        border-radius: 10px;
     }
     
     .login-card .input-wrapper input[type="password"] {
-        padding-left: 70px !important; /* Space for icon + toggle */
-        /* Width and height same as email input */
+        padding-left: 70px;
     }
     
     /* Login input icons mobile */
