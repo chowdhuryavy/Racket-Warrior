@@ -343,7 +343,10 @@ const Dashboard = {
                 timeout
             ]);
             
-            if (response.success && response.data) {
+            console.log('Dashboard API Response:', response);
+            console.log('Dashboard API Response Data:', response?.data);
+            
+            if (response && response.success && response.data) {
                 // Remove any error banners
                 const errorBanner = document.querySelector('.dashboard-error-banner');
                 if (errorBanner) {
@@ -356,16 +359,28 @@ const Dashboard = {
                 await this.loadRecentActivities();
                 this.updateCurrentMonthDisplay();
             } else {
+                console.error('Dashboard API Error Details:', {
+                    response: response,
+                    success: response?.success,
+                    data: response?.data,
+                    message: response?.message
+                });
                 Logger.error('Dashboard API error:', response);
-                throw new Error(response.message || 'Failed to load dashboard data');
+                throw new Error(response?.message || 'Failed to load dashboard data');
             }
             
         } catch (error) {
+            console.error('Dashboard Load Error Details:', {
+                error: error,
+                message: error.message,
+                stack: error.stack,
+                currentMonth: this.currentMonth
+            });
             Logger.error('Failed to load dashboard data', error);
             if (error.message === 'Request timeout') {
                 UIUtils.showNotification('Dashboard loading slowly. Please check your connection.', 'warning');
             } else {
-                UIUtils.showNotification('Failed to load dashboard data', 'error');
+                UIUtils.showNotification('Failed to load dashboard data: ' + error.message, 'error');
             }
             this.showErrorState();
         } finally {
@@ -422,8 +437,11 @@ const Dashboard = {
     
     // Update stats cards
     updateStats: function(data) {
+        console.log('UpdateStats called with data:', data);
+        
         // Ensure data exists and has required properties
         if (!data || typeof data !== 'object') {
+            console.error('Invalid dashboard data received:', data);
             Logger.error('Invalid dashboard data received:', data);
             this.showErrorState();
             return;
@@ -435,27 +453,41 @@ const Dashboard = {
         const totalExpenseElement = document.getElementById('totalExpenseAmount');
         const finalBalanceElement = document.getElementById('finalBalanceAmount');
         
+        console.log('Dashboard elements found:', {
+            activePlayersElement: !!activePlayersElement,
+            totalCollectionElement: !!totalCollectionElement,
+            totalExpenseElement: !!totalExpenseElement,
+            finalBalanceElement: !!finalBalanceElement
+        });
+        
         // Active Players Count
         if (activePlayersElement) {
-            const count = data.activePlayersCount !== undefined ? data.activePlayersCount : 0;
+            const count = data.activePlayersCount !== undefined && data.activePlayersCount !== null ? data.activePlayersCount : 0;
+            console.log('Setting activePlayersCount to:', count);
             activePlayersElement.textContent = count;
+            activePlayersElement.style.color = 'var(--text-primary)';
         }
         
         // Total Collection
         if (totalCollectionElement) {
-            const collection = data.totalCollection !== undefined ? data.totalCollection : 0;
+            const collection = data.totalCollection !== undefined && data.totalCollection !== null ? data.totalCollection : 0;
+            console.log('Setting totalCollection to:', collection);
             totalCollectionElement.textContent = CurrencyUtils.format(collection);
+            totalCollectionElement.style.color = 'var(--text-primary)';
         }
         
         // Total Expenses
         if (totalExpenseElement) {
-            const expenses = data.totalExpenses !== undefined ? data.totalExpenses : 0;
+            const expenses = data.totalExpenses !== undefined && data.totalExpenses !== null ? data.totalExpenses : 0;
+            console.log('Setting totalExpenses to:', expenses);
             totalExpenseElement.textContent = CurrencyUtils.format(expenses);
+            totalExpenseElement.style.color = 'var(--text-primary)';
         }
         
         // Final Balance
         if (finalBalanceElement) {
-            const balance = data.finalBalance !== undefined ? data.finalBalance : 0;
+            const balance = data.finalBalance !== undefined && data.finalBalance !== null ? data.finalBalance : 0;
+            console.log('Setting finalBalance to:', balance);
             finalBalanceElement.textContent = CurrencyUtils.format(balance);
             
             // Update color based on balance
@@ -471,7 +503,45 @@ const Dashboard = {
         
         // Update monthly summary
         this.updateMonthlySummary(data);
+        
+        console.log('Dashboard stats updated successfully');
     },
+    
+    // Debug function to test API directly
+    testAPI: async function() {
+        console.log('🧪 Testing Dashboard API directly...');
+        try {
+            console.log('Current month filter:', this.currentMonth);
+            
+            // Test the API call directly
+            const response = await API.getDashboardStats(this.currentMonth);
+            console.log('✅ Raw API Response:', response);
+            
+            if (response && response.success) {
+                console.log('✅ API Success - Data:', response.data);
+                this.updateStats(response.data);
+            } else {
+                console.error('❌ API Failed:', response);
+            }
+        } catch (error) {
+            console.error('❌ API Error:', error);
+        }
+    },
+    
+    // Force reset dashboard to defaults
+    resetToDefaults: function() {
+        console.log('🔄 Resetting dashboard to defaults...');
+        const defaultData = {
+            activePlayersCount: 0,
+            totalCollection: 0,
+            totalExpenses: 0,
+            finalBalance: 0
+        };
+        this.updateStats(defaultData);
+    }
+};
+
+
     
     // Update monthly summary
     updateMonthlySummary: function(data) {
@@ -703,3 +773,11 @@ const Dashboard = {
 
 // Export Dashboard module
 window.Dashboard = Dashboard;
+
+// Make debug functions available globally
+window.debugDashboard = {
+    test: () => Dashboard.testAPI(),
+    reset: () => Dashboard.resetToDefaults(),
+    reload: () => Dashboard.loadDashboardData(),
+    data: () => Dashboard.cachedData
+};
