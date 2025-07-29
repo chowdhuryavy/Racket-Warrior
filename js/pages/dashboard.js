@@ -16,6 +16,9 @@ const Dashboard = {
     
     // Initialize dashboard
     init: async function() {
+        // Setup month filter first
+        await this.setupMonthFilter();
+        
         // Load dashboard data
         await this.loadDashboardData();
         
@@ -49,10 +52,6 @@ const Dashboard = {
                         <button id="refreshDashboard" class="btn btn-white">
                             <i class="fas fa-sync-alt"></i>
                             Refresh
-                        </button>
-                        <button id="forceDashboardFix" class="btn btn-primary" style="margin-left: 10px;">
-                            <i class="fas fa-wrench"></i>
-                            Fix Dashboard
                         </button>
                     </div>
                 </div>
@@ -242,29 +241,30 @@ const Dashboard = {
     // Setup month filter dropdown
     setupMonthFilter: async function() {
         try {
-            const months = await API.getAvailableMonths();
             const monthFilter = document.getElementById('dashboardMonthFilter');
             
             if (monthFilter) {
                 // Clear existing options except "All Time"
                 monthFilter.innerHTML = '<option value="">All Time</option>';
                 
+                // Generate month options using DateUtils
+                const months = DateUtils.generateMonthOptions();
+                
                 // Add available months
                 months.forEach(month => {
                     const option = document.createElement('option');
-                    option.value = month;
-                    option.textContent = DateUtils.parseMonthYear(month);
+                    option.value = month.value;
+                    option.textContent = month.label;
                     monthFilter.appendChild(option);
                 });
                 
-                // Set current month as default if available
-                const currentMonth = DateUtils.getMonthYear(new Date());
-                        if (months.includes(currentMonth)) {
-            monthFilter.value = currentMonth;
-            this.currentMonth = currentMonth;
-            // Set as global month
-            DateUtils.setGlobalMonth(currentMonth);
-        }
+                // Set current month as default
+                const currentMonth = DateUtils.getMonthKey(new Date());
+                monthFilter.value = currentMonth;
+                this.currentMonth = currentMonth;
+                
+                // Set as global month
+                DateUtils.setGlobalMonth(currentMonth);
             }
         } catch (error) {
             Logger.error('Failed to setup month filter', error);
@@ -293,29 +293,6 @@ const Dashboard = {
             refreshButton.addEventListener('click', () => {
                 this.loadDashboardData();
                 UIUtils.showNotification('Dashboard refreshed', 'success');
-            });
-        }
-        
-        // Force dashboard fix button
-        const fixButton = document.getElementById('forceDashboardFix');
-        if (fixButton) {
-            fixButton.addEventListener('click', async () => {
-                console.log('🔧 Force fixing dashboard...');
-                try {
-                    // Clear cache and force fresh load
-                    this.cachedData = null;
-                    this.lastLoadTime = null;
-                    if (API.cache) {
-                        API.cache.clear();
-                    }
-                    
-                    // Force load with debug
-                    await this.loadDashboardData();
-                    UIUtils.showNotification('Dashboard fixed!', 'success');
-                } catch (error) {
-                    console.error('❌ Dashboard fix failed:', error);
-                    UIUtils.showNotification('Dashboard fix failed', 'error');
-                }
             });
         }
         
@@ -367,10 +344,6 @@ const Dashboard = {
             ]);
             
             if (response.success && response.data) {
-                // DEBUG: Log the actual data received
-                console.log('🔍 Dashboard API Response:', response);
-                console.log('📊 Dashboard Data:', response.data);
-                
                 // Remove any error banners
                 const errorBanner = document.querySelector('.dashboard-error-banner');
                 if (errorBanner) {
@@ -383,7 +356,6 @@ const Dashboard = {
                 await this.loadRecentActivities();
                 this.updateCurrentMonthDisplay();
             } else {
-                console.error('❌ Dashboard API Error:', response);
                 Logger.error('Dashboard API error:', response);
                 throw new Error(response.message || 'Failed to load dashboard data');
             }

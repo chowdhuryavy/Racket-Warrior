@@ -19,7 +19,7 @@ const App = {
         // Setup global event listeners
         this.setupEventListeners();
         
-        // Simple debug commands for production use
+        // Debug commands for troubleshooting
         window.debugApp = {
             clearCache: () => {
                 if (API.cache) {
@@ -28,7 +28,38 @@ const App = {
                 }
             },
             logout: () => Auth.logout(),
-            getUser: () => Auth.getCurrentUser()
+            getUser: () => Auth.getCurrentUser(),
+            fixDashboard: async () => {
+                console.log('🔧 Force fixing dashboard...');
+                try {
+                    if (window.Dashboard) {
+                        Dashboard.cachedData = null;
+                        Dashboard.lastLoadTime = null;
+                        if (API.cache) API.cache.clear();
+                        await Dashboard.loadDashboardData();
+                        console.log('✅ Dashboard fixed');
+                    } else {
+                        console.error('❌ Dashboard module not available');
+                    }
+                } catch (error) {
+                    console.error('❌ Dashboard fix failed:', error);
+                }
+            },
+            testDashboardAPI: async () => {
+                console.log('🧪 Testing dashboard API...');
+                try {
+                    const response = await API.getDashboardStats();
+                    console.log('📊 API Response:', response);
+                    if (response.success && response.data && window.Dashboard) {
+                        Dashboard.updateStats(response.data);
+                        console.log('✅ Manual stats update completed');
+                    }
+                    return response;
+                } catch (error) {
+                    console.error('❌ API test failed:', error);
+                    return error;
+                }
+            }
         };
         
         // Setup mobile navigation

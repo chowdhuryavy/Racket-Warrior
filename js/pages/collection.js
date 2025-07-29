@@ -183,28 +183,24 @@ const Collection = {
         
         if (searchElement) {
             searchElement.addEventListener('input', () => {
-                console.log('🔍 Collection search triggered');
                 this.filterAndRenderTable();
             });
         }
         
         if (monthFilterElement) {
-            monthFilterElement.addEventListener('change', (e) => {
-                console.log('📅 Collection month filter changed:', e.target.value);
+            monthFilterElement.addEventListener('change', () => {
                 this.filterAndRenderTable();
             });
         }
         
         if (playerFilterElement) {
-            playerFilterElement.addEventListener('change', (e) => {
-                console.log('👤 Collection player filter changed:', e.target.value);
+            playerFilterElement.addEventListener('change', () => {
                 this.filterAndRenderTable();
             });
         }
         
         if (refreshElement) {
             refreshElement.addEventListener('click', () => {
-                console.log('🔄 Collection refresh triggered');
                 this.loadCollectionsData();
             });
         }
@@ -227,9 +223,9 @@ const Collection = {
                     let activePlayersCount = 0;
                     
                     response.data.forEach(player => {
-                        // If no month selected or "all" selected, show all active players
+                        // If no month selected, show all active players
                         // If specific month selected, show only players active for that month
-                        const shouldShow = (selectedMonth && selectedMonth !== 'all') ? 
+                        const shouldShow = selectedMonth ? 
                             this.isPlayerActiveForMonth(player, selectedMonth) : 
                             player.Status === 'active';
                         
@@ -243,7 +239,7 @@ const Collection = {
                     });
                     
                     // If no players are active for the selected month, show all active players as fallback
-                    if (activePlayersCount === 0 && selectedMonth && selectedMonth !== 'all') {
+                    if (activePlayersCount === 0 && selectedMonth) {
                         response.data.forEach(player => {
                             if (player.Status === 'active') {
                                 const option = document.createElement('option');
@@ -300,12 +296,6 @@ const Collection = {
         const months = DateUtils.generateMonthOptions();
         
         monthSelect.innerHTML = '<option value="">Select Month</option>';
-        
-        // Add "All Months" option for player filtering
-        const allMonthsOption = document.createElement('option');
-        allMonthsOption.value = 'all';
-        allMonthsOption.textContent = 'All Months (Show All Players)';
-        monthSelect.appendChild(allMonthsOption);
         
         months.forEach(month => {
             const option = document.createElement('option');
@@ -416,13 +406,6 @@ const Collection = {
         const monthFilter = document.getElementById('collectionMonthFilter')?.value || '';
         const playerFilter = document.getElementById('collectionPlayerFilter')?.value || '';
         
-        console.log('🔧 Filtering collections with:', {
-            searchTerm,
-            monthFilter,
-            playerFilter,
-            totalCollections: this.currentData.length
-        });
-        
         this.filteredData = this.currentData.filter(collection => {
             const matchesSearch = !searchTerm || 
                 collection.PlayerName?.toLowerCase().includes(searchTerm) ||
@@ -434,8 +417,6 @@ const Collection = {
             
             return matchesSearch && matchesMonth && matchesPlayer;
         });
-        
-        console.log('✅ Filtered results:', this.filteredData.length, 'collections');
         this.renderTable(this.filteredData);
     },
 
