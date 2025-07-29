@@ -187,7 +187,7 @@ const CONFIG = {
     },
     
     // Development/Debug Settings
-    DEBUG: true, // Temporarily enabled for debugging collection issues
+    DEBUG: true, // Enabled for debugging dashboard and tab issues
     LOG_LEVEL: 'debug' // debug, info, warn, error
 };
 

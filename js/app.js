@@ -19,6 +19,32 @@ const App = {
         // Setup global event listeners
         this.setupEventListeners();
         
+        // Add debug commands to global scope (always available)
+        if (true) {
+            window.debugApp = {
+                testAllTabs: () => TabDebugger.testAllTabs(),
+                fixDashboard: () => TabDebugger.fixDashboard(),
+                refreshDashboard: () => {
+                    if (window.Dashboard) {
+                        Dashboard.loadDashboardData();
+                    }
+                },
+                clearCache: () => {
+                    if (API.clearCache) {
+                        API.cache.clear();
+                        console.log('✅ API cache cleared');
+                    }
+                },
+                getUser: () => Auth.getCurrentUser(),
+                showApiStats: () => {
+                    console.log('📊 API Cache size:', API.cache.size);
+                    console.log('👤 Current user:', Auth.getCurrentUser());
+                    console.log('🔑 Auth token:', StorageUtils.get(CONFIG.STORAGE_KEYS.AUTH_TOKEN) ? 'Present' : 'Missing');
+                }
+            };
+            console.log('🛠️ Debug commands available: window.debugApp');
+        }
+        
         // Setup mobile navigation
         this.setupMobileNavigation();
         if (Auth.isAuthenticated()) {

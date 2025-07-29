@@ -49,6 +49,10 @@ const Dashboard = {
                         <button id="refreshDashboard" class="btn btn-white">
                             <i class="fas fa-sync-alt"></i>
                         </button>
+                        <button id="debugDashboard" class="btn btn-primary" onclick="TabDebugger.fixDashboard()" style="margin-left: 10px;">
+                            <i class="fas fa-bug"></i>
+                            Fix
+                        </button>
                     </div>
                 </div>
                 
@@ -338,13 +342,24 @@ const Dashboard = {
                 timeout
             ]);
             
-            if (response.success) {
+            Logger.info('Dashboard API response:', response);
+            
+            if (response.success && response.data) {
+                Logger.info('Dashboard data received:', response.data);
+                
+                // Remove any error banners
+                const errorBanner = document.querySelector('.dashboard-error-banner');
+                if (errorBanner) {
+                    errorBanner.remove();
+                }
+                
                 this.cachedData = response.data;
                 this.lastLoadTime = now;
                 this.updateStats(response.data);
                 await this.loadRecentActivities();
                 this.updateCurrentMonthDisplay();
             } else {
+                Logger.error('Dashboard API error:', response);
                 throw new Error(response.message || 'Failed to load dashboard data');
             }
             
@@ -379,33 +394,87 @@ const Dashboard = {
             const element = document.getElementById(id);
             if (element) {
                 element.textContent = '--';
+                element.style.color = 'var(--danger-color)';
             }
         });
+        
+        // Add a more visible error message
+        const dashboardStats = document.getElementById('dashboardStats');
+        if (dashboardStats && !document.querySelector('.dashboard-error-banner')) {
+            const errorBanner = document.createElement('div');
+            errorBanner.className = 'dashboard-error-banner';
+            errorBanner.style.cssText = `
+                background: #fee2e2;
+                border: 1px solid #fecaca;
+                border-radius: 8px;
+                padding: 1rem;
+                margin-bottom: 1rem;
+                color: #dc2626;
+                text-align: center;
+            `;
+            errorBanner.innerHTML = `
+                <i class="fas fa-exclamation-triangle"></i>
+                Failed to load dashboard data. Please check your connection and try again.
+                <button onclick="Dashboard.loadDashboardData()" style="margin-left: 10px; padding: 4px 8px; background: #dc2626; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    <i class="fas fa-redo"></i> Retry
+                </button>
+                <button onclick="TabDebugger.fixDashboard()" style="margin-left: 5px; padding: 4px 8px; background: #059669; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    <i class="fas fa-wrench"></i> Fix
+                </button>
+            `;
+            dashboardStats.insertBefore(errorBanner, dashboardStats.firstChild);
+        }
     },
     
     // Update stats cards
     updateStats: function(data) {
+        Logger.info('Updating dashboard stats with data:', data);
+        
+        // Ensure data exists and has required properties
+        if (!data || typeof data !== 'object') {
+            Logger.error('Invalid dashboard data received:', data);
+            this.showErrorState();
+            return;
+        }
+        
         // Update main stats
         const activePlayersElement = document.getElementById('activePlayersCount');
         const totalCollectionElement = document.getElementById('totalCollectionAmount');
         const totalExpenseElement = document.getElementById('totalExpenseAmount');
         const finalBalanceElement = document.getElementById('finalBalanceAmount');
         
+        // Active Players Count
         if (activePlayersElement) {
-            activePlayersElement.textContent = data.activePlayersCount || 0;
+            const count = data.activePlayersCount !== undefined ? data.activePlayersCount : 0;
+            activePlayersElement.textContent = count;
+            Logger.debug('Updated active players count:', count);
+        } else {
+            Logger.warn('activePlayersCount element not found');
         }
         
+        // Total Collection
         if (totalCollectionElement) {
-            totalCollectionElement.textContent = CurrencyUtils.format(data.totalCollection || 0);
+            const collection = data.totalCollection !== undefined ? data.totalCollection : 0;
+            totalCollectionElement.textContent = CurrencyUtils.format(collection);
+            Logger.debug('Updated total collection:', collection);
+        } else {
+            Logger.warn('totalCollectionAmount element not found');
         }
         
+        // Total Expenses
         if (totalExpenseElement) {
-            totalExpenseElement.textContent = CurrencyUtils.format(data.totalExpenses || 0);
+            const expenses = data.totalExpenses !== undefined ? data.totalExpenses : 0;
+            totalExpenseElement.textContent = CurrencyUtils.format(expenses);
+            Logger.debug('Updated total expenses:', expenses);
+        } else {
+            Logger.warn('totalExpenseAmount element not found');
         }
         
+        // Final Balance
         if (finalBalanceElement) {
-            const balance = data.finalBalance || 0;
+            const balance = data.finalBalance !== undefined ? data.finalBalance : 0;
             finalBalanceElement.textContent = CurrencyUtils.format(balance);
+            Logger.debug('Updated final balance:', balance);
             
             // Update color based on balance
             finalBalanceElement.className = 'stat-card-value';
@@ -416,10 +485,14 @@ const Dashboard = {
             } else {
                 finalBalanceElement.style.color = 'var(--text-primary)';
             }
+        } else {
+            Logger.warn('finalBalanceAmount element not found');
         }
         
         // Update monthly summary
         this.updateMonthlySummary(data);
+        
+        Logger.info('Dashboard stats update completed');
     },
     
     // Update monthly summary
@@ -428,21 +501,30 @@ const Dashboard = {
         const monthlyExpensesElement = document.getElementById('monthlyExpenses');
         const monthlyNetElement = document.getElementById('monthlyNet');
         
-        const income = data.totalIncome || 0;
-        const expenses = data.totalExpenses || 0;
+        // Use totalCollection instead of totalIncome for consistency
+        const income = data.totalCollection !== undefined ? data.totalCollection : 0;
+        const expenses = data.totalExpenses !== undefined ? data.totalExpenses : 0;
         const net = income - expenses;
+        
+        Logger.debug('Monthly summary values:', { income, expenses, net });
         
         if (monthlyIncomeElement) {
             monthlyIncomeElement.textContent = CurrencyUtils.format(income);
+        } else {
+            Logger.warn('monthlyIncome element not found');
         }
         
         if (monthlyExpensesElement) {
             monthlyExpensesElement.textContent = CurrencyUtils.format(expenses);
+        } else {
+            Logger.warn('monthlyExpenses element not found');
         }
         
         if (monthlyNetElement) {
             monthlyNetElement.textContent = CurrencyUtils.format(net);
             monthlyNetElement.className = net >= 0 ? 'summary-value positive' : 'summary-value negative';
+        } else {
+            Logger.warn('monthlyNet element not found');
         }
     },
     
