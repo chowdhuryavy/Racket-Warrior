@@ -32,9 +32,6 @@ const Collection = {
                                     <select id="collectionPlayer" name="playerId" required>
                                         <option value="">Select Player</option>
                                     </select>
-                                    <button type="button" id="refreshPlayers" class="btn-icon" title="Refresh Players">
-                                        <i class="fas fa-sync-alt"></i>
-                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -170,13 +167,7 @@ const Collection = {
             this.loadPlayersForDropdown();
         });
         
-        // Manual refresh players button
-        const refreshButton = document.getElementById('refreshPlayers');
-        if (refreshButton) {
-            refreshButton.addEventListener('click', () => {
-                this.loadPlayersForDropdown();
-            });
-        }
+
     },
 
     // Initialize View Table
@@ -184,22 +175,39 @@ const Collection = {
         this.setupMonthFilter();
         this.loadCollectionsData();
         
-        // Setup event listeners
-        document.getElementById('collectionSearch').addEventListener('input', () => {
-            this.filterAndRenderTable();
-        });
+        // Setup event listeners with error handling
+        const searchElement = document.getElementById('collectionSearch');
+        const monthFilterElement = document.getElementById('collectionMonthFilter');
+        const playerFilterElement = document.getElementById('collectionPlayerFilter');
+        const refreshElement = document.getElementById('refreshCollections');
         
-        document.getElementById('collectionMonthFilter').addEventListener('change', () => {
-            this.filterAndRenderTable();
-        });
+        if (searchElement) {
+            searchElement.addEventListener('input', () => {
+                console.log('🔍 Collection search triggered');
+                this.filterAndRenderTable();
+            });
+        }
         
-        document.getElementById('collectionPlayerFilter').addEventListener('change', () => {
-            this.filterAndRenderTable();
-        });
+        if (monthFilterElement) {
+            monthFilterElement.addEventListener('change', (e) => {
+                console.log('📅 Collection month filter changed:', e.target.value);
+                this.filterAndRenderTable();
+            });
+        }
         
-        document.getElementById('refreshCollections').addEventListener('click', () => {
-            this.loadCollectionsData();
-        });
+        if (playerFilterElement) {
+            playerFilterElement.addEventListener('change', (e) => {
+                console.log('👤 Collection player filter changed:', e.target.value);
+                this.filterAndRenderTable();
+            });
+        }
+        
+        if (refreshElement) {
+            refreshElement.addEventListener('click', () => {
+                console.log('🔄 Collection refresh triggered');
+                this.loadCollectionsData();
+            });
+        }
     },
 
     // Load players for dropdown
@@ -408,6 +416,13 @@ const Collection = {
         const monthFilter = document.getElementById('collectionMonthFilter')?.value || '';
         const playerFilter = document.getElementById('collectionPlayerFilter')?.value || '';
         
+        console.log('🔧 Filtering collections with:', {
+            searchTerm,
+            monthFilter,
+            playerFilter,
+            totalCollections: this.currentData.length
+        });
+        
         this.filteredData = this.currentData.filter(collection => {
             const matchesSearch = !searchTerm || 
                 collection.PlayerName?.toLowerCase().includes(searchTerm) ||
@@ -419,6 +434,8 @@ const Collection = {
             
             return matchesSearch && matchesMonth && matchesPlayer;
         });
+        
+        console.log('✅ Filtered results:', this.filteredData.length, 'collections');
         this.renderTable(this.filteredData);
     },
 

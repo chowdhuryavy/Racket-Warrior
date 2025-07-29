@@ -12,6 +12,7 @@ const Logs = {
     
     // Initialize logs page
     init: function() {
+        this.setupMonthFilter();
         this.setupEventListeners();
         this.loadLogs();
     },
@@ -103,6 +104,9 @@ const Logs = {
                                 <option value="week">This Week</option>
                                 <option value="month">This Month</option>
                             </select>
+                            <select id="logsMonthFilter" class="filter-select">
+                                <option value="">All Months</option>
+                            </select>
                         </div>
                     </div>
                     
@@ -112,6 +116,21 @@ const Logs = {
                 </div>
             </div>
         `;
+    },
+    
+    // Setup month filter
+    setupMonthFilter: function() {
+        const monthFilter = document.getElementById('logsMonthFilter');
+        if (!monthFilter) return;
+
+        const months = DateUtils.generateMonthOptions();
+        monthFilter.innerHTML = '<option value="">All Months</option>';
+        months.forEach(month => {
+            const option = document.createElement('option');
+            option.value = month.value;
+            option.textContent = month.label;
+            monthFilter.appendChild(option);
+        });
     },
     
     // Setup event listeners
@@ -144,6 +163,12 @@ const Logs = {
         const dateFilter = document.getElementById('logsDateFilter');
         if (dateFilter) {
             dateFilter.addEventListener('change', () => this.filterLogs());
+        }
+        
+        // Month filter
+        const monthFilter = document.getElementById('logsMonthFilter');
+        if (monthFilter) {
+            monthFilter.addEventListener('change', () => this.filterLogs());
         }
     },
     
@@ -371,6 +396,7 @@ const Logs = {
         const searchTerm = document.getElementById('logsSearch').value.toLowerCase();
         const typeFilter = document.getElementById('logsTypeFilter').value;
         const dateFilter = document.getElementById('logsDateFilter').value;
+        const monthFilter = document.getElementById('logsMonthFilter')?.value || '';
         
         const filteredLogs = this.logs.filter(log => {
             // Search filter
@@ -382,7 +408,15 @@ const Logs = {
             // Type filter
             const matchesType = !typeFilter || log.type === typeFilter;
             
-            // Date filter
+            // Month filter (specific month)
+            let matchesMonth = true;
+            if (monthFilter) {
+                const logDate = new Date(log.timestamp);
+                const logMonthKey = DateUtils.getMonthKey(logDate);
+                matchesMonth = logMonthKey === monthFilter;
+            }
+            
+            // Date filter (relative dates)
             let matchesDate = true;
             if (dateFilter) {
                 const logDate = new Date(log.timestamp);
@@ -403,7 +437,7 @@ const Logs = {
                 }
             }
             
-            return matchesSearch && matchesType && matchesDate;
+            return matchesSearch && matchesType && matchesDate && matchesMonth;
         });
         
         // Temporarily replace logs array for rendering

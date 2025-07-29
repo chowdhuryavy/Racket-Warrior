@@ -50,6 +50,10 @@ const Dashboard = {
                             <i class="fas fa-sync-alt"></i>
                             Refresh
                         </button>
+                        <button id="forceDashboardFix" class="btn btn-primary" style="margin-left: 10px;">
+                            <i class="fas fa-wrench"></i>
+                            Fix Dashboard
+                        </button>
                     </div>
                 </div>
                 
@@ -292,6 +296,29 @@ const Dashboard = {
             });
         }
         
+        // Force dashboard fix button
+        const fixButton = document.getElementById('forceDashboardFix');
+        if (fixButton) {
+            fixButton.addEventListener('click', async () => {
+                console.log('🔧 Force fixing dashboard...');
+                try {
+                    // Clear cache and force fresh load
+                    this.cachedData = null;
+                    this.lastLoadTime = null;
+                    if (API.cache) {
+                        API.cache.clear();
+                    }
+                    
+                    // Force load with debug
+                    await this.loadDashboardData();
+                    UIUtils.showNotification('Dashboard fixed!', 'success');
+                } catch (error) {
+                    console.error('❌ Dashboard fix failed:', error);
+                    UIUtils.showNotification('Dashboard fix failed', 'error');
+                }
+            });
+        }
+        
         // Setup role-based visibility for quick actions
         this.setupRoleBasedVisibility();
     },
@@ -340,6 +367,10 @@ const Dashboard = {
             ]);
             
             if (response.success && response.data) {
+                // DEBUG: Log the actual data received
+                console.log('🔍 Dashboard API Response:', response);
+                console.log('📊 Dashboard Data:', response.data);
+                
                 // Remove any error banners
                 const errorBanner = document.querySelector('.dashboard-error-banner');
                 if (errorBanner) {
@@ -352,6 +383,7 @@ const Dashboard = {
                 await this.loadRecentActivities();
                 this.updateCurrentMonthDisplay();
             } else {
+                console.error('❌ Dashboard API Error:', response);
                 Logger.error('Dashboard API error:', response);
                 throw new Error(response.message || 'Failed to load dashboard data');
             }

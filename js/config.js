@@ -187,7 +187,7 @@ const CONFIG = {
     },
     
     // Development/Debug Settings
-    DEBUG: false, // Disabled for production performance
+    DEBUG: true, // Temporarily enabled to debug dashboard issue
     LOG_LEVEL: 'debug' // debug, info, warn, error
 };
 
