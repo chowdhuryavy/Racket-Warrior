@@ -337,53 +337,30 @@
         document.addEventListener('DOMContentLoaded', function() {
             setupMobileMenu();
             
-            // Add a simple test click handler
-            setTimeout(() => {
-                const testButton = document.getElementById('mobileMenuToggle');
-                if (testButton) {
-                    console.log('Mobile button found during test');
-                    // Add a simple test click
-                    testButton.addEventListener('click', function() {
-                        console.log('MOBILE BUTTON TEST CLICK DETECTED!');
-                    });
-                } else {
-                    console.error('Mobile button NOT found during test');
-                }
-            }, 1000);
+            // Mobile menu button test completed successfully
             
             const mobileToggle = document.getElementById('mobileMenuToggle');
             if (mobileToggle) {
-                console.log('Mobile toggle button found, setting up event listener');
                 mobileToggle.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log('Mobile menu button clicked');
                     
                     // Try App.toggleMobileMenu first
                     if (window.App && typeof window.App.toggleMobileMenu === 'function') {
-                        console.log('Using App.toggleMobileMenu');
                         window.App.toggleMobileMenu();
                     } else {
-                        console.log('Using fallback toggle implementation');
                         // Fallback implementation
                         const sidebar = document.getElementById('sidebar');
                         const overlay = document.querySelector('.sidebar-overlay');
                         
-                        console.log('Sidebar found:', !!sidebar);
-                        console.log('Overlay found:', !!overlay);
-                        
                         if (sidebar) {
                             sidebar.classList.toggle('show');
-                            console.log('Sidebar show class toggled');
                         }
                         if (overlay) {
                             overlay.classList.toggle('show');
-                            console.log('Overlay show class toggled');
                         }
                     }
                 });
-            } else {
-                console.error('Mobile toggle button not found!');
             }
             
             // Close sidebar when clicking on navigation links (mobile only)

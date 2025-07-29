@@ -57,6 +57,8 @@ body {
     z-index: 9999;
     color: white;
     overflow: hidden;
+    opacity: 1;
+    transition: opacity 0.3s ease-in-out;
 }
 
 .loading-screen::before {
@@ -170,6 +172,12 @@ body {
     text-align: center;
     z-index: 2;
     position: relative;
+    transition: all 0.3s ease-in-out;
+}
+
+.loading-text p {
+    transition: opacity 0.3s ease-in-out;
+    min-height: 1.5em;
 }
 
 .loading-text h2 {

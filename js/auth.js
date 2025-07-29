@@ -69,13 +69,16 @@ const Auth = {
             return;
         }
         
-        const submitButton = event.target.querySelector('button[type="submit"]');
-        UIUtils.showLoading(submitButton, 'Signing in...');
+        // Show loading screen for login
+        LoadingScreenUtils.showLogin();
         
         try {
             const response = await API.login({ username: email, password });
             
             if (response.success) {
+                // Update loading message
+                LoadingScreenUtils.updateMessage('Setting up your workspace...');
+                
                 // Store user data and token
                 this.currentUser = response.user;
                 StorageUtils.set(CONFIG.STORAGE_KEYS.USER_DATA, response.user);
@@ -88,18 +91,24 @@ const Auth = {
                 
                 // Check if password change is required
                 if (response.user.needs_password_change) {
+                    LoadingScreenUtils.hide();
                     this.showChangePasswordModal(true);
                 } else {
+                    LoadingScreenUtils.updateMessage('Loading dashboard...');
+                    // Small delay for UX
+                    await new Promise(resolve => setTimeout(resolve, 800));
                     this.showApp();
                 }
             } else {
+                LoadingScreenUtils.hide();
+                this.showLogin();
                 UIUtils.showNotification(response.message || 'Login failed', 'error');
             }
         } catch (error) {
             Logger.error('Login error', error);
+            LoadingScreenUtils.hide();
+            this.showLogin();
             UIUtils.showNotification('Login failed. Please try again.', 'error');
-        } finally {
-            UIUtils.hideLoading(submitButton);
         }
     },
     
@@ -771,13 +780,16 @@ const Auth = {
             return;
         }
         
-        const submitButton = event.target.querySelector('button[type="submit"]');
-        UIUtils.showLoading(submitButton, 'Changing...');
+        // Show loading screen for password change
+        LoadingScreenUtils.showPasswordChange();
         
         try {
             const response = await API.changePassword(currentPassword, newPassword);
             
             if (response.success) {
+                // Update loading message
+                LoadingScreenUtils.updateMessage('Password updated successfully!');
+                
                 UIUtils.showNotification('Password changed successfully!', 'success');
                 this.currentChangePasswordModal.hide();
                 
@@ -788,17 +800,24 @@ const Auth = {
                     
                     // If this was first login, now show the app
                     if (document.getElementById('appContainer').style.display === 'none') {
+                        LoadingScreenUtils.updateMessage('Loading your dashboard...');
+                        // Small delay for UX
+                        await new Promise(resolve => setTimeout(resolve, 800));
                         this.showApp();
+                    } else {
+                        LoadingScreenUtils.hide();
                     }
+                } else {
+                    LoadingScreenUtils.hide();
                 }
             } else {
+                LoadingScreenUtils.hide();
                 UIUtils.showNotification(response.message || 'Failed to change password', 'error');
             }
         } catch (error) {
             Logger.error('Change password error', error);
+            LoadingScreenUtils.hide();
             UIUtils.showNotification('Failed to change password. Please try again.', 'error');
-        } finally {
-            UIUtils.hideLoading(submitButton);
         }
     },
     
@@ -826,6 +845,9 @@ const Auth = {
     
     // Logout user
     logout: async function() {
+        // Show logout loading screen
+        LoadingScreenUtils.showLogout();
+        
         try {
             // Log the logout
             if (this.currentUser) {
@@ -835,7 +857,13 @@ const Auth = {
             Logger.warn('Failed to log logout event', error);
         }
         
-        // Clear user data FIRST
+        // Update loading message
+        LoadingScreenUtils.updateMessage('Clearing your session...');
+        
+        // Small delay for UX
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+        // Clear user data
         this.currentUser = null;
         StorageUtils.clearAppData();
         
@@ -844,16 +872,17 @@ const Auth = {
             API.cache.clear();
         }
         
-        // Hide app container IMMEDIATELY
-        document.getElementById('appContainer').style.display = 'none';
-        document.getElementById('loginContainer').style.display = 'block';
-        document.getElementById('loadingScreen').style.display = 'none';
-        
         // Reset form
         const loginForm = document.getElementById('loginForm');
         if (loginForm) {
             loginForm.reset();
         }
+        
+        // Update loading message
+        LoadingScreenUtils.updateMessage('Redirecting to login...');
+        
+        // Another small delay
+        await new Promise(resolve => setTimeout(resolve, 500));
         
         // Show notification
         UIUtils.showNotification('Logged out successfully', 'info');

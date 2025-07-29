@@ -805,22 +805,36 @@ const Admin = {
         };
         
         try {
-            UIUtils.showLoading();
+            // Show loading screen for user creation
+            LoadingScreenUtils.showUserCreation();
+            
             const response = await API.makeRequest('add_user', userData);
             
             if (response.success) {
+                // Update loading message
+                LoadingScreenUtils.updateMessage('Sending welcome email...');
+                
+                // Small delay for UX
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                LoadingScreenUtils.updateMessage('Refreshing user list...');
+                
                 UIUtils.showNotification('✅ User added successfully!', 'success');
+                
                 // Clear API cache to ensure fresh data
                 API.clearCache('users');
                 this.closeModal('addUserModal');
-                this.loadUsers();
+                
+                // Load users and hide loading screen
+                await this.loadUsers();
+                LoadingScreenUtils.hide();
             } else {
+                LoadingScreenUtils.hide();
                 UIUtils.showNotification('❌ Failed to add user: ' + response.message, 'error');
             }
         } catch (error) {
+            LoadingScreenUtils.hide();
             UIUtils.showNotification('❌ Error adding user', 'error');
-        } finally {
-            UIUtils.hideLoading();
         }
     },
     

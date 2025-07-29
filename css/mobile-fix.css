@@ -67,11 +67,10 @@
         transform: scale(0.95);
     }
     
-    /* Debug: Make mobile toggle more visible for testing */
+    /* Clean mobile toggle styling */
     .mobile-menu-toggle {
-        border: 2px solid red !important;
-        background: yellow !important;
-        color: black !important;
+        background: none;
+        color: var(--text-primary);
     }
     
     .main-content {

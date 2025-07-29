@@ -21,6 +21,64 @@ const Logger = {
     }
 };
 
+// Loading Screen Utilities
+const LoadingScreenUtils = {
+    // Show loading screen with custom message
+    show: function(title = 'Racket Warrior', message = 'Please wait...') {
+        const loadingScreen = document.getElementById('loadingScreen');
+        const loadingTitle = loadingScreen.querySelector('.loading-text h2');
+        const loadingMessage = loadingScreen.querySelector('.loading-text p');
+        
+        if (loadingTitle) loadingTitle.textContent = title;
+        if (loadingMessage) loadingMessage.textContent = message;
+        
+        // Show loading screen and hide others
+        loadingScreen.style.display = 'flex';
+        document.getElementById('loginContainer').style.display = 'none';
+        document.getElementById('appContainer').style.display = 'none';
+        
+        // Add fade-in animation
+        loadingScreen.style.opacity = '0';
+        setTimeout(() => {
+            loadingScreen.style.opacity = '1';
+        }, 50);
+    },
+    
+    // Hide loading screen
+    hide: function() {
+        const loadingScreen = document.getElementById('loadingScreen');
+        loadingScreen.style.display = 'none';
+    },
+    
+    // Update loading message without hiding/showing
+    updateMessage: function(message) {
+        const loadingMessage = document.querySelector('#loadingScreen .loading-text p');
+        if (loadingMessage) {
+            loadingMessage.textContent = message;
+        }
+    },
+    
+    // Show loading for login process
+    showLogin: function() {
+        this.show('Racket Warrior', 'Signing you in...');
+    },
+    
+    // Show loading for logout process
+    showLogout: function() {
+        this.show('Racket Warrior', 'Signing you out...');
+    },
+    
+    // Show loading for user creation
+    showUserCreation: function() {
+        this.show('Racket Warrior', 'Creating new user...');
+    },
+    
+    // Show loading for password change
+    showPasswordChange: function() {
+        this.show('Racket Warrior', 'Updating your password...');
+    }
+};
+
 // Date and Time Utilities
 const DateUtils = {
     // Global month filter state
