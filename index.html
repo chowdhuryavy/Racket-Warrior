@@ -114,7 +114,7 @@
     <!-- Main App Container -->
     <div id="appContainer" class="app-container" style="display: none;">
         <!-- Mobile Sidebar Overlay -->
-        <div id="sidebarOverlay" class="sidebar-overlay" onclick="closeMobileSidebar()"></div>
+        <div class="sidebar-overlay" onclick="closeMobileSidebar()"></div>
         
         <!-- Sidebar -->
         <aside id="sidebar" class="sidebar">
@@ -297,26 +297,26 @@
             }
         }
         
-        // Mobile Sidebar Functions
+        // Mobile Sidebar Functions (Updated to use consistent selectors)
         function toggleMobileSidebar() {
             const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebarOverlay');
+            const overlay = document.querySelector('.sidebar-overlay');
             
-            if (sidebar.classList.contains('show')) {
+            if (sidebar && sidebar.classList.contains('show')) {
                 closeMobileSidebar();
             } else {
-                sidebar.classList.add('show');
-                overlay.classList.add('show');
+                if (sidebar) sidebar.classList.add('show');
+                if (overlay) overlay.classList.add('show');
                 document.body.style.overflow = 'hidden';
             }
         }
         
         function closeMobileSidebar() {
             const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebarOverlay');
+            const overlay = document.querySelector('.sidebar-overlay');
             
-            sidebar.classList.remove('show');
-            overlay.classList.remove('show');
+            if (sidebar) sidebar.classList.remove('show');
+            if (overlay) overlay.classList.remove('show');
             document.body.style.overflow = '';
         }
         
@@ -329,6 +329,7 @@
             if (!overlay) {
                 overlay = document.createElement('div');
                 overlay.className = 'sidebar-overlay';
+                overlay.addEventListener('click', closeMobileSidebar);
                 document.body.appendChild(overlay);
             }
         }
@@ -336,25 +337,53 @@
         document.addEventListener('DOMContentLoaded', function() {
             setupMobileMenu();
             
+            // Add a simple test click handler
+            setTimeout(() => {
+                const testButton = document.getElementById('mobileMenuToggle');
+                if (testButton) {
+                    console.log('Mobile button found during test');
+                    // Add a simple test click
+                    testButton.addEventListener('click', function() {
+                        console.log('MOBILE BUTTON TEST CLICK DETECTED!');
+                    });
+                } else {
+                    console.error('Mobile button NOT found during test');
+                }
+            }, 1000);
+            
             const mobileToggle = document.getElementById('mobileMenuToggle');
             if (mobileToggle) {
-                mobileToggle.addEventListener('click', function() {
+                console.log('Mobile toggle button found, setting up event listener');
+                mobileToggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
                     console.log('Mobile menu button clicked');
+                    
+                    // Try App.toggleMobileMenu first
                     if (window.App && typeof window.App.toggleMobileMenu === 'function') {
+                        console.log('Using App.toggleMobileMenu');
                         window.App.toggleMobileMenu();
                     } else {
-                        console.error('App.toggleMobileMenu not available');
+                        console.log('Using fallback toggle implementation');
                         // Fallback implementation
                         const sidebar = document.getElementById('sidebar');
                         const overlay = document.querySelector('.sidebar-overlay');
+                        
+                        console.log('Sidebar found:', !!sidebar);
+                        console.log('Overlay found:', !!overlay);
+                        
                         if (sidebar) {
                             sidebar.classList.toggle('show');
+                            console.log('Sidebar show class toggled');
                         }
                         if (overlay) {
                             overlay.classList.toggle('show');
+                            console.log('Overlay show class toggled');
                         }
                     }
                 });
+            } else {
+                console.error('Mobile toggle button not found!');
             }
             
             // Close sidebar when clicking on navigation links (mobile only)
