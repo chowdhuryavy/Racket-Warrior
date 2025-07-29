@@ -538,10 +538,7 @@ const Dashboard = {
             finalBalance: 0
         };
         this.updateStats(defaultData);
-    }
-};
-
-
+    },
     
     // Update monthly summary
     updateMonthlySummary: function(data) {
