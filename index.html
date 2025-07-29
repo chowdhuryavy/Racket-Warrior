@@ -11,54 +11,8 @@
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/responsive.css">
     <link rel="stylesheet" href="css/mobile-fix.css">
-    <link rel="stylesheet" href="css/app-fix.css">
-    
-    <!-- Emergency inline styles to ensure app displays -->
-    <style>
-        :root {
-            --sidebar-width: 280px;
-            --header-height: 70px;
-        }
-        
-        body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-        
-        #appContainer {
-            display: flex !important;
-            min-height: 100vh !important;
-        }
-        
-        #sidebar {
-            width: var(--sidebar-width) !important;
-            position: fixed !important;
-            left: 0 !important;
-            top: 0 !important;
-            height: 100vh !important;
-            z-index: 1000 !important;
-        }
-        
-        .main-content {
-            margin-left: var(--sidebar-width) !important;
-            flex: 1 !important;
-            min-height: 100vh !important;
-        }
-        
-        .app-header {
-            position: fixed !important;
-            top: 0 !important;
-            left: var(--sidebar-width) !important;
-            right: 0 !important;
-            height: var(--header-height) !important;
-            z-index: 999 !important;
-            background: white !important;
-        }
-    </style>
+
 </head>
 <body>
     <!-- Loading Screen -->
@@ -313,7 +267,6 @@
     <script src="js/pages/reports.js"></script>
     <script src="js/pages/admin.js"></script>
     <script src="js/pages/logs.js"></script>
-    <script src="js/debug-tabs.js"></script>
     
     <script>
         // Navigation dropdown toggle function
@@ -380,33 +333,8 @@
             }
         }
 
-        // Fix any layout issues on load
-        function fixLayoutIssues() {
-            // Ensure app container is visible
-            const appContainer = document.getElementById('appContainer');
-            if (appContainer) {
-                appContainer.style.display = 'flex';
-            }
-            
-            // Ensure sidebar is positioned correctly
-            const sidebar = document.getElementById('sidebar');
-            if (sidebar && window.innerWidth > 768) {
-                sidebar.style.transform = 'translateX(0)';
-            }
-            
-            // Ensure main content has proper margin
-            const mainContent = document.querySelector('.main-content');
-            if (mainContent && window.innerWidth > 768) {
-                mainContent.style.marginLeft = 'var(--sidebar-width)';
-            }
-        }
-
         document.addEventListener('DOMContentLoaded', function() {
             setupMobileMenu();
-            fixLayoutIssues();
-            
-            // Fix layout on window resize
-            window.addEventListener('resize', fixLayoutIssues);
             
             const mobileToggle = document.getElementById('mobileMenuToggle');
             if (mobileToggle) {

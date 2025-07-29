@@ -826,11 +826,6 @@ const Auth = {
     
     // Logout user
     logout: async function() {
-        // Show loading screen
-        document.getElementById('loadingScreen').style.display = 'flex';
-        document.getElementById('loginContainer').style.display = 'none';
-        document.getElementById('appContainer').style.display = 'none';
-        
         try {
             // Log the logout
             if (this.currentUser) {
@@ -840,23 +835,33 @@ const Auth = {
             Logger.warn('Failed to log logout event', error);
         }
         
-        // Add small delay for UX
-        await new Promise(resolve => setTimeout(resolve, 800));
-        
-        // Clear user data
+        // Clear user data FIRST
         this.currentUser = null;
         StorageUtils.clearAppData();
         
-        UIUtils.showNotification('Logged out successfully', 'info');
+        // Clear API cache
+        if (API.cache) {
+            API.cache.clear();
+        }
         
-        // Show login page
-        this.showLogin();
+        // Hide app container IMMEDIATELY
+        document.getElementById('appContainer').style.display = 'none';
+        document.getElementById('loginContainer').style.display = 'block';
+        document.getElementById('loadingScreen').style.display = 'none';
         
         // Reset form
         const loginForm = document.getElementById('loginForm');
         if (loginForm) {
             loginForm.reset();
         }
+        
+        // Show notification
+        UIUtils.showNotification('Logged out successfully', 'info');
+        
+        // Force page reload to ensure clean state (most reliable method)
+        setTimeout(() => {
+            window.location.reload();
+        }, 500);
     },
     
     // Check if user is authenticated

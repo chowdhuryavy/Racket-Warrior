@@ -48,10 +48,7 @@ const Dashboard = {
                         </select>
                         <button id="refreshDashboard" class="btn btn-white">
                             <i class="fas fa-sync-alt"></i>
-                        </button>
-                        <button id="debugDashboard" class="btn btn-primary" onclick="TabDebugger.fixDashboard()" style="margin-left: 10px;">
-                            <i class="fas fa-bug"></i>
-                            Fix
+                            Refresh
                         </button>
                     </div>
                 </div>
@@ -342,11 +339,7 @@ const Dashboard = {
                 timeout
             ]);
             
-            Logger.info('Dashboard API response:', response);
-            
             if (response.success && response.data) {
-                Logger.info('Dashboard data received:', response.data);
-                
                 // Remove any error banners
                 const errorBanner = document.querySelector('.dashboard-error-banner');
                 if (errorBanner) {
@@ -418,9 +411,6 @@ const Dashboard = {
                 <button onclick="Dashboard.loadDashboardData()" style="margin-left: 10px; padding: 4px 8px; background: #dc2626; color: white; border: none; border-radius: 4px; cursor: pointer;">
                     <i class="fas fa-redo"></i> Retry
                 </button>
-                <button onclick="TabDebugger.fixDashboard()" style="margin-left: 5px; padding: 4px 8px; background: #059669; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                    <i class="fas fa-wrench"></i> Fix
-                </button>
             `;
             dashboardStats.insertBefore(errorBanner, dashboardStats.firstChild);
         }
@@ -428,8 +418,6 @@ const Dashboard = {
     
     // Update stats cards
     updateStats: function(data) {
-        Logger.info('Updating dashboard stats with data:', data);
-        
         // Ensure data exists and has required properties
         if (!data || typeof data !== 'object') {
             Logger.error('Invalid dashboard data received:', data);
@@ -447,34 +435,24 @@ const Dashboard = {
         if (activePlayersElement) {
             const count = data.activePlayersCount !== undefined ? data.activePlayersCount : 0;
             activePlayersElement.textContent = count;
-            Logger.debug('Updated active players count:', count);
-        } else {
-            Logger.warn('activePlayersCount element not found');
         }
         
         // Total Collection
         if (totalCollectionElement) {
             const collection = data.totalCollection !== undefined ? data.totalCollection : 0;
             totalCollectionElement.textContent = CurrencyUtils.format(collection);
-            Logger.debug('Updated total collection:', collection);
-        } else {
-            Logger.warn('totalCollectionAmount element not found');
         }
         
         // Total Expenses
         if (totalExpenseElement) {
             const expenses = data.totalExpenses !== undefined ? data.totalExpenses : 0;
             totalExpenseElement.textContent = CurrencyUtils.format(expenses);
-            Logger.debug('Updated total expenses:', expenses);
-        } else {
-            Logger.warn('totalExpenseAmount element not found');
         }
         
         // Final Balance
         if (finalBalanceElement) {
             const balance = data.finalBalance !== undefined ? data.finalBalance : 0;
             finalBalanceElement.textContent = CurrencyUtils.format(balance);
-            Logger.debug('Updated final balance:', balance);
             
             // Update color based on balance
             finalBalanceElement.className = 'stat-card-value';
@@ -485,14 +463,10 @@ const Dashboard = {
             } else {
                 finalBalanceElement.style.color = 'var(--text-primary)';
             }
-        } else {
-            Logger.warn('finalBalanceAmount element not found');
         }
         
         // Update monthly summary
         this.updateMonthlySummary(data);
-        
-        Logger.info('Dashboard stats update completed');
     },
     
     // Update monthly summary
@@ -506,25 +480,17 @@ const Dashboard = {
         const expenses = data.totalExpenses !== undefined ? data.totalExpenses : 0;
         const net = income - expenses;
         
-        Logger.debug('Monthly summary values:', { income, expenses, net });
-        
         if (monthlyIncomeElement) {
             monthlyIncomeElement.textContent = CurrencyUtils.format(income);
-        } else {
-            Logger.warn('monthlyIncome element not found');
         }
         
         if (monthlyExpensesElement) {
             monthlyExpensesElement.textContent = CurrencyUtils.format(expenses);
-        } else {
-            Logger.warn('monthlyExpenses element not found');
         }
         
         if (monthlyNetElement) {
             monthlyNetElement.textContent = CurrencyUtils.format(net);
             monthlyNetElement.className = net >= 0 ? 'summary-value positive' : 'summary-value negative';
-        } else {
-            Logger.warn('monthlyNet element not found');
         }
     },
     
