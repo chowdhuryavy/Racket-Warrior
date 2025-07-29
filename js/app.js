@@ -110,11 +110,25 @@ const App = {
     
     // Toggle mobile menu
     toggleMobileMenu: function() {
+        console.log('🔄 toggleMobileMenu called');
         const sidebar = document.getElementById('sidebar');
         const overlay = document.querySelector('.sidebar-overlay');
         
-        sidebar.classList.toggle('show');
-        overlay.classList.toggle('show');
+        console.log('📱 Mobile menu elements:', {
+            sidebar: !!sidebar,
+            overlay: !!overlay,
+            sidebarClasses: sidebar?.className || 'not found',
+            overlayClasses: overlay?.className || 'not found'
+        });
+        
+        if (sidebar) {
+            sidebar.classList.toggle('show');
+            console.log('📱 Sidebar toggled, now has classes:', sidebar.className);
+        }
+        if (overlay) {
+            overlay.classList.toggle('show');
+            console.log('📱 Overlay toggled, now has classes:', overlay.className);
+        }
     },
     
     // Close mobile menu
@@ -127,6 +141,47 @@ const App = {
         }
         if (overlay) {
             overlay.classList.remove('show');
+        }
+    },
+    
+    // Test function for mobile menu debugging
+    testMobileMenu: function() {
+        console.log('🧪 Testing Mobile Menu...');
+        
+        // Check if elements exist
+        const button = document.getElementById('mobileMenuToggle');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.querySelector('.sidebar-overlay');
+        
+        console.log('📱 Elements check:', {
+            button: !!button,
+            sidebar: !!sidebar,
+            overlay: !!overlay,
+            windowWidth: window.innerWidth,
+            isMobile: window.innerWidth <= 768
+        });
+        
+        if (button) {
+            console.log('📱 Button styles:', {
+                display: getComputedStyle(button).display,
+                visibility: getComputedStyle(button).visibility,
+                pointerEvents: getComputedStyle(button).pointerEvents
+            });
+        }
+        
+        if (sidebar) {
+            console.log('📱 Sidebar styles:', {
+                transform: getComputedStyle(sidebar).transform,
+                position: getComputedStyle(sidebar).position,
+                zIndex: getComputedStyle(sidebar).zIndex,
+                classes: sidebar.className
+            });
+        }
+        
+        // Try to trigger manually
+        if (button) {
+            console.log('📱 Triggering button click manually...');
+            button.click();
         }
     },
     
@@ -678,3 +733,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Export App module
 window.App = App;
+
+// Make mobile menu test available globally
+window.testMobileMenu = () => App.testMobileMenu();

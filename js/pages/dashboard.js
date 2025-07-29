@@ -507,6 +507,35 @@ const Dashboard = {
         console.log('Dashboard stats updated successfully');
     },
     
+    // Manual test function to debug dashboard data loading
+    manualTest: async function() {
+        console.log('🧪 Manual Dashboard Test Started...');
+        
+        try {
+            // Step 1: Test API directly
+            console.log('1. Testing API.getDashboardStats()...');
+            const response = await API.getDashboardStats();
+            console.log('2. Raw API Response:', response);
+            
+            if (response && response.success) {
+                console.log('3. ✅ API Success - Data received:', response.data);
+                
+                // Step 2: Test updateStats directly
+                console.log('4. Testing updateStats with received data...');
+                this.updateStats(response.data);
+                
+                console.log('5. ✅ Manual test completed successfully!');
+                UIUtils.showNotification('✅ Manual test passed - Dashboard should now show data', 'success');
+            } else {
+                console.error('6. ❌ API failed:', response);
+                UIUtils.showNotification('❌ API test failed: ' + (response?.message || 'Unknown error'), 'error');
+            }
+        } catch (error) {
+            console.error('❌ Manual test error:', error);
+            UIUtils.showNotification('❌ Manual test error: ' + error.message, 'error');
+        }
+    },
+    
     // Debug function to test API directly
     testAPI: async function() {
         console.log('🧪 Testing Dashboard API directly...');
@@ -777,6 +806,7 @@ window.debugDashboard = {
     reset: () => Dashboard.resetToDefaults(),
     reload: () => Dashboard.loadDashboardData(),
     data: () => Dashboard.cachedData,
+    manual: () => Dashboard.manualTest(),
     // Quick test for browser console
     quickTest: async () => {
         console.log('🧪 Quick Dashboard Test...');
