@@ -4410,3 +4410,29 @@ body {
     height: 60px;
     object-fit: contain;
 }
+
+/* Inline Refresh Button */
+.input-wrapper .btn-icon {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.input-wrapper .btn-icon:hover {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+/* Adjust input padding when button is present */
+.input-wrapper:has(.btn-icon) select {
+    padding-right: 50px;
+}

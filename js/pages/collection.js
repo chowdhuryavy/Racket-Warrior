@@ -32,6 +32,9 @@ const Collection = {
                                     <select id="collectionPlayer" name="playerId" required>
                                         <option value="">Select Player</option>
                                     </select>
+                                    <button type="button" id="refreshPlayers" class="btn-icon" title="Refresh Players">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -166,6 +169,15 @@ const Collection = {
         document.getElementById('collectionMonth').addEventListener('change', () => {
             this.loadPlayersForDropdown();
         });
+        
+        // Manual refresh players button
+        const refreshButton = document.getElementById('refreshPlayers');
+        if (refreshButton) {
+            refreshButton.addEventListener('click', () => {
+                Logger.info('Manual player refresh triggered');
+                this.loadPlayersForDropdown();
+            });
+        }
     },
 
     // Initialize View Table
@@ -194,32 +206,81 @@ const Collection = {
     // Load players for dropdown
     loadPlayersForDropdown: async function() {
         try {
+            Logger.info('Loading players for collection dropdown...');
             const response = await API.getPlayers();
             const playerSelect = document.getElementById('collectionPlayer');
             const playerFilter = document.getElementById('collectionPlayerFilter');
             
-            if (response.success && response.data) {
+            Logger.info('Players API response:', response);
+            
+            if (response.success && response.data && Array.isArray(response.data)) {
+                Logger.info(`Loaded ${response.data.length} players from API`);
+                
                 // Clear existing options
                 if (playerSelect) {
                     playerSelect.innerHTML = '<option value="">Select Player</option>';
+                    
+                    // Get selected month for filtering
+                    const selectedMonth = this.getCurrentSelectedMonth();
+                    Logger.info('Selected month for filtering:', selectedMonth);
+                    
+                    let activePlayersCount = 0;
+                    
                     response.data.forEach(player => {
-                        // If no month selected, show all active players
-                        // If month selected, show only players active for that month
-                        const selectedMonth = this.getCurrentSelectedMonth();
-                        const shouldShow = selectedMonth ? 
+                        Logger.debug('Processing player:', {
+                            name: player.Name,
+                            id: player.ID,
+                            status: player.Status,
+                            monthlyStatus: player.MonthlyStatus
+                        });
+                        
+                        // If no month selected or "all" selected, show all active players
+                        // If specific month selected, show only players active for that month
+                        const shouldShow = (selectedMonth && selectedMonth !== 'all') ? 
                             this.isPlayerActiveForMonth(player, selectedMonth) : 
                             player.Status === 'active';
+                        
+                        Logger.debug(`Player ${player.Name} should show: ${shouldShow}`);
                         
                         if (shouldShow) {
                             const option = document.createElement('option');
                             option.value = player.ID;
                             option.textContent = player.Name;
                             playerSelect.appendChild(option);
+                            activePlayersCount++;
                         }
                     });
+                    
+                    // If no players are active for the selected month, show all active players as fallback
+                    if (activePlayersCount === 0 && selectedMonth && selectedMonth !== 'all') {
+                        Logger.warn(`No players active for month ${selectedMonth}, showing all active players as fallback`);
+                        response.data.forEach(player => {
+                            if (player.Status === 'active') {
+                                const option = document.createElement('option');
+                                option.value = player.ID;
+                                option.textContent = `${player.Name} (General Active)`;
+                                playerSelect.appendChild(option);
+                                activePlayersCount++;
+                            }
+                        });
+                    }
+                    
+                    // If still no players, show ALL players (including inactive) as last resort
+                    if (activePlayersCount === 0) {
+                        Logger.warn('No active players found, showing all players as last resort');
+                        response.data.forEach(player => {
+                            const option = document.createElement('option');
+                            option.value = player.ID;
+                            option.textContent = `${player.Name} (${player.Status || 'Unknown'})`;
+                            playerSelect.appendChild(option);
+                            activePlayersCount++;
+                        });
+                    }
+                    
+                    Logger.info(`Added ${activePlayersCount} active players to dropdown`);
                 }
                 
-                // Update filter dropdown
+                // Update filter dropdown (show all players for filtering)
                 if (playerFilter) {
                     const currentValue = playerFilter.value;
                     playerFilter.innerHTML = '<option value="">All Players</option>';
@@ -230,11 +291,15 @@ const Collection = {
                         playerFilter.appendChild(option);
                     });
                     playerFilter.value = currentValue;
+                    Logger.info('Updated player filter dropdown');
                 }
+            } else {
+                Logger.warn('No valid player data received:', response);
+                UIUtils.showNotification('No players found', 'warning');
             }
         } catch (error) {
             Logger.error('Error loading players:', error);
-            UIUtils.showNotification('Error loading players', 'error');
+            UIUtils.showNotification('Error loading players. Please try again.', 'error');
         }
     },
 
@@ -250,6 +315,13 @@ const Collection = {
         const months = DateUtils.generateMonthOptions();
         
         monthSelect.innerHTML = '<option value="">Select Month</option>';
+        
+        // Add "All Months" option for player filtering
+        const allMonthsOption = document.createElement('option');
+        allMonthsOption.value = 'all';
+        allMonthsOption.textContent = 'All Months (Show All Players)';
+        monthSelect.appendChild(allMonthsOption);
+        
         months.forEach(month => {
             const option = document.createElement('option');
             option.value = month.value;
@@ -274,6 +346,8 @@ const Collection = {
             option.textContent = month.label;
             monthFilter.appendChild(option);
         });
+        
+        Logger.info('Month filter setup completed');
     },
 
     // Handle Add Collection Form Submission
@@ -357,6 +431,13 @@ const Collection = {
         const monthFilter = document.getElementById('collectionMonthFilter')?.value || '';
         const playerFilter = document.getElementById('collectionPlayerFilter')?.value || '';
         
+        Logger.info('Filtering collections with:', {
+            searchTerm,
+            monthFilter,
+            playerFilter,
+            totalCollections: this.currentData.length
+        });
+        
         this.filteredData = this.currentData.filter(collection => {
             const matchesSearch = !searchTerm || 
                 collection.PlayerName?.toLowerCase().includes(searchTerm) ||
@@ -366,9 +447,20 @@ const Collection = {
             const matchesMonth = !monthFilter || collection.Month === monthFilter;
             const matchesPlayer = !playerFilter || collection.PlayerId === playerFilter;
             
-            return matchesSearch && matchesMonth && matchesPlayer;
+            const result = matchesSearch && matchesMonth && matchesPlayer;
+            
+            Logger.debug('Collection filter result:', {
+                collection: collection.PlayerName,
+                matchesSearch,
+                matchesMonth,
+                matchesPlayer,
+                result
+            });
+            
+            return result;
         });
         
+        Logger.info(`Filtered ${this.filteredData.length} collections from ${this.currentData.length}`);
         this.renderTable(this.filteredData);
     },
 
@@ -628,13 +720,20 @@ const Collection = {
         if (player.MonthlyStatus) {
             try {
                 const monthlyStatus = JSON.parse(player.MonthlyStatus);
-                return monthlyStatus[month] === 'active';
+                const isActiveForMonth = monthlyStatus[month] === 'active';
+                Logger.debug(`Player ${player.Name} monthly status for ${month}:`, {
+                    monthlyStatus,
+                    isActiveForMonth
+                });
+                return isActiveForMonth;
             } catch (e) {
+                Logger.warn(`Invalid monthly status for player ${player.Name}:`, player.MonthlyStatus);
                 // If monthly status is invalid, fall back to general status
                 return player.Status === 'active';
             }
         }
         
+        Logger.debug(`Player ${player.Name} has no monthly status, using general status: ${player.Status}`);
         // If no monthly status, fall back to general status
         return player.Status === 'active';
     },
