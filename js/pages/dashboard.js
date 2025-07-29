@@ -779,5 +779,24 @@ window.debugDashboard = {
     test: () => Dashboard.testAPI(),
     reset: () => Dashboard.resetToDefaults(),
     reload: () => Dashboard.loadDashboardData(),
-    data: () => Dashboard.cachedData
+    data: () => Dashboard.cachedData,
+    // Quick test for browser console
+    quickTest: async () => {
+        console.log('🧪 Quick Dashboard Test...');
+        try {
+            console.log('1. Testing API directly...');
+            const response = await API.getDashboardStats();
+            console.log('2. API Response:', response);
+            
+            if (response && response.success) {
+                console.log('✅ API working - updating dashboard...');
+                Dashboard.updateStats(response.data);
+                console.log('✅ Dashboard updated successfully!');
+            } else {
+                console.error('❌ API failed:', response?.message);
+            }
+        } catch (error) {
+            console.error('❌ Error:', error.message);
+        }
+    }
 };

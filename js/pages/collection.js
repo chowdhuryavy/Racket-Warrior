@@ -238,28 +238,19 @@ const Collection = {
                         }
                     });
                     
-                    // If no players are active for the selected month, show all active players as fallback
+                    // If no players are active for the selected month, show a clear message
                     if (activePlayersCount === 0 && selectedMonth) {
-                        response.data.forEach(player => {
-                            if (player.Status === 'active') {
-                                const option = document.createElement('option');
-                                option.value = player.ID;
-                                option.textContent = `${player.Name} (General Active)`;
-                                playerSelect.appendChild(option);
-                                activePlayersCount++;
-                            }
-                        });
-                    }
-                    
-                    // If still no players, show ALL players (including inactive) as last resort
-                    if (activePlayersCount === 0) {
-                        response.data.forEach(player => {
-                            const option = document.createElement('option');
-                            option.value = player.ID;
-                            option.textContent = `${player.Name} (${player.Status || 'Unknown'})`;
-                            playerSelect.appendChild(option);
-                            activePlayersCount++;
-                        });
+                        const noPlayersOption = document.createElement('option');
+                        noPlayersOption.value = '';
+                        noPlayersOption.textContent = 'No players active for selected month';
+                        noPlayersOption.disabled = true;
+                        playerSelect.appendChild(noPlayersOption);
+                    } else if (activePlayersCount === 0) {
+                        const noPlayersOption = document.createElement('option');
+                        noPlayersOption.value = '';
+                        noPlayersOption.textContent = 'No active players found';
+                        noPlayersOption.disabled = true;
+                        playerSelect.appendChild(noPlayersOption);
                     }
                 }
                 

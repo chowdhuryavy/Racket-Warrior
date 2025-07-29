@@ -304,8 +304,8 @@ const Logs = {
                     </tr>
                 </thead>
                 <tbody>
-                    ${this.logs.map(log => `
-                        <tr data-log-id="${log.id}" class="log-row-${log.status}">
+                    ${this.logs.filter(log => log && typeof log === 'object').map(log => `
+                        <tr data-log-id="${log.id || 'unknown'}" class="log-row-${log.status || 'unknown'}">
                             <td class="log-timestamp">
                                 <div class="timestamp-info">
                                     <span class="date">${this.formatDate(log.timestamp)}</span>
@@ -313,23 +313,23 @@ const Logs = {
                                 </div>
                             </td>
                             <td>
-                                <span class="type-badge type-${log.type}">
-                                    ${this.getTypeIcon(log.type)} ${this.getTypeLabel(log.type)}
+                                <span class="type-badge type-${log.type || 'unknown'}">
+                                    ${this.getTypeIcon(log.type || 'unknown')} ${this.getTypeLabel(log.type || 'unknown')}
                                 </span>
                             </td>
-                            <td class="log-action">${log.action}</td>
+                            <td class="log-action">${log.action || 'Unknown Action'}</td>
                             <td class="log-user">
                                 <div class="user-info">
-                                    <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(log.user)}&background=667eea&color=fff&size=32" 
-                                         alt="${log.user}" class="user-avatar-xs">
-                                    <span>${log.user}</span>
+                                    <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(log.user || 'Unknown')}&background=667eea&color=fff&size=32" 
+                                         alt="${log.user || 'Unknown'}" class="user-avatar-xs">
+                                    <span>${log.user || 'Unknown User'}</span>
                                 </div>
                             </td>
-                            <td class="log-details">${log.details}</td>
+                            <td class="log-details">${log.details || 'No details available'}</td>
                             <td>
-                                <span class="status-badge status-${log.status}">
-                                    ${log.status === 'success' ? '<i class="fas fa-check"></i>' : '<i class="fas fa-times"></i>'}
-                                    ${log.status.charAt(0).toUpperCase() + log.status.slice(1)}
+                                <span class="status-badge status-${log.status || 'unknown'}">
+                                    ${(log.status === 'success') ? '<i class="fas fa-check"></i>' : '<i class="fas fa-times"></i>'}
+                                    ${log.status ? log.status.charAt(0).toUpperCase() + log.status.slice(1) : 'Unknown'}
                                 </span>
                             </td>
                         </tr>
