@@ -1684,33 +1684,7 @@ function handleUpdateSettings(params) {
 
 // ==================== FILE UPLOAD HANDLERS ====================
 
-/**
- * Handle photo upload (placeholder - actual implementation would use Drive API)
- */
-function handleUploadPhoto(params) {
-  try {
-    const { token, type, file } = params;
-    
-    const user = verifyToken(token);
-    if (!user) {
-      return { success: false, message: 'Unauthorized access' };
-    }
-    
-    // This is a placeholder - actual implementation would require Drive API
-    // For now, return a mock response
-    return {
-      success: true,
-      message: 'Photo upload feature is not implemented yet',
-      data: {
-        url: 'assets/default-avatar.png', // Default placeholder
-        filename: 'placeholder.png'
-      }
-    };
-    
-  } catch (error) {
-    return { success: false, message: 'Failed to upload photo: ' + error.toString() };
-  }
-}
+// Removed duplicate placeholder handleUploadPhoto function - actual implementation is below
 
 // ==================== UTILITY FUNCTIONS ====================
 
@@ -2393,14 +2367,20 @@ function handleUploadPhoto(params) {
   try {
     const { token, photoData, fileName } = params;
     
+    console.log('handleUploadPhoto called with params:', { token: token ? 'present' : 'missing', photoData: photoData ? 'present' : 'missing', fileName });
+    
     const user = verifyToken(token);
     if (!user) {
+      console.log('Upload failed: unauthorized access');
       return { success: false, message: 'Unauthorized access' };
     }
     
     if (!photoData) {
+      console.log('Upload failed: no photo data');
       return { success: false, message: 'Photo data is required' };
     }
+    
+    console.log('Photo upload processing for user:', user.email);
     
     // For now, we'll store the photo data in the Users sheet
     // In a production environment, you might want to upload to Google Drive

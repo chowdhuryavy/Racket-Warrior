@@ -491,17 +491,29 @@ const App = {
             fileUploadArea.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                console.log('File upload area clicked, target:', e.target);
                 if (e.target !== photoFile) {
+                    console.log('Triggering photo file input...');
                     photoFile.click();
+                } else {
+                    console.log('Photo file input clicked directly');
                 }
             });
         }
         
         if (photoFile) {
             photoFile.addEventListener('change', (event) => {
+                console.log('Photo file input changed, files:', event.target.files);
                 const file = event.target.files[0];
-                this.handleFileSelection(file);
+                if (file) {
+                    console.log('File selected:', file.name, file.size, file.type);
+                    this.handleFileSelection(file);
+                } else {
+                    console.log('No file selected');
+                }
             });
+        } else {
+            console.error('Photo file input not found!');
         }
         
         if (changePhotoForm) {
@@ -618,8 +630,9 @@ const App = {
                 UIUtils.showNotification(response.message || 'Failed to upload photo', 'error');
             }
         } catch (error) {
+            console.error('Photo upload error details:', error);
             Logger.error('Photo upload error', error);
-            UIUtils.showNotification('Failed to upload photo. Please try again.', 'error');
+            UIUtils.showNotification('Failed to upload photo: ' + error.message, 'error');
         } finally {
             UIUtils.hideLoading(submitButton);
         }

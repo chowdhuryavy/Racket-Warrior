@@ -246,35 +246,72 @@ const API = {
     // File Upload APIs - Simplified for better performance
     uploadPhoto: async function(photoData, fileName) {
         try {
-            // Get user data
-            const user = JSON.parse(StorageUtils.get(CONFIG.STORAGE_KEYS.USER_DATA) || '{}');
-            const userName = user.name || 'User';
+            console.log('uploadPhoto called with:', typeof photoData, fileName);
             
-            // Generate a UI Avatar URL with random background color for variety
-            const colors = ['667eea', '764ba2', '5a67d8', '10b981', 'f59e0b', 'ef4444', '8b5cf6', 'ec4899'];
-            const randomColor = colors[Math.floor(Math.random() * colors.length)];
-            const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=${randomColor}&color=fff&size=200&bold=true`;
+            let processedPhotoData;
+            
+            // Check if photoData is a File object
+            if (photoData instanceof File) {
+                console.log('Converting File object to data URL...');
+                // Convert File to data URL
+                processedPhotoData = await this.fileToDataURL(photoData);
+            } else if (typeof photoData === 'string') {
+                processedPhotoData = photoData;
+            } else {
+                // Generate UI Avatar as fallback
+                console.log('Generating UI Avatar as fallback...');
+                const user = JSON.parse(StorageUtils.get(CONFIG.STORAGE_KEYS.USER_DATA) || '{}');
+                const userName = user.name || 'User';
+                
+                const colors = ['667eea', '764ba2', '5a67d8', '10b981', 'f59e0b', 'ef4444', '8b5cf6', 'ec4899'];
+                const randomColor = colors[Math.floor(Math.random() * colors.length)];
+                processedPhotoData = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=${randomColor}&color=fff&size=200&bold=true`;
+            }
+            
+            console.log('Processed photo data type:', typeof processedPhotoData);
+            console.log('Sending to backend...');
             
             // Save to Google Sheet via backend
             const response = await this.makeRequest('upload_photo', {
                 token: StorageUtils.get(CONFIG.STORAGE_KEYS.AUTH_TOKEN),
-                photoData: avatarUrl
+                photoData: processedPhotoData,
+                fileName: fileName
             });
             
-            if (response.success) {
+            console.log('Backend response:', response);
+            
+            if (response && response.success) {
                 Logger.info('Photo upload completed successfully');
                 return response;
             } else {
-                throw new Error(response.message || 'Failed to save photo');
+                console.error('Backend upload failed:', response);
+                throw new Error(response?.message || 'Failed to save photo');
             }
             
         } catch (error) {
+            console.error('Photo upload error:', error);
             Logger.error('Photo upload error', error);
             return {
                 success: false,
                 message: 'Failed to upload photo: ' + error.message
             };
         }
+    },
+    
+    // Helper function to convert File to data URL
+    fileToDataURL: function(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+                console.log('File converted to data URL successfully');
+                resolve(reader.result);
+            };
+            reader.onerror = (error) => {
+                console.error('File to data URL conversion failed:', error);
+                reject(error);
+            };
+            reader.readAsDataURL(file);
+        });
     },
 
     // Helper function to convert file to base64
