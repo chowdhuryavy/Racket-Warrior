@@ -204,6 +204,10 @@ const API = {
         return await this.makeRequest('get_dashboard_stats', { month });
     },
 
+    getAvailableMonths: async function() {
+        return await this.makeRequest('get_available_months');
+    },
+
     // Logs APIs
     getLogs: async function(filters = {}) {
         return await this.makeRequest('get_logs', filters);

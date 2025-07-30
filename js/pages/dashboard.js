@@ -247,27 +247,84 @@ const Dashboard = {
                 // Clear existing options except "All Time"
                 monthFilter.innerHTML = '<option value="">All Time</option>';
                 
-                // Generate month options using DateUtils
-                const months = DateUtils.generateMonthOptions();
+                console.log('📅 Loading available months from API...');
                 
-                // Add available months
-                months.forEach(month => {
-                    const option = document.createElement('option');
-                    option.value = month.value;
-                    option.textContent = month.label;
-                    monthFilter.appendChild(option);
-                });
+                // Get available months from API
+                const response = await API.getAvailableMonths();
                 
-                // Set current month as default
-                const currentMonth = DateUtils.getMonthKey(new Date());
-                monthFilter.value = currentMonth;
-                this.currentMonth = currentMonth;
+                if (response && response.success && response.data) {
+                    console.log('📅 Available months:', response.data);
+                    
+                    // Add available months from API
+                    response.data.forEach(monthKey => {
+                        const option = document.createElement('option');
+                        option.value = monthKey;
+                        option.textContent = DateUtils.formatMonthForDisplay(monthKey);
+                        monthFilter.appendChild(option);
+                    });
+                    
+                    // Set current month as default if it exists in available months
+                    const currentMonth = DateUtils.getMonthKey(new Date());
+                    if (response.data.includes(currentMonth)) {
+                        monthFilter.value = currentMonth;
+                        this.currentMonth = currentMonth;
+                    } else if (response.data.length > 0) {
+                        // Use the latest available month
+                        const latestMonth = response.data[response.data.length - 1];
+                        monthFilter.value = latestMonth;
+                        this.currentMonth = latestMonth;
+                    } else {
+                        // No data available, use all time
+                        monthFilter.value = '';
+                        this.currentMonth = null;
+                    }
+                } else {
+                    console.warn('📅 No available months data, falling back to generated months');
+                    
+                    // Fallback to generated months if API fails
+                    const months = DateUtils.generateMonthOptions();
+                    months.forEach(month => {
+                        const option = document.createElement('option');
+                        option.value = month.value;
+                        option.textContent = month.label;
+                        monthFilter.appendChild(option);
+                    });
+                    
+                    // Set current month as default
+                    const currentMonth = DateUtils.getMonthKey(new Date());
+                    monthFilter.value = currentMonth;
+                    this.currentMonth = currentMonth;
+                }
                 
                 // Set as global month
-                DateUtils.setGlobalMonth(currentMonth);
+                DateUtils.setGlobalMonth(this.currentMonth);
+                
+                console.log('📅 Month filter setup complete, current month:', this.currentMonth);
             }
         } catch (error) {
+            console.error('📅 Failed to setup month filter:', error);
             Logger.error('Failed to setup month filter', error);
+            
+            // Fallback setup on error
+            try {
+                const monthFilter = document.getElementById('dashboardMonthFilter');
+                if (monthFilter) {
+                    monthFilter.innerHTML = '<option value="">All Time</option>';
+                    const months = DateUtils.generateMonthOptions();
+                    months.forEach(month => {
+                        const option = document.createElement('option');
+                        option.value = month.value;
+                        option.textContent = month.label;
+                        monthFilter.appendChild(option);
+                    });
+                    const currentMonth = DateUtils.getMonthKey(new Date());
+                    monthFilter.value = currentMonth;
+                    this.currentMonth = currentMonth;
+                    DateUtils.setGlobalMonth(currentMonth);
+                }
+            } catch (fallbackError) {
+                console.error('📅 Fallback month filter setup also failed:', fallbackError);
+            }
         }
     },
     
@@ -463,31 +520,37 @@ const Dashboard = {
         // Active Players Count
         if (activePlayersElement) {
             const count = data.activePlayersCount !== undefined && data.activePlayersCount !== null ? data.activePlayersCount : 0;
-            console.log('Setting activePlayersCount to:', count);
+            console.log('Setting activePlayersCount to:', count, 'type:', typeof count);
             activePlayersElement.textContent = count;
             activePlayersElement.style.color = 'var(--text-primary)';
+        } else {
+            console.error('activePlayersElement not found in DOM');
         }
         
         // Total Collection
         if (totalCollectionElement) {
             const collection = data.totalCollection !== undefined && data.totalCollection !== null ? data.totalCollection : 0;
-            console.log('Setting totalCollection to:', collection);
+            console.log('Setting totalCollection to:', collection, 'type:', typeof collection);
             totalCollectionElement.textContent = CurrencyUtils.format(collection);
             totalCollectionElement.style.color = 'var(--text-primary)';
+        } else {
+            console.error('totalCollectionElement not found in DOM');
         }
         
         // Total Expenses
         if (totalExpenseElement) {
             const expenses = data.totalExpenses !== undefined && data.totalExpenses !== null ? data.totalExpenses : 0;
-            console.log('Setting totalExpenses to:', expenses);
+            console.log('Setting totalExpenses to:', expenses, 'type:', typeof expenses);
             totalExpenseElement.textContent = CurrencyUtils.format(expenses);
             totalExpenseElement.style.color = 'var(--text-primary)';
+        } else {
+            console.error('totalExpenseElement not found in DOM');
         }
         
         // Final Balance
         if (finalBalanceElement) {
             const balance = data.finalBalance !== undefined && data.finalBalance !== null ? data.finalBalance : 0;
-            console.log('Setting finalBalance to:', balance);
+            console.log('Setting finalBalance to:', balance, 'type:', typeof balance);
             finalBalanceElement.textContent = CurrencyUtils.format(balance);
             
             // Update color based on balance
@@ -499,6 +562,8 @@ const Dashboard = {
             } else {
                 finalBalanceElement.style.color = 'var(--text-primary)';
             }
+        } else {
+            console.error('finalBalanceElement not found in DOM');
         }
         
         // Update monthly summary
@@ -510,28 +575,45 @@ const Dashboard = {
     // Manual test function to debug dashboard data loading
     manualTest: async function() {
         console.log('🧪 Manual Dashboard Test Started...');
+        console.log('Current month:', this.currentMonth);
         
         try {
-            // Step 1: Test API directly
-            console.log('1. Testing API.getDashboardStats()...');
-            const response = await API.getDashboardStats();
+            // Step 1: Test API with current month
+            console.log('1. Testing API.getDashboardStats(' + this.currentMonth + ')...');
+            const response = await API.getDashboardStats(this.currentMonth);
             console.log('2. Raw API Response:', response);
+            console.log('3. Response success:', response?.success);
+            console.log('4. Response data:', response?.data);
             
-            if (response && response.success) {
-                console.log('3. ✅ API Success - Data received:', response.data);
+            // Check if we have authentication
+            const token = StorageUtils.get(CONFIG.STORAGE_KEYS.AUTH_TOKEN);
+            console.log('5. Auth token exists:', !!token);
+            
+            if (response && response.success && response.data) {
+                console.log('6. ✅ API Success - Data received:', response.data);
+                console.log('7. Data breakdown:');
+                console.log('   - activePlayersCount:', response.data.activePlayersCount);
+                console.log('   - totalCollection:', response.data.totalCollection);
+                console.log('   - totalExpenses:', response.data.totalExpenses);
+                console.log('   - finalBalance:', response.data.finalBalance);
                 
                 // Step 2: Test updateStats directly
-                console.log('4. Testing updateStats with received data...');
+                console.log('8. Testing updateStats with received data...');
                 this.updateStats(response.data);
                 
-                console.log('5. ✅ Manual test completed successfully!');
+                console.log('9. ✅ Manual test completed successfully!');
                 UIUtils.showNotification('✅ Manual test passed - Dashboard should now show data', 'success');
             } else {
-                console.error('6. ❌ API failed:', response);
+                console.error('10. ❌ API failed:', response);
+                console.error('    - Success:', response?.success);
+                console.error('    - Message:', response?.message);
+                console.error('    - Data:', response?.data);
                 UIUtils.showNotification('❌ API test failed: ' + (response?.message || 'Unknown error'), 'error');
             }
         } catch (error) {
             console.error('❌ Manual test error:', error);
+            console.error('   - Message:', error.message);
+            console.error('   - Stack:', error.stack);
             UIUtils.showNotification('❌ Manual test error: ' + error.message, 'error');
         }
     },

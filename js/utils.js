@@ -149,6 +149,11 @@ const DateUtils = {
         return `${monthNames[parseInt(month) - 1]} ${year}`;
     },
 
+    // Format month key for display (alias for parseMonthYear)
+    formatMonthForDisplay: function(monthKey) {
+        return this.parseMonthYear(monthKey);
+    },
+
     // Format date for input elements (YYYY-MM-DD)
     formatDateForInput: function(date) {
         if (!date) return '';

@@ -100,6 +100,7 @@ function doGet(e) {
       
       // Dashboard
       case 'get_dashboard_stats': result = handleGetDashboardStats(e.parameter); break;
+      case 'get_available_months': result = handleGetAvailableMonths(e.parameter); break;
       
       // Players
       case 'get_players': result = handleGetPlayers(e.parameter); break;
@@ -226,6 +227,7 @@ function doPost(e) {
         
       // Dashboard
       case 'get_dashboard_stats': result = handleGetDashboardStats(e.parameter); break;
+      case 'get_available_months': result = handleGetAvailableMonths(e.parameter); break;
         
       // Reports
       case 'get_monthly_report': result = handleGetMonthlyReport(e.parameter); break;
@@ -1480,6 +1482,68 @@ function handleGetDashboardStats(params) {
     
   } catch (error) {
     return { success: false, message: 'Failed to get dashboard stats: ' + error.toString() };
+  }
+}
+
+/**
+ * Get available months with data
+ */
+function handleGetAvailableMonths(params) {
+  try {
+    const { token } = params;
+    
+    const user = verifyToken(token);
+    if (!user) {
+      return { success: false, message: 'Unauthorized access' };
+    }
+    
+    // Get all months that have data
+    const availableMonths = new Set();
+    
+    // Check income sheet for months
+    const incomeSheet = getSheet(SHEETS.income.name);
+    const incomeData = getSheetData(incomeSheet);
+    incomeData.forEach(item => {
+      if (item.Month) {
+        availableMonths.add(item.Month);
+      }
+    });
+    
+    // Check expenses sheet for months
+    const expensesSheet = getSheet(SHEETS.expenses.name);
+    const expensesData = getSheetData(expensesSheet);
+    expensesData.forEach(expense => {
+      if (expense.Month) {
+        availableMonths.add(expense.Month);
+      }
+    });
+    
+    // Check players sheet for months (from MonthlyStatus)
+    const playersSheet = getSheet(SHEETS.players.name);
+    const playersData = getSheetData(playersSheet);
+    playersData.forEach(player => {
+      if (player.MonthlyStatus) {
+        try {
+          const monthlyStatus = JSON.parse(player.MonthlyStatus);
+          Object.keys(monthlyStatus).forEach(month => {
+            availableMonths.add(month);
+          });
+        } catch (e) {
+          // Ignore invalid JSON
+        }
+      }
+    });
+    
+    // Convert to sorted array
+    const monthsArray = Array.from(availableMonths).sort();
+    
+    return {
+      success: true,
+      data: monthsArray
+    };
+    
+  } catch (error) {
+    return { success: false, message: 'Failed to get available months: ' + error.toString() };
   }
 }
 

@@ -2513,8 +2513,8 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 2rem;
-    padding: 2rem;
+    margin-bottom: 1rem;
+    padding: 1.5rem 2rem;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border-radius: 20px;
     color: white;
