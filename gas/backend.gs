@@ -2910,6 +2910,110 @@ function sendWelcomeEmail(email, name, tempPassword) {
                 transform: translateY(-8px) rotate(10deg) scale(1.05); 
             }
         }
+        
+        .access-links-section {
+            background: linear-gradient(135deg, #f8fafc 0%, #e5e7eb 100%);
+            border-radius: 20px;
+            padding: 35px;
+            margin: 40px 0;
+            border: 2px solid #d1d5db;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+        }
+        
+        .access-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #374151;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+        
+        .link-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .access-link {
+            background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+            border-radius: 16px;
+            padding: 25px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            border: 2px solid #e5e7eb;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        
+        .access-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            border-color: #667eea;
+        }
+        
+        .link-icon {
+            font-size: 32px;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            color: white;
+            text-align: center;
+            min-width: 60px;
+            box-shadow: 0 6px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .link-content {
+            flex: 1;
+        }
+        
+        .link-label {
+            font-size: 18px;
+            font-weight: 700;
+            color: #374151;
+            margin-bottom: 5px;
+        }
+        
+        .link-description {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .link-url {
+            font-size: 16px;
+            font-weight: 600;
+            color: #667eea;
+            text-decoration: none;
+            padding: 8px 16px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 8px;
+            display: inline-block;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .link-url:hover {
+            background: rgba(102, 126, 234, 0.2);
+            border-color: #667eea;
+            transform: scale(1.02);
+        }
+        
+        @media (max-width: 600px) {
+            .access-link {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+            
+            .link-icon {
+                min-width: auto;
+            }
+        }
     </style>
 </head>
 <body>
@@ -2960,6 +3064,35 @@ function sendWelcomeEmail(email, name, tempPassword) {
                     • Generate detailed financial reports<br>
                     • Monitor group activities and logs<br>
                     • Access role-based features and permissions
+                </div>
+            </div>
+            
+            <div class="access-links-section">
+                <div class="access-title">
+                    🚀 Access Your Account
+                </div>
+                <div class="link-container">
+                    <div class="access-link">
+                        <div class="link-icon">🔗</div>
+                        <div class="link-content">
+                            <div class="link-label">Web Access</div>
+                            <div class="link-description">Access via website or web view</div>
+                            <a href="https://www.webintoapp.com/store/840730" class="link-url" target="_blank">
+                                webintoapp.com/store/840730
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="access-link">
+                        <div class="link-icon">📲</div>
+                        <div class="link-content">
+                            <div class="link-label">Android App</div>
+                            <div class="link-description">Download the Android app (APK)</div>
+                            <a href="https://racket-warrior.netlify.app/" class="link-url" target="_blank">
+                                racket-warrior.netlify.app
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
             
