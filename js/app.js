@@ -466,3 +466,23 @@ window.testReports = () => {
 
 // Export App module to global scope
 window.App = App;
+
+// Initialize authentication when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 DOM loaded, initializing authentication...');
+    
+    // Wait for all modules to be available
+    if (typeof Auth !== 'undefined' && typeof CONFIG !== 'undefined') {
+        Auth.init();
+    } else {
+        console.error('❌ Required modules not available for authentication');
+        // Retry after a short delay
+        setTimeout(() => {
+            if (typeof Auth !== 'undefined' && typeof CONFIG !== 'undefined') {
+                Auth.init();
+            } else {
+                console.error('❌ Still missing required modules after retry');
+            }
+        }, 1000);
+    }
+});

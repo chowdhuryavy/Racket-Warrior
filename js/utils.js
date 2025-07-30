@@ -828,6 +828,7 @@ const FileUtils = {
 // Export utilities to global scope
 window.Logger = Logger;
 window.ActivityLogger = ActivityLogger;
+window.LoadingScreenUtils = LoadingScreenUtils;
 window.DateUtils = DateUtils;
 window.ValidationUtils = ValidationUtils;
 window.UIUtils = UIUtils;
