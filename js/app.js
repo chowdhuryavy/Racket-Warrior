@@ -1526,3 +1526,96 @@ window.testPlayersView = () => {
     console.log('🧪 Quick test: players-view');
     showPage('players-view');
 };
+
+// Test all refresh buttons across the app
+window.testAllRefreshButtons = async () => {
+    console.log('🔄 Testing All Refresh Buttons...');
+    
+    const refreshTests = [
+        { page: 'dashboard', buttonId: 'refreshDashboard', name: 'Dashboard' },
+        { page: 'players-view', buttonId: 'refreshPlayers', name: 'Players' },
+        { page: 'collection-view', buttonId: 'refreshCollections', name: 'Collections' },
+        { page: 'expenses-view', buttonId: 'refreshExpenses', name: 'Expenses' },
+        { page: 'reports', buttonId: 'refreshReport', name: 'Reports' },
+        { page: 'logs', buttonId: 'refreshLogs', name: 'Logs' }
+    ];
+    
+    for (const test of refreshTests) {
+        console.log(`🔄 Testing ${test.name} refresh...`);
+        
+        try {
+            // Navigate to page
+            showPage(test.page);
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Find refresh button
+            const refreshBtn = document.getElementById(test.buttonId);
+            
+            if (refreshBtn) {
+                console.log(`✅ ${test.name}: Refresh button found`);
+                console.log(`   - Button text: "${refreshBtn.textContent?.trim()}"`);
+                console.log(`   - Button enabled: ${!refreshBtn.disabled}`);
+                console.log(`   - Button visible: ${refreshBtn.offsetParent !== null}`);
+                
+                // Test click (but don't actually trigger to avoid spam)
+                const hasClickListener = refreshBtn.onclick !== null || 
+                                       refreshBtn.getAttribute('onclick') !== null ||
+                                       getEventListeners(refreshBtn)?.click?.length > 0;
+                console.log(`   - Has click handler: ${hasClickListener}`);
+            } else {
+                console.error(`❌ ${test.name}: Refresh button (${test.buttonId}) not found`);
+            }
+        } catch (error) {
+            console.error(`❌ ${test.name}: Error testing refresh -`, error);
+        }
+    }
+    
+    console.log('🔄 Refresh button test complete!');
+};
+
+// Test reports cards specifically
+window.testReportsCards = async () => {
+    console.log('📊 Testing Reports Cards...');
+    
+    // Navigate to reports
+    showPage('reports');
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // Check if Reports module exists
+    console.log('1. 📊 Reports module exists:', !!window.Reports);
+    
+    // Check current month
+    console.log('2. 📅 Current month:', window.Reports?.currentMonth);
+    
+    // Check report data
+    console.log('3. 📋 Report data exists:', !!window.Reports?.reportData);
+    if (window.Reports?.reportData) {
+        console.log('   - Summary data:', window.Reports.reportData.summary);
+    }
+    
+    // Check DOM elements
+    const summaryCards = document.querySelectorAll('.summary-card');
+    console.log('4. 🎴 Summary cards found:', summaryCards.length);
+    
+    summaryCards.forEach((card, index) => {
+        const cardTitle = card.querySelector('h4')?.textContent || 'Unknown';
+        const cardValue = card.querySelector('.summary-number')?.textContent || 'No value';
+        console.log(`   Card ${index + 1} (${cardTitle}): "${cardValue}"`);
+        
+        if (cardValue.includes('undefined')) {
+            console.error(`❌ Card ${index + 1} has undefined value!`);
+        }
+    });
+    
+    // Try manual refresh
+    console.log('5. 🔄 Testing manual refresh...');
+    const refreshBtn = document.getElementById('refreshReport');
+    if (refreshBtn) {
+        refreshBtn.click();
+        console.log('   ✅ Refresh button clicked');
+    } else {
+        console.error('   ❌ Refresh button not found');
+    }
+    
+    console.log('📊 Reports test complete!');
+};

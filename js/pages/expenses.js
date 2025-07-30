@@ -202,6 +202,7 @@ const Expenses = {
         
         document.getElementById('refreshExpenses').addEventListener('click', () => {
             this.loadExpensesData();
+            UIUtils.showNotification('Expenses data refreshed', 'success');
         });
     },
 

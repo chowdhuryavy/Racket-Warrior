@@ -221,6 +221,7 @@ const Collection = {
         if (refreshElement) {
             refreshElement.addEventListener('click', () => {
                 this.loadCollectionsData();
+                UIUtils.showNotification('Collections data refreshed', 'success');
             });
         }
     },

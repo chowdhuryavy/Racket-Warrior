@@ -140,7 +140,10 @@ const Logs = {
         // Refresh button
         const refreshBtn = document.getElementById('refreshLogs');
         if (refreshBtn) {
-            refreshBtn.addEventListener('click', () => this.loadLogs());
+            refreshBtn.addEventListener('click', () => {
+                this.loadLogs();
+                UIUtils.showNotification('Logs refreshed', 'success');
+            });
         }
         
         // Export button

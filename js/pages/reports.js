@@ -84,7 +84,10 @@ const Reports = {
         // Refresh button
         const refreshBtn = document.getElementById('refreshReport');
         if (refreshBtn) {
-            refreshBtn.addEventListener('click', () => this.loadReportData());
+            refreshBtn.addEventListener('click', () => {
+                this.loadReportData();
+                UIUtils.showNotification('Report refreshed', 'success');
+            });
         }
         
         // Export PDF button
@@ -133,21 +136,69 @@ const Reports = {
         
         try {
             UIUtils.showLoading();
+            console.log('📊 Loading report data for month:', this.currentMonth);
+            
             const response = await API.makeRequest('get_monthly_report', { month: this.currentMonth });
             
-            if (response.success) {
-                this.reportData = response.data;
+            if (response.success && response.data) {
+                console.log('📊 Raw report data received:', response.data);
+                
+                // Sanitize and ensure data structure
+                this.reportData = this.sanitizeReportData(response.data);
+                console.log('📊 Sanitized report data:', this.reportData);
+                
                 this.renderReport();
             } else {
+                console.warn('📊 API failed, using fallback data:', response.message);
                 UIUtils.showNotification('Failed to load report: ' + response.message, 'error');
                 this.showTestReport(); // Fallback to test data
             }
         } catch (error) {
-            console.error('Error loading report:', error);
+            console.error('📊 Error loading report:', error);
             UIUtils.showNotification('Error loading report', 'error');
             this.showTestReport(); // Fallback to test data
         } finally {
             UIUtils.hideLoading();
+        }
+    },
+    
+    // Sanitize report data to ensure all required fields exist
+    sanitizeReportData: function(rawData) {
+        console.log('🔧 Sanitizing report data...');
+        
+        const sanitized = {
+            month: rawData.month || this.currentMonth || DateUtils.getMonthYear(new Date()),
+            monthLabel: rawData.monthLabel || this.getMonthLabel(this.currentMonth),
+            summary: {
+                totalPlayers: parseInt(rawData.summary?.totalPlayers || 0),
+                activePlayers: parseInt(rawData.summary?.activePlayers || 0),
+                inactivePlayers: parseInt(rawData.summary?.inactivePlayers || 0),
+                totalCollection: parseFloat(rawData.summary?.totalCollection || 0),
+                totalExpenses: parseFloat(rawData.summary?.totalExpenses || 0),
+                netBalance: parseFloat(rawData.summary?.netBalance || 0)
+            },
+            players: Array.isArray(rawData.players) ? rawData.players : [],
+            collections: Array.isArray(rawData.collections) ? rawData.collections : [],
+            expenses: Array.isArray(rawData.expenses) ? rawData.expenses : []
+        };
+        
+        // Calculate net balance if not provided
+        if (!rawData.summary?.netBalance) {
+            sanitized.summary.netBalance = sanitized.summary.totalCollection - sanitized.summary.totalExpenses;
+        }
+        
+        console.log('✅ Data sanitization complete:', sanitized.summary);
+        return sanitized;
+    },
+    
+    // Get month label for display
+    getMonthLabel: function(monthKey) {
+        if (!monthKey) return 'Current Month';
+        try {
+            const date = new Date(monthKey + '-01');
+            return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+        } catch (error) {
+            return 'Invalid Month';
         }
     },
     
