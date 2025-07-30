@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard API Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        button { padding: 10px 15px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Dashboard API Test</h1>
+    <p>This page tests the dashboard API directly to diagnose undefined value issues.</p>
+    
+    <div class="test-section info">
+        <h3>Instructions:</h3>
+        <ol>
+            <li>Make sure you're logged into the main app first</li>
+            <li>Copy your auth token from localStorage</li>
+            <li>Paste it in the input below</li>
+            <li>Click "Test Dashboard API"</li>
+        </ol>
+    </div>
+    
+    <div class="test-section">
+        <h3>🔐 Authentication</h3>
+        <input type="text" id="authToken" placeholder="Paste your auth token here" style="width: 400px; padding: 8px;">
+        <br><br>
+        <button onclick="getTokenFromStorage()">Get Token from Storage</button>
+        <button onclick="testAuth()">Test Auth</button>
+    </div>
+    
+    <div class="test-section">
+        <h3>📊 Dashboard API Test</h3>
+        <label>Month (optional): </label>
+        <input type="text" id="testMonth" placeholder="2024-01" style="width: 150px; padding: 8px;">
+        <br><br>
+        <button onclick="testDashboardAPI()">Test Dashboard API</button>
+        <button onclick="testDashboardAPINoCache()">Test Without Cache</button>
+    </div>
+    
+    <div class="test-section">
+        <h3>📋 Results</h3>
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://script.google.com/macros/s/AKfycbxWKdyeJrjCi6TURKMyVDsYFlkeEpo7ErDDw22DHLrpfUdC7HytmjqjqNaDnFvbcM6C/exec';
+        
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `test-section ${type}`;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}:</strong> ${message}`;
+            results.appendChild(div);
+            console.log(message);
+        }
+        
+        function getTokenFromStorage() {
+            try {
+                const token = localStorage.getItem('racket_warrior_token');
+                if (token) {
+                    document.getElementById('authToken').value = token;
+                    log('✅ Token found and loaded from localStorage', 'success');
+                } else {
+                    log('❌ No token found in localStorage', 'error');
+                }
+            } catch (error) {
+                log('❌ Error accessing localStorage: ' + error.message, 'error');
+            }
+        }
+        
+        function testAuth() {
+            const token = document.getElementById('authToken').value;
+            if (!token) {
+                log('❌ No auth token provided', 'error');
+                return;
+            }
+            
+            log(`🔐 Testing authentication with token: ${token.substring(0, 10)}...`, 'info');
+            
+            // Try a simple API call that requires auth
+            makeAPICall('get_dashboard_stats', { token }, (response) => {
+                if (response && response.success !== undefined) {
+                    if (response.success) {
+                        log('✅ Authentication successful!', 'success');
+                    } else {
+                        log('❌ Authentication failed: ' + response.message, 'error');
+                    }
+                } else {
+                    log('❌ Invalid response format', 'error');
+                }
+            });
+        }
+        
+        function testDashboardAPI() {
+            const token = document.getElementById('authToken').value;
+            const month = document.getElementById('testMonth').value || null;
+            
+            if (!token) {
+                log('❌ No auth token provided', 'error');
+                return;
+            }
+            
+            log(`📊 Testing dashboard API with month: ${month || 'null'}`, 'info');
+            
+            const params = { token };
+            if (month) params.month = month;
+            
+            makeAPICall('get_dashboard_stats', params, (response) => {
+                log('<pre>' + JSON.stringify(response, null, 2) + '</pre>', 
+                    response && response.success ? 'success' : 'error');
+                    
+                if (response && response.success && response.data) {
+                    log(`📈 Data Summary:
+                        - Active Players: ${response.data.activePlayersCount}
+                        - Total Collection: ${response.data.totalCollection}
+                        - Total Expenses: ${response.data.totalExpenses}
+                        - Final Balance: ${response.data.finalBalance}`, 'success');
+                }
+            });
+        }
+        
+        function testDashboardAPINoCache() {
+            const token = document.getElementById('authToken').value;
+            const month = document.getElementById('testMonth').value || null;
+            
+            if (!token) {
+                log('❌ No auth token provided', 'error');
+                return;
+            }
+            
+            log(`📊 Testing dashboard API (no cache) with month: ${month || 'null'}`, 'info');
+            
+            const params = { 
+                token,
+                _nocache: Date.now() // Prevent caching
+            };
+            if (month) params.month = month;
+            
+            makeAPICall('get_dashboard_stats', params, (response) => {
+                log('<pre>' + JSON.stringify(response, null, 2) + '</pre>', 
+                    response && response.success ? 'success' : 'error');
+            });
+        }
+        
+        function makeAPICall(action, params, callback) {
+            const callbackName = 'test_callback_' + Date.now();
+            const script = document.createElement('script');
+            
+            // Build URL
+            const urlParams = new URLSearchParams({ action, ...params });
+            const url = `${API_BASE_URL}?${urlParams}&callback=${callbackName}`;
+            
+            log(`🌐 API URL: ${url.replace(/token=[^&]+/, 'token=***')}`, 'info');
+            
+            // Set up callback
+            window[callbackName] = function(response) {
+                document.head.removeChild(script);
+                delete window[callbackName];
+                callback(response);
+            };
+            
+            // Handle errors
+            script.onerror = function() {
+                document.head.removeChild(script);
+                delete window[callbackName];
+                log('❌ JSONP request failed', 'error');
+            };
+            
+            // Make request
+            script.src = url;
+            document.head.appendChild(script);
+        }
+        
+        // Auto-load token on page load
+        window.onload = function() {
+            getTokenFromStorage();
+        };
+    </script>
+</body>
+</html>

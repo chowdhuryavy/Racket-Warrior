@@ -402,7 +402,8 @@ const Dashboard = {
             console.log('🔐 Authentication check:', {
                 hasToken: !!token,
                 hasUser: !!currentUser,
-                currentMonth: this.currentMonth
+                currentMonth: this.currentMonth,
+                tokenPreview: token ? token.substring(0, 10) + '...' : 'none'
             });
             
             if (!token || !currentUser) {
@@ -411,8 +412,10 @@ const Dashboard = {
                 return;
             }
             
+            // Try direct API call with explicit parameters
+            console.log('📡 Making dashboard API call with month:', this.currentMonth);
             const response = await Promise.race([
-                API.getDashboardStats(this.currentMonth),
+                this.makeDashboardAPICall(this.currentMonth, token),
                 timeout
             ]);
             
@@ -604,6 +607,79 @@ const Dashboard = {
         this.updateMonthlySummary(data);
         
         console.log('Dashboard stats updated successfully');
+    },
+    
+    // Custom dashboard API call (bypasses caching and adds debugging)
+    makeDashboardAPICall: async function(month, token) {
+        console.log('🔄 Custom dashboard API call starting...');
+        
+        const params = {
+            action: 'get_dashboard_stats',
+            token: token,
+            month: month || null
+        };
+        
+        console.log('📤 Request parameters:', {
+            action: params.action,
+            hasToken: !!params.token,
+            month: params.month,
+            tokenLength: params.token?.length || 0
+        });
+        
+        // Build URL manually to ensure all parameters are included
+        const baseUrl = CONFIG.API_BASE_URL;
+        const urlParams = new URLSearchParams();
+        
+        Object.keys(params).forEach(key => {
+            if (params[key] !== null && params[key] !== undefined) {
+                urlParams.append(key, params[key]);
+            }
+        });
+        
+        const fullUrl = `${baseUrl}?${urlParams.toString()}`;
+        console.log('🌐 Full API URL (without token):', fullUrl.replace(/token=[^&]+/, 'token=***'));
+        
+        return new Promise((resolve, reject) => {
+            const callbackName = 'dashboard_callback_' + Date.now();
+            const script = document.createElement('script');
+            
+            // Set up callback
+            window[callbackName] = function(response) {
+                console.log('📥 Raw API Response:', response);
+                
+                // Clean up
+                document.head.removeChild(script);
+                delete window[callbackName];
+                
+                // Validate response structure
+                if (response && typeof response === 'object') {
+                    if (response.success === true) {
+                        console.log('✅ API call successful, data:', response.data);
+                        resolve(response);
+                    } else {
+                        console.log('❌ API call failed:', response.message);
+                        resolve(response); // Still resolve to handle in calling function
+                    }
+                } else {
+                    console.error('❌ Invalid response format:', typeof response, response);
+                    reject(new Error('Invalid response format'));
+                }
+            };
+            
+            // Handle script errors
+            script.onerror = function() {
+                console.error('❌ Script loading failed');
+                document.head.removeChild(script);
+                delete window[callbackName];
+                reject(new Error('JSONP request failed'));
+            };
+            
+            // Make JSONP request
+            script.src = `${fullUrl}&callback=${callbackName}`;
+            document.head.appendChild(script);
+            
+            console.log('📡 JSONP script added to DOM');
+        });
     },
     
     // Manual test function to debug dashboard data loading
@@ -923,6 +999,53 @@ window.debugDashboard = {
     reload: () => Dashboard.loadDashboardData(),
     data: () => Dashboard.cachedData,
     manual: () => Dashboard.manualTest(),
+    
+    // NEW: Ultimate debugging function
+    ultimate: async () => {
+        console.log('🔧 ULTIMATE DASHBOARD DEBUG STARTING...');
+        
+        // Step 1: Check authentication
+        const token = StorageUtils.get(CONFIG.STORAGE_KEYS.AUTH_TOKEN);
+        const user = Auth.getCurrentUser();
+        console.log('1. 🔐 Auth Status:', {
+            hasToken: !!token,
+            tokenLength: token?.length || 0,
+            hasUser: !!user,
+            userRole: user?.role || 'none',
+            tokenPreview: token ? token.substring(0, 15) + '...' : 'none'
+        });
+        
+        if (!token || !user) {
+            console.error('❌ Authentication missing - cannot proceed');
+            return;
+        }
+        
+        // Step 2: Direct API test
+        console.log('2. 📡 Testing direct API call...');
+        try {
+            const response = await Dashboard.makeDashboardAPICall(null, token);
+            console.log('3. ✅ Direct API Response:', response);
+            
+            if (response && response.success && response.data) {
+                console.log('4. 📊 Response Data Analysis:');
+                console.log('   - activePlayersCount:', response.data.activePlayersCount, typeof response.data.activePlayersCount);
+                console.log('   - totalCollection:', response.data.totalCollection, typeof response.data.totalCollection);
+                console.log('   - totalExpenses:', response.data.totalExpenses, typeof response.data.totalExpenses);
+                console.log('   - finalBalance:', response.data.finalBalance, typeof response.data.finalBalance);
+                
+                // Step 3: Test updateStats directly
+                console.log('5. 🎯 Testing updateStats directly...');
+                Dashboard.updateStats(response.data);
+                
+                console.log('6. ✅ ULTIMATE DEBUG COMPLETED SUCCESSFULLY!');
+            } else {
+                console.error('4. ❌ API call failed:', response);
+            }
+        } catch (error) {
+            console.error('3. ❌ API call error:', error);
+        }
+    },
+    
     // Quick test for browser console
     quickTest: async () => {
         console.log('🧪 Quick Dashboard Test...');
