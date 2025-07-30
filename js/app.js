@@ -422,6 +422,38 @@ const App = {
                     Dashboard.lastLoadTime = null;
                     Dashboard.loadDashboardData();
                 }
+            },
+            
+            // Test context-aware monthly status
+            testMonthlyStatus: () => {
+                console.log('🗓️ Testing Context-Aware Monthly Status...');
+                
+                // Test different pages
+                const pages = ['players', 'collection'];
+                
+                pages.forEach(page => {
+                    console.log(`🗓️ Testing ${page} page...`);
+                    showPage(page);
+                    
+                    setTimeout(() => {
+                        // Check what month filter is active
+                        const monthFilter = document.getElementById(`${page}MonthFilter`);
+                        if (monthFilter) {
+                            console.log(`📅 ${page} month filter:`, monthFilter.value || 'All');
+                        }
+                        
+                        // For collection, test getCurrentSelectedMonth
+                        if (page === 'collection' && window.Collection) {
+                            const selectedMonth = Collection.getCurrentSelectedMonth();
+                            console.log(`📅 Collection getCurrentSelectedMonth():`, selectedMonth);
+                        }
+                        
+                        // For players, check if edit modal would show single month
+                        if (page === 'players' && window.Players) {
+                            console.log(`🗓️ Players page ready for single-month status editing`);
+                        }
+                    }, 1000);
+                });
             }
         };
         

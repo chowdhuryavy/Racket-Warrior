@@ -704,7 +704,7 @@ const Players = {
         }
     },
 
-    // Get monthly status manager HTML for edit modal - REDESIGNED
+    // Get monthly status manager HTML for edit modal - CONTEXT-AWARE (only selected month)
     getMonthlyStatusManagerHTML: function(player) {
         let monthlyStatus = {};
         if (player.MonthlyStatus) {
@@ -715,101 +715,86 @@ const Players = {
             }
         }
         
-        // Get last 6 months and next 6 months
-        const months = [];
-        const currentDate = new Date();
+        // Get the currently selected month from the page filter
+        const selectedMonth = document.getElementById('playersMonthFilter')?.value;
         
-        // Generate months (6 previous + current + 6 future)
-        for (let i = -6; i <= 6; i++) {
-            const date = new Date(currentDate.getFullYear(), currentDate.getMonth() + i, 1);
-            const monthKey = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
-            const monthName = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-            const isCurrent = i === 0;
-            months.push({ key: monthKey, name: monthName, isCurrent });
-        }
+        // If no specific month is selected, show current month only
+        const targetMonth = selectedMonth || DateUtils.getMonthKey(new Date());
+        
+        console.log('🗓️ Monthly status edit for month:', targetMonth);
+        
+        // Create single month object for the selected month
+        const targetDate = targetMonth === DateUtils.getMonthKey(new Date()) ? 
+            new Date() : 
+            new Date(targetMonth + '-01');
+            
+        const month = {
+            key: targetMonth,
+            name: targetDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+            isCurrent: targetMonth === DateUtils.getMonthKey(new Date())
+        };
+        
+        const months = [month]; // Only one month to edit
+        
+        const month = months[0]; // Single month
+        const status = monthlyStatus[month.key]; // 'active', 'inactive', or undefined
         
         return `
-            <div class="monthly-status-manager-container">
-                <div class="status-legend">
-                    <div class="legend-item">
-                        <span class="legend-color active"></span>
-                        <span>Active (Participating)</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-color inactive"></span>
-                        <span>Inactive (Not Participating)</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-color unset"></span>
-                        <span>No Status Set</span>
-                    </div>
+            <div class="monthly-status-manager-container single-month">
+                <div class="month-info">
+                    <h4>
+                        <i class="fas fa-calendar-alt"></i>
+                        Status for ${month.name}
+                        ${month.isCurrent ? '<span class="current-badge">Current Month</span>' : ''}
+                    </h4>
+                    <p class="month-description">Set the player's participation status for this month</p>
                 </div>
                 
-                <div class="monthly-status-grid-new">
-                    ${months.map(month => {
-                        const status = monthlyStatus[month.key]; // 'active', 'inactive', or undefined
-                        return `
-                            <div class="month-card ${month.isCurrent ? 'current-month' : ''}" data-month="${month.key}">
-                                <div class="month-header">
-                                    <span class="month-name">${month.name}</span>
-                                    ${month.isCurrent ? '<span class="current-badge">Current</span>' : ''}
-                                </div>
-                                
-                                <div class="status-selector">
-                                    <div class="status-options">
-                                        <label class="status-option ${status === 'active' ? 'selected' : ''}">
-                                            <input type="radio" 
-                                                   name="status_${player.ID}_${month.key}" 
-                                                   value="active" 
-                                                   ${status === 'active' ? 'checked' : ''}
-                                                   onchange="Players.updateTempMonthlyStatus('${player.ID}', '${month.key}', 'active')">
-                                            <span class="radio-custom active"></span>
-                                            <span class="status-label">Active</span>
-                                        </label>
-                                        
-                                        <label class="status-option ${status === 'inactive' ? 'selected' : ''}">
-                                            <input type="radio" 
-                                                   name="status_${player.ID}_${month.key}" 
-                                                   value="inactive" 
-                                                   ${status === 'inactive' ? 'checked' : ''}
-                                                   onchange="Players.updateTempMonthlyStatus('${player.ID}', '${month.key}', 'inactive')">
-                                            <span class="radio-custom inactive"></span>
-                                            <span class="status-label">Inactive</span>
-                                        </label>
-                                        
-                                        <label class="status-option ${!status ? 'selected' : ''}">
-                                            <input type="radio" 
-                                                   name="status_${player.ID}_${month.key}" 
-                                                   value="" 
-                                                   ${!status ? 'checked' : ''}
-                                                   onchange="Players.updateTempMonthlyStatus('${player.ID}', '${month.key}', null)">
-                                            <span class="radio-custom unset"></span>
-                                            <span class="status-label">No Status</span>
-                                        </label>
-                                    </div>
-                                </div>
+                <div class="single-month-status">
+                    <div class="status-options-inline">
+                        <label class="status-option-inline ${status === 'active' ? 'selected' : ''}">
+                            <input type="radio" 
+                                   name="status_${player.ID}_${month.key}" 
+                                   value="active" 
+                                   ${status === 'active' ? 'checked' : ''}
+                                   onchange="Players.updateTempMonthlyStatus('${player.ID}', '${month.key}', 'active')">
+                            <span class="radio-custom active"></span>
+                            <div class="status-info">
+                                <span class="status-label">Active</span>
+                                <span class="status-desc">Player is participating this month</span>
                             </div>
-                        `;
-                    }).join('')}
-                </div>
-                
-                <div class="status-actions">
-                    <button type="button" class="btn btn-outline-primary" onclick="Players.setAllMonthsStatus('${player.ID}', 'active')">
-                        <i class="fas fa-check-circle"></i>
-                        Set All Active
-                    </button>
-                    <button type="button" class="btn btn-outline-secondary" onclick="Players.setAllMonthsStatus('${player.ID}', 'inactive')">
-                        <i class="fas fa-times-circle"></i>
-                        Set All Inactive
-                    </button>
-                    <button type="button" class="btn btn-outline-warning" onclick="Players.clearAllStatus('${player.ID}')">
-                        <i class="fas fa-eraser"></i>
-                        Clear All
-                    </button>
+                        </label>
+                        
+                        <label class="status-option-inline ${status === 'inactive' ? 'selected' : ''}">
+                            <input type="radio" 
+                                   name="status_${player.ID}_${month.key}" 
+                                   value="inactive" 
+                                   ${status === 'inactive' ? 'checked' : ''}
+                                   onchange="Players.updateTempMonthlyStatus('${player.ID}', '${month.key}', 'inactive')">
+                            <span class="radio-custom inactive"></span>
+                            <div class="status-info">
+                                <span class="status-label">Inactive</span>
+                                <span class="status-desc">Player is not participating this month</span>
+                            </div>
+                        </label>
+                        
+                        <label class="status-option-inline ${!status ? 'selected' : ''}">
+                            <input type="radio" 
+                                   name="status_${player.ID}_${month.key}" 
+                                   value="" 
+                                   ${!status ? 'checked' : ''}
+                                   onchange="Players.updateTempMonthlyStatus('${player.ID}', '${month.key}', null)">
+                            <span class="radio-custom unset"></span>
+                            <div class="status-info">
+                                <span class="status-label">No Status</span>
+                                <span class="status-desc">Status not set for this month</span>
+                            </div>
+                        </label>
+                    </div>
                 </div>
                 
                 <div class="save-info">
-                    <small><i class="fas fa-info-circle"></i> Changes are saved automatically when you modify the status</small>
+                    <small><i class="fas fa-info-circle"></i> Changes are saved immediately when you select a status</small>
                 </div>
             </div>
         `;

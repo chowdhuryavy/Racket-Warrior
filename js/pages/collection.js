@@ -674,10 +674,25 @@ const Collection = {
         return player.Status === 'active';
     },
 
-    // Get currently selected month from month dropdown
+    // Get currently selected month from month dropdown (context-aware)
     getCurrentSelectedMonth: function() {
-        const monthSelect = document.getElementById('collectionMonth');
-        return monthSelect ? monthSelect.value : null;
+        // Try different month filter elements based on current page context
+        const monthSelectors = [
+            'collectionMonth',           // Add form month (if exists)
+            'collectionMonthFilter',     // View page month filter
+            'dashboardMonthFilter'       // Fallback to dashboard filter
+        ];
+        
+        for (const selector of monthSelectors) {
+            const monthSelect = document.getElementById(selector);
+            if (monthSelect && monthSelect.value) {
+                console.log(`📅 Using month from ${selector}: ${monthSelect.value}`);
+                return monthSelect.value;
+            }
+        }
+        
+        console.log('📅 No month filter found, using current month');
+        return DateUtils.getMonthKey(new Date());
     },
 
     // Escape HTML to prevent XSS
