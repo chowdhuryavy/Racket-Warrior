@@ -19,6 +19,9 @@ const App = {
         // Setup global event listeners
         this.setupEventListeners();
         
+        // Force setup mobile menu (crucial fix)
+        this.forceMobileMenuSetup();
+        
         // Debug commands for troubleshooting
         window.debugApp = {
             clearCache: () => {
@@ -28,6 +31,27 @@ const App = {
                 }
             },
             logout: () => Auth.logout(),
+            
+            // NEW: Comprehensive debug commands
+            testAuth: () => {
+                const token = StorageUtils.get(CONFIG.STORAGE_KEYS.AUTH_TOKEN);
+                const user = Auth.getCurrentUser();
+                console.log('🔐 Auth Status:', {
+                    hasToken: !!token,
+                    hasUser: !!user,
+                    tokenLength: token?.length || 0,
+                    user: user
+                });
+            },
+            
+            testMobile: () => App.testMobileMenu(),
+            testDashboard: () => {
+                if (window.debugDashboard && window.debugDashboard.manual) {
+                    window.debugDashboard.manual();
+                } else {
+                    console.error('❌ Dashboard debug not available');
+                }
+            },
             getUser: () => Auth.getCurrentUser(),
             fixDashboard: async () => {
                 console.log('🔧 Force fixing dashboard...');
@@ -118,16 +142,36 @@ const App = {
             sidebar: !!sidebar,
             overlay: !!overlay,
             sidebarClasses: sidebar?.className || 'not found',
-            overlayClasses: overlay?.className || 'not found'
+            overlayClasses: overlay?.className || 'not found',
+            windowWidth: window.innerWidth
         });
         
         if (sidebar) {
-            sidebar.classList.toggle('show');
-            console.log('📱 Sidebar toggled, now has classes:', sidebar.className);
+            const isShowing = sidebar.classList.contains('show');
+            if (isShowing) {
+                sidebar.classList.remove('show');
+                console.log('📱 Closing sidebar');
+            } else {
+                sidebar.classList.add('show');
+                console.log('📱 Opening sidebar');
+            }
+            console.log('📱 Sidebar now has classes:', sidebar.className);
+        } else {
+            console.error('❌ Sidebar element not found!');
         }
+        
         if (overlay) {
-            overlay.classList.toggle('show');
-            console.log('📱 Overlay toggled, now has classes:', overlay.className);
+            const isShowing = overlay.classList.contains('show');
+            if (isShowing) {
+                overlay.classList.remove('show');
+                document.body.style.overflow = '';
+            } else {
+                overlay.classList.add('show');
+                document.body.style.overflow = 'hidden';
+            }
+            console.log('📱 Overlay now has classes:', overlay.className);
+        } else {
+            console.error('❌ Overlay element not found!');
         }
     },
     
@@ -183,6 +227,34 @@ const App = {
             console.log('📱 Triggering button click manually...');
             button.click();
         }
+    },
+    
+    // Force mobile menu setup (new function)
+    forceMobileMenuSetup: function() {
+        console.log('📱 Setting up mobile menu...');
+        
+        setTimeout(() => {
+            const mobileToggle = document.getElementById('mobileMenuToggle');
+            if (mobileToggle) {
+                console.log('📱 Force setting up mobile menu button...');
+                
+                // Remove any existing listeners
+                const newToggle = mobileToggle.cloneNode(true);
+                mobileToggle.parentNode.replaceChild(newToggle, mobileToggle);
+                
+                // Add fresh listener
+                newToggle.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('📱 Mobile menu button clicked!');
+                    this.toggleMobileMenu();
+                });
+                
+                console.log('✅ Mobile menu button setup complete');
+            } else {
+                console.error('❌ Mobile menu button not found during force setup');
+            }
+        }, 1000); // Wait 1 second for DOM to be ready
     },
     
     // Handle window resize
@@ -546,12 +618,16 @@ const App = {
             fileUploadArea.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('File upload area clicked, target:', e.target);
-                if (e.target !== photoFile) {
-                    console.log('Triggering photo file input...');
-                    photoFile.click();
+                console.log('📸 File upload area clicked, target:', e.target);
+                
+                // Find the file input (it might be recreated dynamically)
+                const currentPhotoFile = document.getElementById('photoFile');
+                if (currentPhotoFile) {
+                    console.log('📸 Triggering photo file input...');
+                    currentPhotoFile.click();
                 } else {
-                    console.log('Photo file input clicked directly');
+                    console.error('❌ Photo file input not found!');
+                    UIUtils.showNotification('❌ Photo upload not available', 'error');
                 }
             });
         }

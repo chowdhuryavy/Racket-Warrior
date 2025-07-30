@@ -395,13 +395,31 @@ const Dashboard = {
                 setTimeout(() => reject(new Error('Request timeout')), 8000)
             );
             
+            // Check authentication first
+            const token = StorageUtils.get(CONFIG.STORAGE_KEYS.AUTH_TOKEN);
+            const currentUser = Auth.getCurrentUser();
+            
+            console.log('🔐 Authentication check:', {
+                hasToken: !!token,
+                hasUser: !!currentUser,
+                currentMonth: this.currentMonth
+            });
+            
+            if (!token || !currentUser) {
+                console.error('❌ No authentication - redirecting to login');
+                Auth.showLogin();
+                return;
+            }
+            
             const response = await Promise.race([
                 API.getDashboardStats(this.currentMonth),
                 timeout
             ]);
             
-            console.log('Dashboard API Response:', response);
-            console.log('Dashboard API Response Data:', response?.data);
+            console.log('📊 Dashboard API Response:', response);
+            console.log('📊 Dashboard API Response Data:', response?.data);
+            console.log('📊 API Success:', response?.success);
+            console.log('📊 API Message:', response?.message);
             
             if (response && response.success && response.data) {
                 // Remove any error banners
@@ -427,18 +445,34 @@ const Dashboard = {
             }
             
         } catch (error) {
-            console.error('Dashboard Load Error Details:', {
+            console.error('❌ Dashboard Load Error Details:', {
                 error: error,
                 message: error.message,
                 stack: error.stack,
                 currentMonth: this.currentMonth
             });
             Logger.error('Failed to load dashboard data', error);
+            
+            // Show fallback data instead of empty undefined values
+            console.log('🔄 Using fallback dashboard data...');
+            const fallbackData = {
+                activePlayersCount: 0,
+                totalCollection: 0,
+                totalExpenses: 0,
+                finalBalance: 0
+            };
+            
+            this.updateStats(fallbackData);
+            
             if (error.message === 'Request timeout') {
-                UIUtils.showNotification('Dashboard loading slowly. Please check your connection.', 'warning');
+                UIUtils.showNotification('⏱️ Dashboard loading slowly. Showing cached data.', 'warning');
+            } else if (error.message.includes('Unauthorized')) {
+                UIUtils.showNotification('🔐 Session expired. Please login again.', 'error');
+                setTimeout(() => Auth.showLogin(), 2000);
             } else {
-                UIUtils.showNotification('Failed to load dashboard data: ' + error.message, 'error');
+                UIUtils.showNotification('⚠️ Dashboard data unavailable. Showing defaults.', 'warning');
             }
+            
             this.showErrorState();
         } finally {
             this.isLoading = false;
