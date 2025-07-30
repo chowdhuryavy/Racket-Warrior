@@ -454,6 +454,58 @@ const App = {
                         }
                     }, 1000);
                 });
+            },
+            
+            // Test navigation and month defaults
+            testNavigationAndMonths: async () => {
+                console.log('🧪 Testing Navigation and Month Defaults...');
+                
+                const tests = [
+                    { page: 'players-add', description: 'Players Add Form' },
+                    { page: 'players-view', description: 'Players View Table' },
+                    { page: 'collection-add', description: 'Collection Add Form' },
+                    { page: 'collection-view', description: 'Collection View Table' }
+                ];
+                
+                for (const test of tests) {
+                    console.log(`🧪 Testing ${test.description}...`);
+                    
+                    try {
+                        showPage(test.page);
+                        
+                        // Wait for page to load
+                        await new Promise(resolve => setTimeout(resolve, 1500));
+                        
+                        // Check month filters
+                        const monthElements = [
+                            'playersMonthFilter',
+                            'collectionMonthFilter', 
+                            'collectionMonth',
+                            'dashboardMonthFilter'
+                        ];
+                        
+                        let foundFilters = 0;
+                        monthElements.forEach(elementId => {
+                            const element = document.getElementById(elementId);
+                            if (element) {
+                                foundFilters++;
+                                console.log(`📅 ${elementId}: "${element.value}" (${element.options.length} options)`);
+                                
+                                // Check if current month is available
+                                const currentMonth = DateUtils.getMonthKey(new Date());
+                                const hasCurrentMonth = Array.from(element.options).some(opt => opt.value === currentMonth);
+                                console.log(`   Current month (${currentMonth}) available: ${hasCurrentMonth}`);
+                            }
+                        });
+                        
+                        console.log(`✅ ${test.description}: ${foundFilters} month filters found`);
+                        
+                    } catch (error) {
+                        console.error(`❌ ${test.description}: Error -`, error);
+                    }
+                }
+                
+                console.log('🧪 Navigation and Month test complete!');
             }
         };
         
@@ -897,12 +949,18 @@ const App = {
                     break;
                 case 'players-add':
                     if (window.Players) {
+                        console.log('📱 Navigating to Players Add Form');
                         Players.renderAddForm(contentArea);
+                    } else {
+                        console.error('❌ Players module not found');
                     }
                     break;
                 case 'players-view':
                     if (window.Players) {
+                        console.log('📱 Navigating to Players View Table');
                         Players.renderViewTable(contentArea);
+                    } else {
+                        console.error('❌ Players module not found');
                     }
                     break;
                 case 'collection-add':

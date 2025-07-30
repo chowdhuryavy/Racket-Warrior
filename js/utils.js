@@ -261,17 +261,24 @@ const DateUtils = {
                 filter.appendChild(option);
             });
 
-            // Set default value if provided
+            // Set default value - prioritize current month if available
             if (options.defaultValue !== undefined) {
                 filter.value = options.defaultValue;
-            } else if (options.defaultToLatest && availableMonths.length > 0) {
-                // Set to latest month (first in array since they're sorted desc)
-                const latestMonth = availableMonths[0];
-                filter.value = latestMonth;
             } else if (availableMonths.length > 0) {
-                // Set to latest month by default (standard behavior)
-                const latestMonth = availableMonths[0];
-                filter.value = latestMonth;
+                // Try to find current month in available months
+                const currentMonth = this.getMonthKey(new Date());
+                const hasCurrentMonth = availableMonths.includes(currentMonth);
+                
+                if (hasCurrentMonth) {
+                    // Use current month if it has data
+                    filter.value = currentMonth;
+                    console.log(`📅 Set default to current month: ${currentMonth}`);
+                } else {
+                    // Use latest month with data (first in array since they're sorted desc)
+                    const latestMonth = availableMonths[0];
+                    filter.value = latestMonth;
+                    console.log(`📅 Set default to latest month: ${latestMonth}`);
+                }
             }
 
             console.log(`✅ Month filter '${filterId}' setup complete with ${availableMonths.length} months`);

@@ -138,7 +138,7 @@ const Collection = {
     // Initialize the collection forms and tables
     init: async function() {
         if (document.getElementById('addCollectionForm')) {
-            this.initializeAddForm();
+            await this.initializeAddForm();
         }
         
         if (document.getElementById('collectionsTableContainer')) {
@@ -147,15 +147,24 @@ const Collection = {
     },
 
     // Initialize Add Form
-    initializeAddForm: function() {
+    initializeAddForm: async function() {
         // Set default date to today
         document.getElementById('collectionDate').value = DateUtils.formatDateForInput(new Date());
         
-        // Load players for dropdown
+        // Initialize month dropdown first (async)
+        await this.initializeMonthDropdown('collectionMonth');
+        
+        // Load players for dropdown (depends on month selection)
         this.loadPlayersForDropdown();
         
-        // Initialize month dropdown
-        this.initializeMonthDropdown('collectionMonth');
+        // Setup month change listener to refresh players
+        const monthSelect = document.getElementById('collectionMonth');
+        if (monthSelect) {
+            monthSelect.addEventListener('change', () => {
+                console.log('📅 Month changed in add form, refreshing players...');
+                this.loadPlayersForDropdown();
+            });
+        }
         
         // Setup form submission
         document.getElementById('addCollectionForm').addEventListener('submit', (e) => {
@@ -275,28 +284,40 @@ const Collection = {
         }
     },
 
-    // Initialize month dropdown
-    initializeMonthDropdown: function(elementId) {
+    // Initialize month dropdown with context-aware approach
+    initializeMonthDropdown: async function(elementId) {
         const monthSelect = document.getElementById(elementId);
         if (!monthSelect) return;
 
-        const currentDate = new Date();
-        const currentMonth = DateUtils.getMonthKey(currentDate);
+        console.log('📅 Initializing month dropdown with available months only:', elementId);
         
-        // Generate last 12 months + next 3 months
-        const months = DateUtils.generateMonthOptions();
-        
-        monthSelect.innerHTML = '<option value="">Select Month</option>';
-        
-        months.forEach(month => {
-            const option = document.createElement('option');
-            option.value = month.value;
-            option.textContent = month.label;
-            monthSelect.appendChild(option);
-        });
-        
-        // Set current month as default
-        monthSelect.value = currentMonth;
+        try {
+            // Use the centralized approach to get only months with data
+            const availableMonths = await DateUtils.setupAvailableMonthsFilter(elementId, {
+                includeAll: false, // Don't show "All Time" in add form
+                defaultToLatest: true // Default to latest month with data
+            });
+            
+            // If no months with data, fall back to current month
+            if (!availableMonths || availableMonths.length === 0) {
+                const currentMonth = DateUtils.getMonthKey(new Date());
+                monthSelect.innerHTML = `
+                    <option value="">Select Month</option>
+                    <option value="${currentMonth}" selected>${DateUtils.formatMonthForDisplay(currentMonth)}</option>
+                `;
+                console.log('📅 No data months found, defaulting to current month:', currentMonth);
+            } else {
+                console.log('📅 Month dropdown initialized with', availableMonths.length, 'months');
+            }
+        } catch (error) {
+            console.error('📅 Failed to initialize month dropdown:', error);
+            // Fallback to current month only
+            const currentMonth = DateUtils.getMonthKey(new Date());
+            monthSelect.innerHTML = `
+                <option value="">Select Month</option>
+                <option value="${currentMonth}" selected>${DateUtils.formatMonthForDisplay(currentMonth)}</option>
+            `;
+        }
     },
 
     // Setup month filter for view table
