@@ -220,3 +220,8 @@ if (window.location.hostname === 'localhost' || window.location.hostname === '12
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = CONFIG;
 }
+
+// Export to global scope for browser
+if (typeof window !== 'undefined') {
+    window.CONFIG = CONFIG;
+}

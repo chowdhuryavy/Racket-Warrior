@@ -740,24 +740,22 @@ const Players = {
             new Date() : 
             new Date(targetMonth + '-01');
             
-        const month = {
+        const selectedMonthObj = {
             key: targetMonth,
             name: targetDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
             isCurrent: targetMonth === DateUtils.getMonthKey(new Date())
         };
         
-        const months = [month]; // Only one month to edit
-        
         // Use the single month we created
-        const status = monthlyStatus[month.key]; // 'active', 'inactive', or undefined
+        const status = monthlyStatus[selectedMonthObj.key]; // 'active', 'inactive', or undefined
         
         return `
             <div class="monthly-status-manager-container single-month">
                 <div class="month-info">
                     <h4>
                         <i class="fas fa-calendar-alt"></i>
-                        Status for ${month.name}
-                        ${month.isCurrent ? '<span class="current-badge">Current Month</span>' : ''}
+                        Status for ${selectedMonthObj.name}
+                        ${selectedMonthObj.isCurrent ? '<span class="current-badge">Current Month</span>' : ''}
                     </h4>
                     <p class="month-description">Set the player's participation status for this month</p>
                 </div>
@@ -766,10 +764,10 @@ const Players = {
                     <div class="status-options-inline">
                         <label class="status-option-inline ${status === 'active' ? 'selected' : ''}">
                             <input type="radio" 
-                                   name="status_${player.ID}_${month.key}" 
+                                   name="status_${player.ID}_${selectedMonthObj.key}" 
                                    value="active" 
                                    ${status === 'active' ? 'checked' : ''}
-                                   onchange="Players.updateTempMonthlyStatus('${player.ID}', '${month.key}', 'active')">
+                                   onchange="Players.updateTempMonthlyStatus('${player.ID}', '${selectedMonthObj.key}', 'active')">
                             <span class="radio-custom active"></span>
                             <div class="status-info">
                                 <span class="status-label">Active</span>
@@ -779,10 +777,10 @@ const Players = {
                         
                         <label class="status-option-inline ${status === 'inactive' ? 'selected' : ''}">
                             <input type="radio" 
-                                   name="status_${player.ID}_${month.key}" 
+                                   name="status_${player.ID}_${selectedMonthObj.key}" 
                                    value="inactive" 
                                    ${status === 'inactive' ? 'checked' : ''}
-                                   onchange="Players.updateTempMonthlyStatus('${player.ID}', '${month.key}', 'inactive')">
+                                   onchange="Players.updateTempMonthlyStatus('${player.ID}', '${selectedMonthObj.key}', 'inactive')">
                             <span class="radio-custom inactive"></span>
                             <div class="status-info">
                                 <span class="status-label">Inactive</span>
@@ -792,10 +790,10 @@ const Players = {
                         
                         <label class="status-option-inline ${!status ? 'selected' : ''}">
                             <input type="radio" 
-                                   name="status_${player.ID}_${month.key}" 
+                                   name="status_${player.ID}_${selectedMonthObj.key}" 
                                    value="" 
                                    ${!status ? 'checked' : ''}
-                                   onchange="Players.updateTempMonthlyStatus('${player.ID}', '${month.key}', null)">
+                                   onchange="Players.updateTempMonthlyStatus('${player.ID}', '${selectedMonthObj.key}', null)">
                             <span class="radio-custom unset"></span>
                             <div class="status-info">
                                 <span class="status-label">No Status</span>
