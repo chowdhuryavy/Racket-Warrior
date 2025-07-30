@@ -176,21 +176,60 @@ const Logs = {
             UIUtils.showLoading();
             const response = await API.makeRequest('get_logs');
             
+            console.log('📋 Raw logs response:', response);
+            
             if (response.success) {
-                this.logs = response.data || [];
+                // Process and validate log data
+                this.logs = this.processLogData(response.data || []);
+                console.log('📋 Processed logs:', this.logs);
                 this.renderLogs();
                 this.updateStats();
             } else {
+                console.error('📋 Failed to load logs:', response.message);
                 UIUtils.showNotification('Failed to load logs: ' + response.message, 'error');
                 this.showTestLogs(); // Fallback to test data
             }
         } catch (error) {
-            console.error('Error loading logs:', error);
+            console.error('📋 Error loading logs:', error);
             UIUtils.showNotification('Error loading logs', 'error');
             this.showTestLogs(); // Fallback to test data
         } finally {
             UIUtils.hideLoading();
         }
+    },
+    
+    // Process and validate log data
+    processLogData: function(rawLogs) {
+        if (!Array.isArray(rawLogs)) {
+            console.warn('📋 Invalid logs data format, expected array:', typeof rawLogs);
+            return [];
+        }
+        
+        return rawLogs.map((log, index) => {
+            // Ensure log is an object
+            if (!log || typeof log !== 'object') {
+                console.warn('📋 Invalid log entry at index', index, ':', log);
+                return null;
+            }
+            
+            // Create a standardized log object
+            const processedLog = {
+                id: log.id || log.ID || index + 1,
+                timestamp: log.timestamp || log.Timestamp || log.created_at || new Date().toISOString(),
+                type: log.type || log.Type || 'system',
+                action: log.action || log.Action || 'Unknown Action',
+                user: log.user || log.User || log.email || 'System',
+                details: log.details || log.Details || log.description || 'No details available',
+                status: log.status || log.Status || 'unknown'
+            };
+            
+            // Validate required fields
+            if (!processedLog.timestamp || !processedLog.action) {
+                console.warn('📋 Log missing required fields:', processedLog);
+            }
+            
+            return processedLog;
+        }).filter(log => log !== null); // Remove invalid entries
     },
     
     // Show test logs as fallback
@@ -381,12 +420,64 @@ const Logs = {
     
     // Format date
     formatDate: function(timestamp) {
-        return new Date(timestamp).toLocaleDateString();
+        if (!timestamp) return 'N/A';
+        
+        try {
+            const date = new Date(timestamp);
+            if (isNaN(date.getTime())) {
+                // Try parsing different formats
+                const parsedDate = this.parseTimestamp(timestamp);
+                return parsedDate ? parsedDate.toLocaleDateString() : 'Invalid Date';
+            }
+            return date.toLocaleDateString();
+        } catch (error) {
+            console.warn('Error formatting date:', timestamp, error);
+            return 'Invalid Date';
+        }
     },
     
     // Format time
     formatTime: function(timestamp) {
-        return new Date(timestamp).toLocaleTimeString();
+        if (!timestamp) return 'N/A';
+        
+        try {
+            const date = new Date(timestamp);
+            if (isNaN(date.getTime())) {
+                // Try parsing different formats
+                const parsedDate = this.parseTimestamp(timestamp);
+                return parsedDate ? parsedDate.toLocaleTimeString() : 'Invalid Time';
+            }
+            return date.toLocaleTimeString();
+        } catch (error) {
+            console.warn('Error formatting time:', timestamp, error);
+            return 'Invalid Time';
+        }
+    },
+    
+    // Parse various timestamp formats
+    parseTimestamp: function(timestamp) {
+        if (!timestamp) return null;
+        
+        // Try different formats
+        const formats = [
+            timestamp, // As-is
+            timestamp.replace(' ', 'T'), // Space to T
+            timestamp + 'Z', // Add timezone
+            new Date().toISOString(), // Fallback to current time
+        ];
+        
+        for (const format of formats) {
+            try {
+                const date = new Date(format);
+                if (!isNaN(date.getTime())) {
+                    return date;
+                }
+            } catch (e) {
+                continue;
+            }
+        }
+        
+        return null;
     },
     
     // Filter logs

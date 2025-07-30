@@ -44,7 +44,34 @@ const App = {
                 });
             },
             
-            testMobile: () => App.testMobileMenu(),
+                         testMobile: () => App.testMobileMenu(),
+             
+             // NEW: Test logs display
+             testLogs: async () => {
+                console.log('📋 Testing Logs Display...');
+                try {
+                    // Navigate to logs page first
+                    if (typeof showPage === 'function') {
+                        showPage('logs');
+                        
+                        // Wait for page to load
+                        setTimeout(async () => {
+                            console.log('📋 Testing logs API...');
+                            const response = await API.makeRequest('get_logs');
+                            console.log('📋 Logs API Response:', response);
+                            
+                            if (response && response.success && response.data) {
+                                console.log('📋 Raw log entries:', response.data.length);
+                                console.log('📋 First few logs:', response.data.slice(0, 3));
+                            } else {
+                                console.error('📋 No logs data received');
+                            }
+                        }, 1000);
+                    }
+                } catch (error) {
+                    console.error('📋 Error testing logs:', error);
+                }
+            },
             testDashboard: () => {
                 if (window.debugDashboard && window.debugDashboard.manual) {
                     window.debugDashboard.manual();

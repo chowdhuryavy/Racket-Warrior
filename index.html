@@ -271,29 +271,45 @@
     <script>
         // Navigation dropdown toggle function
         function toggleNavDropdown(dropdownId) {
+            console.log('📱 toggleNavDropdown called for:', dropdownId);
+            
             const dropdown = document.getElementById(dropdownId);
+            if (!dropdown) {
+                console.error('📱 Dropdown not found:', dropdownId);
+                return;
+            }
+            
             const toggle = dropdown.previousElementSibling;
-            const icon = toggle.querySelector('.dropdown-icon');
+            const icon = toggle?.querySelector('.dropdown-icon');
+            
+            console.log('📱 Dropdown elements:', {
+                dropdown: !!dropdown,
+                toggle: !!toggle,
+                icon: !!icon,
+                isActive: dropdown.classList.contains('active')
+            });
             
             if (dropdown.classList.contains('active')) {
+                console.log('📱 Closing dropdown');
                 dropdown.classList.remove('active');
-                toggle.classList.remove('active');
-                icon.style.transform = 'rotate(0deg)';
+                if (toggle) toggle.classList.remove('active');
+                if (icon) icon.style.transform = 'rotate(0deg)';
             } else {
+                console.log('📱 Opening dropdown');
                 // Close all other dropdowns
                 document.querySelectorAll('.nav-dropdown-menu').forEach(menu => {
                     menu.classList.remove('active');
                 });
-                document.querySelectorAll('.nav-dropdown-toggle').forEach(toggle => {
-                    toggle.classList.remove('active');
-                    const icon = toggle.querySelector('.dropdown-icon');
-                    if (icon) icon.style.transform = 'rotate(0deg)';
+                document.querySelectorAll('.nav-dropdown-toggle').forEach(t => {
+                    t.classList.remove('active');
+                    const i = t.querySelector('.dropdown-icon');
+                    if (i) i.style.transform = 'rotate(0deg)';
                 });
                 
                 // Open this dropdown
                 dropdown.classList.add('active');
-                toggle.classList.add('active');
-                icon.style.transform = 'rotate(180deg)';
+                if (toggle) toggle.classList.add('active');
+                if (icon) icon.style.transform = 'rotate(180deg)';
             }
         }
         
@@ -365,8 +381,15 @@
             
             // Close sidebar when clicking on navigation links (mobile only)
             document.querySelectorAll('.sidebar-nav a').forEach(link => {
-                link.addEventListener('click', function() {
+                link.addEventListener('click', function(e) {
+                    // Don't close sidebar for dropdown toggle buttons
+                    if (link.classList.contains('nav-dropdown-toggle')) {
+                        console.log('📱 Dropdown toggle clicked, keeping sidebar open');
+                        return; // Keep sidebar open for dropdown toggles
+                    }
+                    
                     if (window.innerWidth <= 768) {
+                        console.log('📱 Navigation link clicked, closing sidebar');
                         // Close mobile sidebar
                         const sidebar = document.getElementById('sidebar');
                         const overlay = document.querySelector('.sidebar-overlay');
@@ -376,6 +399,7 @@
                         if (overlay) {
                             overlay.classList.remove('show');
                         }
+                        document.body.style.overflow = '';
                     }
                 });
             });
