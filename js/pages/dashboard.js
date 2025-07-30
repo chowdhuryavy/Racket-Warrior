@@ -313,10 +313,14 @@ const Dashboard = {
             // Use cache if data is recent (within 30 seconds)
             const now = Date.now();
             if (this.cachedData && this.lastLoadTime && (now - this.lastLoadTime) < 30000) {
+                console.log('📋 Using cached dashboard data:', this.cachedData);
                 this.updateStats(this.cachedData);
                 this.updateCurrentMonthDisplay();
                 return;
             }
+            
+            // Clear any stale data immediately to prevent undefined flash
+            this.clearStaleData();
             
             this.isLoading = true;
             Logger.info('Loading dashboard data', { month: this.currentMonth });
@@ -461,6 +465,30 @@ const Dashboard = {
             `;
             dashboardStats.insertBefore(errorBanner, dashboardStats.firstChild);
         }
+    },
+    
+    // Clear stale data to prevent undefined flash
+    clearStaleData: function() {
+        console.log('🧹 Clearing stale dashboard data...');
+        
+        // Set loading indicators instead of undefined values
+        const elements = {
+            activePlayersCount: document.getElementById('activePlayersCount'),
+            totalCollectionAmount: document.getElementById('totalCollectionAmount'), 
+            totalExpenseAmount: document.getElementById('totalExpenseAmount'),
+            finalBalanceAmount: document.getElementById('finalBalanceAmount')
+        };
+        
+        Object.entries(elements).forEach(([key, element]) => {
+            if (element) {
+                if (key === 'activePlayersCount') {
+                    element.textContent = '...';
+                } else {
+                    element.textContent = 'QAR ...';
+                }
+                element.style.color = 'var(--text-secondary)';
+            }
+        });
     },
     
     // Update stats cards

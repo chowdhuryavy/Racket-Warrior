@@ -4441,3 +4441,285 @@ body {
 .input-wrapper:has(.btn-icon) select {
     padding-right: 50px;
 }
+
+/* ==================== MONTHLY STATUS MANAGER (NEW DESIGN) ==================== */
+
+.monthly-status-manager-container {
+    margin: 1.5rem 0;
+    padding: 1.5rem;
+    background: var(--card-background);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+}
+
+.status-legend {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+}
+
+.legend-color.active {
+    background: linear-gradient(135deg, #10b981, #059669);
+    border-color: #10b981;
+}
+
+.legend-color.inactive {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    border-color: #ef4444;
+}
+
+.legend-color.unset {
+    background: linear-gradient(135deg, #9ca3af, #6b7280);
+    border-color: #9ca3af;
+}
+
+.monthly-status-grid-new {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.month-card {
+    background: var(--white);
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1rem;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.month-card:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+    transform: translateY(-2px);
+}
+
+.month-card.current-month {
+    border-color: var(--primary-color);
+    background: linear-gradient(135deg, #667eea10, #764ba210);
+}
+
+.month-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.month-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+}
+
+.current-badge {
+    background: var(--primary-color);
+    color: white;
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-selector {
+    width: 100%;
+}
+
+.status-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.status-option {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: var(--white);
+    margin: 0;
+}
+
+.status-option:hover {
+    border-color: var(--primary-color);
+    background: var(--primary-color-light);
+}
+
+.status-option.selected {
+    border-color: var(--primary-color);
+    background: linear-gradient(135deg, #667eea15, #764ba215);
+}
+
+.status-option.selected .radio-custom {
+    transform: scale(1.1);
+}
+
+.status-option input[type="radio"] {
+    display: none;
+}
+
+.radio-custom {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 3px solid var(--border-color);
+    position: relative;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+.radio-custom::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: white;
+    transition: transform 0.3s ease;
+}
+
+.radio-custom.active {
+    background: linear-gradient(135deg, #10b981, #059669);
+    border-color: #10b981;
+}
+
+.radio-custom.inactive {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    border-color: #ef4444;
+}
+
+.radio-custom.unset {
+    background: linear-gradient(135deg, #9ca3af, #6b7280);
+    border-color: #9ca3af;
+}
+
+.status-option.selected .radio-custom::after {
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.status-label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    user-select: none;
+}
+
+.status-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+.status-actions .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.save-info {
+    text-align: center;
+    padding: 0.75rem;
+    background: var(--info-color-light);
+    border-radius: 8px;
+    border-left: 4px solid var(--info-color);
+}
+
+.save-info small {
+    color: var(--info-color-dark);
+    font-weight: 500;
+}
+
+.save-info i {
+    margin-right: 0.25rem;
+}
+
+/* ==================== MOBILE RESPONSIVE ==================== */
+
+@media (max-width: 768px) {
+    .monthly-status-grid-new {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+    
+    .month-card {
+        padding: 0.75rem;
+    }
+    
+    .status-legend {
+        justify-content: center;
+        gap: 1rem;
+    }
+    
+    .legend-item {
+        font-size: 0.8rem;
+    }
+    
+    .status-actions {
+        justify-content: center;
+    }
+    
+    .status-actions .btn {
+        flex: 1;
+        min-width: 0;
+        justify-content: center;
+    }
+    
+    .status-option {
+        padding: 0.6rem;
+    }
+    
+    .status-label {
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .monthly-status-manager-container {
+        padding: 1rem;
+        margin: 1rem 0;
+    }
+    
+    .status-legend {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .status-actions {
+        flex-direction: column;
+    }
+    
+    .month-header {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: flex-start;
+    }
+}

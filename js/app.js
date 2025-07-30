@@ -259,6 +259,48 @@ const App = {
                     console.error('❌ API test failed:', error);
                     return error;
                 }
+            },
+            
+            // Test dashboard data persistence 
+            testDashboardPersistence: async () => {
+                console.log('📊 Testing Dashboard Data Persistence...');
+                
+                try {
+                    // Clear any cached data
+                    if (window.Dashboard) {
+                        Dashboard.cachedData = null;
+                        Dashboard.lastLoadTime = null;
+                        console.log('🧹 Cleared dashboard cache');
+                    }
+                    
+                    // Navigate to dashboard
+                    showPage('dashboard');
+                    
+                    // Wait and test data flow
+                    setTimeout(() => {
+                        const elements = {
+                            activePlayersCount: document.getElementById('activePlayersCount')?.textContent,
+                            totalCollectionAmount: document.getElementById('totalCollectionAmount')?.textContent,
+                            totalExpenseAmount: document.getElementById('totalExpenseAmount')?.textContent,
+                            finalBalanceAmount: document.getElementById('finalBalanceAmount')?.textContent
+                        };
+                        
+                        console.log('📊 Current dashboard values:', elements);
+                        
+                        // Check if any show "undefined"
+                        const hasUndefined = Object.values(elements).some(val => val && val.includes('undefined'));
+                        
+                        if (hasUndefined) {
+                            console.error('❌ Found undefined values in dashboard!');
+                            console.log('🔧 Use debugApp.ultimateDashboard() to fix');
+                        } else {
+                            console.log('✅ No undefined values found');
+                        }
+                    }, 3000);
+                    
+                } catch (error) {
+                    console.error('❌ Dashboard persistence test failed:', error);
+                }
             }
         };
         

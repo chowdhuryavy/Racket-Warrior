@@ -704,7 +704,7 @@ const Players = {
         }
     },
 
-    // Get monthly status manager HTML for edit modal
+    // Get monthly status manager HTML for edit modal - REDESIGNED
     getMonthlyStatusManagerHTML: function(player) {
         let monthlyStatus = {};
         if (player.MonthlyStatus) {
@@ -724,63 +724,225 @@ const Players = {
             const date = new Date(currentDate.getFullYear(), currentDate.getMonth() + i, 1);
             const monthKey = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
             const monthName = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-            months.push({ key: monthKey, name: monthName });
+            const isCurrent = i === 0;
+            months.push({ key: monthKey, name: monthName, isCurrent });
         }
         
         return `
-            <div class="monthly-status-grid">
-                ${months.map(month => {
-                    const isActive = monthlyStatus[month.key] === 'active';
-                    const hasStatus = monthlyStatus.hasOwnProperty(month.key);
-                    return `
-                        <div class="month-status-item">
-                            <span class="month-name">${month.name}</span>
-                            <div class="status-toggle-group">
-                                <button type="button" 
-                                        class="status-toggle-btn ${isActive ? 'active' : ''}" 
-                                        onclick="Players.setMonthlyStatusInModal('${player.ID}', '${month.key}', 'active', this)"
-                                        ${isActive ? 'data-active="true"' : ''}>
-                                    ✅
-                                </button>
-                                <button type="button" 
-                                        class="status-toggle-btn ${!isActive && hasStatus ? 'active' : ''}" 
-                                        onclick="Players.setMonthlyStatusInModal('${player.ID}', '${month.key}', 'inactive', this)"
-                                        ${!isActive && hasStatus ? 'data-active="true"' : ''}>
-                                    ❌
-                                </button>
+            <div class="monthly-status-manager-container">
+                <div class="status-legend">
+                    <div class="legend-item">
+                        <span class="legend-color active"></span>
+                        <span>Active (Participating)</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color inactive"></span>
+                        <span>Inactive (Not Participating)</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color unset"></span>
+                        <span>No Status Set</span>
+                    </div>
+                </div>
+                
+                <div class="monthly-status-grid-new">
+                    ${months.map(month => {
+                        const status = monthlyStatus[month.key]; // 'active', 'inactive', or undefined
+                        return `
+                            <div class="month-card ${month.isCurrent ? 'current-month' : ''}" data-month="${month.key}">
+                                <div class="month-header">
+                                    <span class="month-name">${month.name}</span>
+                                    ${month.isCurrent ? '<span class="current-badge">Current</span>' : ''}
+                                </div>
+                                
+                                <div class="status-selector">
+                                    <div class="status-options">
+                                        <label class="status-option ${status === 'active' ? 'selected' : ''}">
+                                            <input type="radio" 
+                                                   name="status_${player.ID}_${month.key}" 
+                                                   value="active" 
+                                                   ${status === 'active' ? 'checked' : ''}
+                                                   onchange="Players.updateTempMonthlyStatus('${player.ID}', '${month.key}', 'active')">
+                                            <span class="radio-custom active"></span>
+                                            <span class="status-label">Active</span>
+                                        </label>
+                                        
+                                        <label class="status-option ${status === 'inactive' ? 'selected' : ''}">
+                                            <input type="radio" 
+                                                   name="status_${player.ID}_${month.key}" 
+                                                   value="inactive" 
+                                                   ${status === 'inactive' ? 'checked' : ''}
+                                                   onchange="Players.updateTempMonthlyStatus('${player.ID}', '${month.key}', 'inactive')">
+                                            <span class="radio-custom inactive"></span>
+                                            <span class="status-label">Inactive</span>
+                                        </label>
+                                        
+                                        <label class="status-option ${!status ? 'selected' : ''}">
+                                            <input type="radio" 
+                                                   name="status_${player.ID}_${month.key}" 
+                                                   value="" 
+                                                   ${!status ? 'checked' : ''}
+                                                   onchange="Players.updateTempMonthlyStatus('${player.ID}', '${month.key}', null)">
+                                            <span class="radio-custom unset"></span>
+                                            <span class="status-label">No Status</span>
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    `;
-                }).join('')}
+                        `;
+                    }).join('')}
+                </div>
+                
+                <div class="status-actions">
+                    <button type="button" class="btn btn-outline-primary" onclick="Players.setAllMonthsStatus('${player.ID}', 'active')">
+                        <i class="fas fa-check-circle"></i>
+                        Set All Active
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" onclick="Players.setAllMonthsStatus('${player.ID}', 'inactive')">
+                        <i class="fas fa-times-circle"></i>
+                        Set All Inactive
+                    </button>
+                    <button type="button" class="btn btn-outline-warning" onclick="Players.clearAllStatus('${player.ID}')">
+                        <i class="fas fa-eraser"></i>
+                        Clear All
+                    </button>
+                </div>
+                
+                <div class="save-info">
+                    <small><i class="fas fa-info-circle"></i> Changes are saved automatically when you modify the status</small>
+                </div>
             </div>
         `;
     },
 
-    // Set monthly status in modal (temporary, until saved)
-    setMonthlyStatusInModal: async function(playerId, month, status, buttonElement) {
+    // Update temporary monthly status (new improved system)
+    updateTempMonthlyStatus: async function(playerId, month, status) {
         try {
-            // Update immediately
+            console.log(`🗓️ Updating status for player ${playerId}, month ${month}, status: ${status}`);
+            
+            // Update immediately with improved API call
             const response = await API.updatePlayerMonthlyStatus(playerId, month, status);
             
             if (response.success) {
-                // Update button states
-                const monthItem = buttonElement.closest('.month-status-item');
-                const allButtons = monthItem.querySelectorAll('.status-toggle-btn');
-                allButtons.forEach(btn => {
-                    btn.classList.remove('active');
-                    btn.removeAttribute('data-active');
-                });
+                // Update UI to show immediate feedback
+                const monthCard = document.querySelector(`[data-month="${month}"]`);
+                if (monthCard) {
+                    // Update visual state
+                    const statusOptions = monthCard.querySelectorAll('.status-option');
+                    statusOptions.forEach(option => option.classList.remove('selected'));
+                    
+                    const activeOption = monthCard.querySelector(`input[value="${status || ''}"]`)?.closest('.status-option');
+                    if (activeOption) {
+                        activeOption.classList.add('selected');
+                    }
+                }
                 
-                buttonElement.classList.add('active');
-                buttonElement.setAttribute('data-active', 'true');
+                // Show success with month name
+                const monthName = new Date(month + '-01').toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                UIUtils.showNotification(`✅ ${monthName}: ${status ? status.charAt(0).toUpperCase() + status.slice(1) : 'Status cleared'}`, 'success');
                 
-                UIUtils.showNotification(`Status updated for ${month}`, 'success');
+                // Refresh the view table if on view tab
+                if (this.currentView === 'view') {
+                    this.loadPlayers();
+                }
             } else {
-                UIUtils.showNotification(response.message || 'Failed to update status', 'error');
+                UIUtils.showNotification(`❌ Failed to update status: ${response.message || 'Unknown error'}`, 'error');
             }
         } catch (error) {
             Logger.error('Error updating monthly status', error);
-            UIUtils.showNotification('Error updating status', 'error');
+            UIUtils.showNotification('❌ Error updating status. Please try again.', 'error');
+        }
+    },
+    
+    // Set all months to same status
+    setAllMonthsStatus: async function(playerId, status) {
+        try {
+            console.log(`🗓️ Setting ALL months to ${status} for player ${playerId}`);
+            
+            const monthCards = document.querySelectorAll('.month-card');
+            const months = Array.from(monthCards).map(card => card.dataset.month);
+            
+            UIUtils.showLoading('Updating all months...');
+            
+            // Update all months in parallel
+            const promises = months.map(month => API.updatePlayerMonthlyStatus(playerId, month, status));
+            const responses = await Promise.all(promises);
+            
+            const successCount = responses.filter(r => r.success).length;
+            
+            if (successCount === months.length) {
+                // Update UI for all months
+                monthCards.forEach(card => {
+                    const statusOptions = card.querySelectorAll('.status-option');
+                    statusOptions.forEach(option => option.classList.remove('selected'));
+                    
+                    const activeOption = card.querySelector(`input[value="${status}"]`)?.closest('.status-option');
+                    if (activeOption) {
+                        activeOption.classList.add('selected');
+                        activeOption.querySelector('input').checked = true;
+                    }
+                });
+                
+                UIUtils.showNotification(`✅ All months set to ${status.charAt(0).toUpperCase() + status.slice(1)}`, 'success');
+                
+                // Refresh the view table
+                if (this.currentView === 'view') {
+                    this.loadPlayers();
+                }
+            } else {
+                UIUtils.showNotification(`⚠️ Updated ${successCount}/${months.length} months`, 'warning');
+            }
+        } catch (error) {
+            Logger.error('Error setting all months status', error);
+            UIUtils.showNotification('❌ Error updating all months', 'error');
+        } finally {
+            UIUtils.hideLoading();
+        }
+    },
+    
+    // Clear all status
+    clearAllStatus: async function(playerId) {
+        try {
+            console.log(`🗓️ Clearing ALL status for player ${playerId}`);
+            
+            const monthCards = document.querySelectorAll('.month-card');
+            const months = Array.from(monthCards).map(card => card.dataset.month);
+            
+            UIUtils.showLoading('Clearing all status...');
+            
+            // Clear all months in parallel  
+            const promises = months.map(month => API.updatePlayerMonthlyStatus(playerId, month, null));
+            const responses = await Promise.all(promises);
+            
+            const successCount = responses.filter(r => r.success).length;
+            
+            if (successCount === months.length) {
+                // Update UI for all months
+                monthCards.forEach(card => {
+                    const statusOptions = card.querySelectorAll('.status-option');
+                    statusOptions.forEach(option => option.classList.remove('selected'));
+                    
+                    const noStatusOption = card.querySelector(`input[value=""]`)?.closest('.status-option');
+                    if (noStatusOption) {
+                        noStatusOption.classList.add('selected');
+                        noStatusOption.querySelector('input').checked = true;
+                    }
+                });
+                
+                UIUtils.showNotification(`✅ All month status cleared`, 'success');
+                
+                // Refresh the view table
+                if (this.currentView === 'view') {
+                    this.loadPlayers();
+                }
+            } else {
+                UIUtils.showNotification(`⚠️ Cleared ${successCount}/${months.length} months`, 'warning');
+            }
+        } catch (error) {
+            Logger.error('Error clearing all status', error);
+            UIUtils.showNotification('❌ Error clearing all status', 'error');
+        } finally {
+            UIUtils.hideLoading();
         }
     },
 
