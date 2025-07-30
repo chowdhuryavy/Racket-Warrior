@@ -748,7 +748,7 @@ const Players = {
         
         const months = [month]; // Only one month to edit
         
-        const month = months[0]; // Single month
+        // Use the single month we created
         const status = monthlyStatus[month.key]; // 'active', 'inactive', or undefined
         
         return `

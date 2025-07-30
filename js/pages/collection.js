@@ -183,14 +183,6 @@ const Collection = {
                 this.handleAddCollection(e);
             });
         }
-
-        // Reload players when month changes
-        const monthSelect = document.getElementById('collectionMonth');
-        if (monthSelect) {
-            monthSelect.addEventListener('change', () => {
-                this.loadPlayersForDropdown();
-            });
-        }
         
 
     },

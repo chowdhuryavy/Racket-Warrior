@@ -269,6 +269,30 @@
     <script src="js/pages/logs.js"></script>
     
     <script>
+        // Module loading verification
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔧 Module Loading Check:');
+            console.log('   - Auth:', !!window.Auth);
+            console.log('   - API:', !!window.API);
+            console.log('   - App:', !!window.App);
+            console.log('   - Dashboard:', !!window.Dashboard);
+            console.log('   - Players:', !!window.Players);
+            console.log('   - Collection:', !!window.Collection);
+            console.log('   - Expenses:', !!window.Expenses);
+            console.log('   - Reports:', !!window.Reports);
+            console.log('   - Admin:', !!window.Admin);
+            console.log('   - Logs:', !!window.Logs);
+            
+            if (!window.Players) {
+                console.error('❌ Players module failed to load!');
+            }
+            if (!window.Collection) {
+                console.error('❌ Collection module failed to load!');
+            }
+        });
+    </script>
+    
+    <script>
         // Navigation dropdown toggle function
         function toggleNavDropdown(dropdownId) {
             console.log('📱 toggleNavDropdown called for:', dropdownId);
