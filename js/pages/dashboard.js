@@ -498,7 +498,6 @@ const Dashboard = {
         // Helper function to ensure numeric value
         const ensureNumber = (value, fallback = 0) => {
             if (value === null || value === undefined || value === '' || isNaN(value)) {
-                console.warn(`⚠️ Invalid numeric value detected: ${value}, using fallback: ${fallback}`);
                 return fallback;
             }
             const num = typeof value === 'number' ? value : parseFloat(value);

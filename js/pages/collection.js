@@ -177,14 +177,20 @@ const Collection = {
         }
         
         // Setup form submission
-        document.getElementById('addCollectionForm').addEventListener('submit', (e) => {
-            this.handleAddCollection(e);
-        });
+        const addForm = document.getElementById('addCollectionForm');
+        if (addForm) {
+            addForm.addEventListener('submit', (e) => {
+                this.handleAddCollection(e);
+            });
+        }
 
         // Reload players when month changes
-        document.getElementById('collectionMonth').addEventListener('change', () => {
-            this.loadPlayersForDropdown();
-        });
+        const monthSelect = document.getElementById('collectionMonth');
+        if (monthSelect) {
+            monthSelect.addEventListener('change', () => {
+                this.loadPlayersForDropdown();
+            });
+        }
         
 
     },
@@ -506,7 +512,7 @@ const Collection = {
     },
 
     // Edit collection
-    editCollection: function(collectionId) {
+    editCollection: async function(collectionId) {
         const collection = this.currentData.find(c => c.ID === collectionId);
         if (!collection) {
             UIUtils.showNotification('Collection not found', 'error');
@@ -516,41 +522,67 @@ const Collection = {
         const modal = UIUtils.createModal({
             title: 'Edit Collection',
             content: `
-                <form id="editCollectionForm">
+                <form id="editCollectionForm" class="unified-form">
                     <input type="hidden" id="editCollectionId" value="${collection.ID}">
                     
-                    <div class="form-group">
-                        <label for="editCollectionDate">Date *</label>
-                        <input type="date" id="editCollectionDate" value="${collection.Date}" required>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editCollectionDate">Date <span class="required">*</span></label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-calendar"></i>
+                                <input type="date" id="editCollectionDate" value="${collection.Date}" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editCollectionAmount">Amount <span class="required">*</span></label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-coins"></i>
+                                <input type="number" id="editCollectionAmount" value="${collection.Amount}" min="0" step="0.01" required placeholder="0.00">
+                                <span class="input-suffix">QAR</span>
+                            </div>
+                        </div>
                     </div>
                     
-                    <div class="form-group">
-                        <label for="editCollectionPlayer">Player *</label>
-                        <select id="editCollectionPlayer" required>
-                            <option value="">Select Player</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="editCollectionAmount">Amount (QAR) *</label>
-                        <input type="number" id="editCollectionAmount" value="${collection.Amount}" min="0" step="0.01" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="editCollectionMonth">Month *</label>
-                        <select id="editCollectionMonth" required>
-                            <option value="">Select Month</option>
-                        </select>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editCollectionPlayer">Player <span class="required">*</span></label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-user"></i>
+                                <select id="editCollectionPlayer" required>
+                                    <option value="">Select Player</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editCollectionMonth">Month <span class="required">*</span></label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-calendar-alt"></i>
+                                <select id="editCollectionMonth" required>
+                                    <option value="">Select Month</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="form-group">
                         <label for="editCollectionDescription">Description</label>
-                        <input type="text" id="editCollectionDescription" value="${collection.Description || ''}" placeholder="Optional description">
+                        <div class="input-wrapper">
+                            <i class="fas fa-comment"></i>
+                            <input type="text" id="editCollectionDescription" value="${collection.Description || ''}" placeholder="Optional description">
+                        </div>
                     </div>
                     
-                    <div class="modal-actions">
-                        <button type="submit" class="btn btn-primary">Update Collection</button>
-                        <button type="button" class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cancel</button>
+                    <div class="form-actions">
+                        <button type="button" class="btn-unified btn-unified-secondary" onclick="this.closest('.modal').remove()">
+                            <i class="fas fa-times"></i>
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn-unified btn-unified-primary">
+                            <i class="fas fa-save"></i>
+                            Update Collection
+                        </button>
                     </div>
                 </form>
             `
@@ -558,7 +590,7 @@ const Collection = {
         
         // Load players and months for edit form
         this.loadPlayersForEditForm(collection.PlayerId);
-        this.loadMonthsForEditForm(collection.Month);
+        await this.loadMonthsForEditForm(collection.Month);
         
         // Setup form submission
         document.getElementById('editCollectionForm').addEventListener('submit', (e) => {
@@ -588,19 +620,38 @@ const Collection = {
     },
 
     // Load months for edit form
-    loadMonthsForEditForm: function(selectedMonth) {
+    loadMonthsForEditForm: async function(selectedMonth) {
         const monthSelect = document.getElementById('editCollectionMonth');
         if (!monthSelect) return;
         
-        const months = DateUtils.generateMonthOptions();
-        monthSelect.innerHTML = '<option value="">Select Month</option>';
-        months.forEach(month => {
-            const option = document.createElement('option');
-            option.value = month.value;
-            option.textContent = month.label;
-            option.selected = month.value === selectedMonth;
-            monthSelect.appendChild(option);
-        });
+        try {
+            // Use available months instead of all months
+            await DateUtils.setupAvailableMonthsFilter('editCollectionMonth', {
+                includeAll: false,
+                defaultValue: selectedMonth
+            });
+        } catch (error) {
+            // Fallback to current month + selected month if API fails
+            monthSelect.innerHTML = '<option value="">Select Month</option>';
+            const currentMonth = DateUtils.getMonthKey(new Date());
+            
+            // Add current month
+            const currentOption = document.createElement('option');
+            currentOption.value = currentMonth;
+            currentOption.textContent = DateUtils.formatMonthForDisplay(currentMonth);
+            monthSelect.appendChild(currentOption);
+            
+            // Add selected month if different
+            if (selectedMonth && selectedMonth !== currentMonth) {
+                const selectedOption = document.createElement('option');
+                selectedOption.value = selectedMonth;
+                selectedOption.textContent = DateUtils.formatMonthForDisplay(selectedMonth);
+                selectedOption.selected = true;
+                monthSelect.appendChild(selectedOption);
+            } else if (selectedMonth === currentMonth) {
+                currentOption.selected = true;
+            }
+        }
     },
 
     // Handle edit collection form submission

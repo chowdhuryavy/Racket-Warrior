@@ -427,7 +427,7 @@ const Expenses = {
     },
 
     // Edit expense
-    editExpense: function(expenseId) {
+    editExpense: async function(expenseId) {
         const expense = this.currentData.find(e => e.ID === expenseId);
         if (!expense) {
             UIUtils.showNotification('Expense not found', 'error');
@@ -437,54 +437,80 @@ const Expenses = {
         const modal = UIUtils.createModal({
             title: 'Edit Expense',
             content: `
-                <form id="editExpenseForm">
+                <form id="editExpenseForm" class="unified-form">
                     <input type="hidden" id="editExpenseId" value="${expense.ID}">
                     
-                    <div class="form-group">
-                        <label for="editExpenseDate">Date *</label>
-                        <input type="date" id="editExpenseDate" value="${expense.Date}" required>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editExpenseDate">Date <span class="required">*</span></label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-calendar"></i>
+                                <input type="date" id="editExpenseDate" value="${expense.Date}" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editExpenseAmount">Amount <span class="required">*</span></label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-coins"></i>
+                                <input type="number" id="editExpenseAmount" value="${expense.Amount}" min="0" step="0.01" required placeholder="0.00">
+                                <span class="input-suffix">QAR</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editExpenseCategory">Category <span class="required">*</span></label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-tags"></i>
+                                <select id="editExpenseCategory" required>
+                                    <option value="">Select Category</option>
+                                    <option value="Equipment" ${expense.Category === 'Equipment' ? 'selected' : ''}>Equipment</option>
+                                    <option value="Court Rental" ${expense.Category === 'Court Rental' ? 'selected' : ''}>Court Rental</option>
+                                    <option value="Tournament" ${expense.Category === 'Tournament' ? 'selected' : ''}>Tournament</option>
+                                    <option value="Refreshments" ${expense.Category === 'Refreshments' ? 'selected' : ''}>Refreshments</option>
+                                    <option value="Transport" ${expense.Category === 'Transport' ? 'selected' : ''}>Transport</option>
+                                    <option value="Other" ${expense.Category === 'Other' ? 'selected' : ''}>Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editExpenseMonth">Month <span class="required">*</span></label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-calendar-alt"></i>
+                                <select id="editExpenseMonth" required>
+                                    <option value="">Select Month</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="form-group">
-                        <label for="editExpenseCategory">Category *</label>
-                        <select id="editExpenseCategory" required>
-                            <option value="">Select Category</option>
-                            <option value="Equipment" ${expense.Category === 'Equipment' ? 'selected' : ''}>Equipment</option>
-                            <option value="Court Rental" ${expense.Category === 'Court Rental' ? 'selected' : ''}>Court Rental</option>
-                            <option value="Tournament" ${expense.Category === 'Tournament' ? 'selected' : ''}>Tournament</option>
-                            <option value="Refreshments" ${expense.Category === 'Refreshments' ? 'selected' : ''}>Refreshments</option>
-                            <option value="Transport" ${expense.Category === 'Transport' ? 'selected' : ''}>Transport</option>
-                            <option value="Other" ${expense.Category === 'Other' ? 'selected' : ''}>Other</option>
-                        </select>
+                        <label for="editExpenseDescription">Description <span class="required">*</span></label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-comment"></i>
+                            <input type="text" id="editExpenseDescription" value="${expense.Description || ''}" placeholder="Describe the expense" required>
+                        </div>
                     </div>
                     
-                    <div class="form-group">
-                        <label for="editExpenseAmount">Amount (QAR) *</label>
-                        <input type="number" id="editExpenseAmount" value="${expense.Amount}" min="0" step="0.01" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="editExpenseMonth">Month *</label>
-                        <select id="editExpenseMonth" required>
-                            <option value="">Select Month</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="editExpenseDescription">Description *</label>
-                        <input type="text" id="editExpenseDescription" value="${expense.Description || ''}" placeholder="Describe the expense" required>
-                    </div>
-                    
-                    <div class="modal-actions">
-                        <button type="submit" class="btn btn-primary">Update Expense</button>
-                        <button type="button" class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cancel</button>
+                    <div class="form-actions">
+                        <button type="button" class="btn-unified btn-unified-secondary" onclick="this.closest('.modal').remove()">
+                            <i class="fas fa-times"></i>
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn-unified btn-unified-primary">
+                            <i class="fas fa-save"></i>
+                            Update Expense
+                        </button>
                     </div>
                 </form>
             `
         });
         
         // Load months for edit form
-        this.loadMonthsForEditForm(expense.Month);
+        await this.loadMonthsForEditForm(expense.Month);
         
         // Setup form submission
         document.getElementById('editExpenseForm').addEventListener('submit', (e) => {
@@ -493,19 +519,38 @@ const Expenses = {
     },
 
     // Load months for edit form
-    loadMonthsForEditForm: function(selectedMonth) {
+    loadMonthsForEditForm: async function(selectedMonth) {
         const monthSelect = document.getElementById('editExpenseMonth');
         if (!monthSelect) return;
         
-        const months = DateUtils.generateMonthOptions();
-        monthSelect.innerHTML = '<option value="">Select Month</option>';
-        months.forEach(month => {
-            const option = document.createElement('option');
-            option.value = month.value;
-            option.textContent = month.label;
-            option.selected = month.value === selectedMonth;
-            monthSelect.appendChild(option);
-        });
+        try {
+            // Use available months instead of all months
+            await DateUtils.setupAvailableMonthsFilter('editExpenseMonth', {
+                includeAll: false,
+                defaultValue: selectedMonth
+            });
+        } catch (error) {
+            // Fallback to current month + selected month if API fails
+            monthSelect.innerHTML = '<option value="">Select Month</option>';
+            const currentMonth = DateUtils.getMonthKey(new Date());
+            
+            // Add current month
+            const currentOption = document.createElement('option');
+            currentOption.value = currentMonth;
+            currentOption.textContent = DateUtils.formatMonthForDisplay(currentMonth);
+            monthSelect.appendChild(currentOption);
+            
+            // Add selected month if different
+            if (selectedMonth && selectedMonth !== currentMonth) {
+                const selectedOption = document.createElement('option');
+                selectedOption.value = selectedMonth;
+                selectedOption.textContent = DateUtils.formatMonthForDisplay(selectedMonth);
+                selectedOption.selected = true;
+                monthSelect.appendChild(selectedOption);
+            } else if (selectedMonth === currentMonth) {
+                currentOption.selected = true;
+            }
+        }
     },
 
     // Handle edit expense form submission
