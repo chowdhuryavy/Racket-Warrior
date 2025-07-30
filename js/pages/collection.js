@@ -12,6 +12,12 @@ const Collection = {
                         <h1><i class="fas fa-coins"></i> Add Collection</h1>
                         <p>Record a new payment collection from players</p>
                     </div>
+                    <div class="header-actions">
+                        <button class="btn-unified btn-unified-secondary" onclick="showPage('dashboard')">
+                            <i class="fas fa-home"></i>
+                            Back to Dashboard
+                        </button>
+                    </div>
                 </div>
 
                 <div class="form-container">
@@ -92,8 +98,12 @@ const Collection = {
                         <h1><i class="fas fa-coins"></i> Collections</h1>
                         <p>View and manage all payment collections</p>
                     </div>
-                    <div class="header-actions" data-role="admin,view_edit">
-                        <button class="btn-unified btn-unified-primary" onclick="showPage('collection-add')">
+                    <div class="header-actions">
+                        <button class="btn-unified btn-unified-secondary" onclick="showPage('dashboard')">
+                            <i class="fas fa-home"></i>
+                            Back to Dashboard
+                        </button>
+                        <button class="btn-unified btn-unified-primary" onclick="showPage('collection-add')" data-role="admin,view_edit">
                             <i class="fas fa-plus"></i>
                             Add Collection
                         </button>

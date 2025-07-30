@@ -35,6 +35,10 @@ const Admin = {
                             </div>
                         </div>
                         <div class="header-actions-new">
+                            <button class="btn-new btn-outline-new" onclick="showPage('dashboard')">
+                                <i class="fas fa-home"></i>
+                                <span>Back to Dashboard</span>
+                            </button>
                             <button class="btn-new btn-primary-new" onclick="Admin.showAddUserModal()">
                                 <i class="fas fa-user-plus"></i>
                                 <span>Add New User</span>

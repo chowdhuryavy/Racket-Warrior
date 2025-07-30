@@ -506,6 +506,47 @@ const App = {
                 }
                 
                 console.log('🧪 Navigation and Month test complete!');
+            },
+            
+            // Test back to dashboard buttons
+            testBackButtons: async () => {
+                console.log('🏠 Testing Back to Dashboard Buttons...');
+                
+                const pages = [
+                    'players-add', 'players-view',
+                    'collection-add', 'collection-view', 
+                    'expenses-add', 'expenses-view',
+                    'reports', 'logs', 'admin'
+                ];
+                
+                for (const page of pages) {
+                    console.log(`🏠 Testing ${page}...`);
+                    
+                    try {
+                        showPage(page);
+                        
+                        // Wait for page to load
+                        await new Promise(resolve => setTimeout(resolve, 800));
+                        
+                        // Look for back to dashboard button
+                        const backButtons = document.querySelectorAll('button[onclick="showPage(\'dashboard\')"]');
+                        
+                        if (backButtons.length > 0) {
+                            console.log(`✅ ${page}: Found ${backButtons.length} back button(s)`);
+                            backButtons.forEach((btn, index) => {
+                                const text = btn.textContent?.trim() || btn.getAttribute('aria-label') || 'Unknown';
+                                console.log(`   Button ${index + 1}: "${text}"`);
+                            });
+                        } else {
+                            console.error(`❌ ${page}: No back to dashboard button found`);
+                        }
+                        
+                    } catch (error) {
+                        console.error(`❌ ${page}: Error -`, error);
+                    }
+                }
+                
+                console.log('🏠 Back button test complete!');
             }
         };
         

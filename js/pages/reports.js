@@ -28,6 +28,10 @@ const Reports = {
                         <p>Generate comprehensive reports for group activities</p>
                     </div>
                     <div class="header-actions">
+                        <button class="btn-unified btn-unified-outline" onclick="showPage('dashboard')">
+                            <i class="fas fa-home"></i>
+                            Back to Dashboard
+                        </button>
                         <button id="refreshReport" class="btn-unified btn-unified-secondary">
                             <i class="fas fa-sync"></i>
                             Refresh

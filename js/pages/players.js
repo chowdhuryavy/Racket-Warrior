@@ -22,8 +22,16 @@ const Players = {
         return `
             <div class="add-player-page">
                 <div class="page-header">
-                    <h1><i class="fas fa-user-plus"></i> Add New Player</h1>
-                    <p>Add a new player to the badminton group</p>
+                    <div class="header-content">
+                        <h1><i class="fas fa-user-plus"></i> Add New Player</h1>
+                        <p>Add a new player to the badminton group</p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn-unified btn-unified-secondary" onclick="showPage('dashboard')">
+                            <i class="fas fa-home"></i>
+                            Back to Dashboard
+                        </button>
+                    </div>
                 </div>
                 
                 <form id="addPlayerForm" class="unified-form">
@@ -97,8 +105,12 @@ const Players = {
                         <h1><i class="fas fa-users"></i> Players</h1>
                         <p>Manage badminton group players</p>
                     </div>
-                    <div class="header-actions" data-role="admin,view_edit">
-                        <button class="btn-unified btn-unified-primary" onclick="showPage('players-add')">
+                    <div class="header-actions">
+                        <button class="btn-unified btn-unified-secondary" onclick="showPage('dashboard')">
+                            <i class="fas fa-home"></i>
+                            Back to Dashboard
+                        </button>
+                        <button class="btn-unified btn-unified-primary" onclick="showPage('players-add')" data-role="admin,view_edit">
                             <i class="fas fa-user-plus"></i>
                             Add Player
                         </button>
