@@ -4918,3 +4918,165 @@ body {
         height: 8px;
     }
 }
+
+/* Print Styles for Professional PDF Export */
+@media print {
+    * {
+        -webkit-print-color-adjust: exact !important;
+        color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    
+    body {
+        background: white !important;
+        color: black !important;
+        font-family: 'Arial', sans-serif !important;
+        font-size: 12pt !important;
+        line-height: 1.4 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    
+    /* Hide elements not needed in print */
+    .sidebar,
+    .header-actions,
+    .btn-unified,
+    .mobile-menu-toggle,
+    .refresh-button,
+    .export-button,
+    .back-button,
+    .print-hide,
+    button:not(.print-show),
+    input[type="button"],
+    input[type="submit"],
+    .pagination,
+    .filters-section,
+    .loading-indicator {
+        display: none !important;
+    }
+    
+    /* Report Document Styles */
+    .report-document {
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 20px !important;
+        background: white !important;
+        box-shadow: none !important;
+        border: none !important;
+    }
+    
+    /* Report Header */
+    .report-header {
+        text-align: center !important;
+        margin-bottom: 30px !important;
+        padding: 20px 0 !important;
+        border-bottom: 2px solid #333 !important;
+        page-break-after: avoid !important;
+    }
+    
+    .logo-section {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 20px !important;
+        margin-bottom: 15px !important;
+    }
+    
+    .report-logo {
+        width: 60px !important;
+        height: 60px !important;
+    }
+    
+    .report-title {
+        margin: 0 !important;
+        font-size: 24pt !important;
+        font-weight: bold !important;
+        color: #333 !important;
+    }
+    
+    .report-subtitle {
+        margin: 5px 0 0 0 !important;
+        font-size: 14pt !important;
+        color: #666 !important;
+    }
+    
+    /* Summary Cards */
+    .summary-grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 15px !important;
+        margin-bottom: 30px !important;
+        page-break-inside: avoid !important;
+    }
+    
+    .summary-card {
+        background: #f8f9fa !important;
+        border: 1px solid #dee2e6 !important;
+        border-radius: 8px !important;
+        padding: 15px !important;
+        text-align: center !important;
+    }
+    
+    .summary-card h4 {
+        margin: 0 0 10px 0 !important;
+        font-size: 12pt !important;
+        color: #333 !important;
+        font-weight: bold !important;
+    }
+    
+    .summary-number {
+        font-size: 18pt !important;
+        font-weight: bold !important;
+        color: #333 !important;
+        margin: 5px 0 !important;
+    }
+    
+    /* Tables */
+    .unified-table-container,
+    .table-wrapper {
+        overflow: visible !important;
+        box-shadow: none !important;
+        border: 1px solid #dee2e6 !important;
+        border-radius: 0 !important;
+        margin-bottom: 20px !important;
+    }
+    
+    .unified-table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        font-size: 10pt !important;
+    }
+    
+    .unified-table th {
+        background-color: #f8f9fa !important;
+        color: #333 !important;
+        font-weight: bold !important;
+        padding: 8px 6px !important;
+        border: 1px solid #dee2e6 !important;
+        text-align: left !important;
+    }
+    
+    .unified-table td {
+        padding: 6px !important;
+        border: 1px solid #dee2e6 !important;
+        color: #333 !important;
+    }
+    
+    /* Section Titles */
+    .section-title {
+        font-size: 16pt !important;
+        font-weight: bold !important;
+        color: #333 !important;
+        margin: 20px 0 15px 0 !important;
+        padding: 8px 0 !important;
+        border-bottom: 1px solid #dee2e6 !important;
+        page-break-after: avoid !important;
+    }
+    
+    /* Page settings */
+    @page {
+        margin: 1in !important;
+        size: A4 !important;
+    }
+}

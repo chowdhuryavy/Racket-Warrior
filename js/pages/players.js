@@ -6,56 +6,15 @@ const Players = {
     
     // Render add player form
     renderAddForm: function(container) {
-        console.log('🎯 Players.renderAddForm called');
-        console.log('   - Container exists:', !!container);
-        
-        try {
-            console.log('   - Getting HTML...');
-            const html = this.getAddFormHTML();
-            console.log('   - HTML generated, length:', html?.length || 0);
-            
-            console.log('   - Setting innerHTML...');
-            container.innerHTML = html;
-            console.log('   - innerHTML set successfully');
-            
-            console.log('   - Setting up handlers...');
-            this.setupAddFormHandlers();
-            console.log('   - Handlers setup complete');
-            
-            console.log('✅ Players.renderAddForm completed successfully');
-        } catch (error) {
-            console.error('❌ Error in Players.renderAddForm:', error);
-            throw error;
-        }
+        container.innerHTML = this.getAddFormHTML();
+        this.setupAddFormHandlers();
     },
     
     // Render view players table
     renderViewTable: function(container) {
-        console.log('🎯 Players.renderViewTable called');
-        console.log('   - Container exists:', !!container);
-        
-        try {
-            console.log('   - Getting HTML...');
-            const html = this.getViewTableHTML();
-            console.log('   - HTML generated, length:', html?.length || 0);
-            
-            console.log('   - Setting innerHTML...');
-            container.innerHTML = html;
-            console.log('   - innerHTML set successfully');
-            
-            console.log('   - Loading players data...');
-            this.loadPlayersData();
-            console.log('   - Data loading initiated');
-            
-            console.log('   - Setting up handlers...');
-            this.setupViewTableHandlers();
-            console.log('   - Handlers setup complete');
-            
-            console.log('✅ Players.renderViewTable completed successfully');
-        } catch (error) {
-            console.error('❌ Error in Players.renderViewTable:', error);
-            throw error;
-        }
+        container.innerHTML = this.getViewTableHTML();
+        this.loadPlayersData();
+        this.setupViewTableHandlers();
     },
     
     // Get add form HTML

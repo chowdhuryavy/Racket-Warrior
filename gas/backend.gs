@@ -1554,6 +1554,20 @@ function handleGetAvailableMonths(params) {
 // ==================== REPORTS HANDLERS ====================
 
 /**
+ * Get month label for display
+ */
+function getMonthLabel(monthKey) {
+  try {
+    if (!monthKey) return 'Current Month';
+    const [year, month] = monthKey.split('-');
+    const date = new Date(parseInt(year), parseInt(month) - 1, 1);
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+  } catch (error) {
+    return 'Invalid Month';
+  }
+}
+
+/**
  * Get monthly report
  */
 function handleGetMonthlyReport(params) {
@@ -1601,14 +1615,17 @@ function handleGetMonthlyReport(params) {
       success: true,
       data: {
         month,
-        activePlayers,
-        income,
+        monthLabel: getMonthLabel(month),
+        players: activePlayers,
+        collections: income,
         expenses,
         summary: {
-          totalIncome,
+          totalPlayers: players.length,
+          activePlayers: activePlayers.length,
+          inactivePlayers: players.length - activePlayers.length,
+          totalCollection: totalIncome,
           totalExpenses,
-          finalBalance,
-          activePlayersCount: activePlayers.length
+          netBalance: finalBalance
         }
       }
     };

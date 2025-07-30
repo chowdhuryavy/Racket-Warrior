@@ -1,962 +1,58 @@
-// Main Application Controller for Racket Warrior
+// Racket Warrior - Main Application Controller
+// Clean version without debug code
 
 const App = {
-    currentPage: 'dashboard',
-    currentUser: null,
+    currentPage: null,
     
     // Initialize the application
     init: function() {
-        Logger.info('Initializing Racket Warrior App');
+        // Check authentication
+        if (!Auth.isAuthenticated()) {
+            Auth.showLogin();
+            return;
+        }
         
-        // Hide loading screen after a short delay
-        setTimeout(() => {
-            document.getElementById('loadingScreen').style.display = 'none';
-        }, 500);
+        // Setup mobile menu
+        this.setupMobileMenu();
         
-        // Initialize authentication
-        Auth.init();
+        // Setup initial page
+        const savedPage = StorageUtils.get(CONFIG.STORAGE_KEYS.LAST_PAGE) || 'dashboard';
+        this.showPage(savedPage, false);
         
-        // Setup global event listeners
-        this.setupEventListeners();
+        // Setup browser navigation
+        this.setupBrowserNavigation();
         
-        // Force setup mobile menu (crucial fix)
-        this.forceMobileMenuSetup();
+        // Setup change photo handlers
+        this.setupChangePhotoHandlers();
         
         // Setup comprehensive activity logging
         ActivityLogger.setupAutoLogging();
-        
-        // Debug commands for troubleshooting
-        window.debugApp = {
-            clearCache: () => {
-                if (API.cache) {
-                    API.cache.clear();
-                    console.log('✅ Cache cleared');
-                }
-            },
-            logout: () => Auth.logout(),
-            
-            // NEW: Comprehensive debug commands
-            testAuth: () => {
-                const token = StorageUtils.get(CONFIG.STORAGE_KEYS.AUTH_TOKEN);
-                const user = Auth.getCurrentUser();
-                console.log('🔐 Auth Status:', {
-                    hasToken: !!token,
-                    hasUser: !!user,
-                    tokenLength: token?.length || 0,
-                    user: user
-                });
-            },
-            
-                         testMobile: () => App.testMobileMenu(),
-             
-             // NEW: Test logs display
-             // Test comprehensive logging
-             testAllLogging: async () => {
-                console.log('📋 Testing ALL Logging Features...');
-                
-                try {
-                    // Test direct logging
-                    await ActivityLogger.logAction('TEST_ACTION', 'Testing comprehensive logging system', 'test');
-                    console.log('✅ Direct action logging works');
-                    
-                    // Test page visit logging
-                    await ActivityLogger.logPageVisit('test-page');
-                    console.log('✅ Page visit logging works');
-                    
-                    // Test click logging
-                    await ActivityLogger.logClick('test-button', 'Testing button click');
-                    console.log('✅ Click logging works');
-                    
-                    console.log('🎉 All logging tests passed!');
-                } catch (error) {
-                    console.error('❌ Logging test failed:', error);
-                }
-            },
-            
-             testLogs: async () => {
-                console.log('📋 Testing Logs Display...');
-                try {
-                    // Navigate to logs page first
-                    if (typeof showPage === 'function') {
-                        showPage('logs');
-                        
-                        // Wait for page to load
-                        setTimeout(async () => {
-                            console.log('📋 Testing logs API...');
-                            const response = await API.makeRequest('get_logs');
-                            console.log('📋 Logs API Response:', response);
-                            
-                            if (response && response.success && response.data) {
-                                console.log('📋 Raw log entries:', response.data.length);
-                                console.log('📋 First few logs:', response.data.slice(0, 3));
-                            } else {
-                                console.error('📋 No logs data received');
-                            }
-                        }, 1000);
-                    }
-                } catch (error) {
-                    console.error('📋 Error testing logs:', error);
-                }
-            },
-            testDashboard: () => {
-                if (window.debugDashboard && window.debugDashboard.manual) {
-                    window.debugDashboard.manual();
-                } else {
-                    console.error('❌ Dashboard debug not available - loading dashboard page first...');
-                    // Force load dashboard page to make debug functions available
-                    if (window.showPage) {
-                        showPage('dashboard');
-                        setTimeout(() => {
-                            if (window.debugDashboard && window.debugDashboard.manual) {
-                                window.debugDashboard.manual();
-                            } else {
-                                console.error('❌ Dashboard debug still not available after loading page');
-                            }
-                        }, 1000);
-                    }
-                }
-            },
-            
-            // NEW: Test available months API
-            testMonths: async () => {
-                console.log('📅 Testing Available Months API...');
-                try {
-                    const response = await API.getAvailableMonths();
-                    console.log('📅 API Response:', response);
-                    
-                    if (response && response.success && Array.isArray(response.data)) {
-                        console.log('✅ Available months:', response.data);
-                        console.log('✅ Total months with data:', response.data.length);
-                        
-                        if (response.data.length > 0) {
-                            console.log('📈 Months breakdown:');
-                            response.data.forEach((month, index) => {
-                                console.log(`   ${index + 1}. ${month} (${DateUtils.formatMonthForDisplay(month)})`);
-                            });
-                        } else {
-                            console.log('ℹ️ No months with data found');
-                        }
-                    } else {
-                        console.error('❌ Invalid response from API:', response);
-                    }
-                } catch (error) {
-                    console.error('❌ Error testing months API:', error);
-                }
-            },
-            
-            // NEW: Ultimate dashboard test that works from anywhere
-            ultimateDashboard: async () => {
-                console.log('🔧 ULTIMATE DASHBOARD DEBUG (Global Version)');
-                
-                // Step 1: Check authentication
-                const token = StorageUtils.get(CONFIG.STORAGE_KEYS.AUTH_TOKEN);
-                const user = Auth.getCurrentUser();
-                console.log('1. 🔐 Auth Status:', {
-                    hasToken: !!token,
-                    tokenLength: token?.length || 0,
-                    hasUser: !!user,
-                    userRole: user?.role || 'none',
-                    tokenPreview: token ? token.substring(0, 15) + '...' : 'none'
-                });
-                
-                if (!token || !user) {
-                    console.error('❌ Authentication missing');
-                    console.log('💡 Suggestion: Make sure you are logged in first');
-                    return;
-                }
-                
-                // Step 2: Direct API test using low-level JSONP
-                console.log('2. 📡 Testing dashboard API directly...');
-                
-                const params = {
-                    action: 'get_dashboard_stats',
-                    token: token,
-                    month: null
-                };
-                
-                const baseUrl = CONFIG.API_BASE_URL;
-                const urlParams = new URLSearchParams();
-                Object.keys(params).forEach(key => {
-                    if (params[key] !== null && params[key] !== undefined) {
-                        urlParams.append(key, params[key]);
-                    }
-                });
-                
-                const fullUrl = `${baseUrl}?${urlParams.toString()}`;
-                console.log('🌐 API URL:', fullUrl.replace(/token=[^&]+/, 'token=***'));
-                
-                return new Promise((resolve) => {
-                    const callbackName = 'global_dashboard_test_' + Date.now();
-                    const script = document.createElement('script');
-                    
-                    window[callbackName] = function(response) {
-                        console.log('3. 📥 Raw API Response:', response);
-                        
-                        // Clean up
-                        document.head.removeChild(script);
-                        delete window[callbackName];
-                        
-                        if (response && response.success && response.data) {
-                            console.log('4. ✅ API SUCCESS! Data received:');
-                            console.log('   - activePlayersCount:', response.data.activePlayersCount, typeof response.data.activePlayersCount);
-                            console.log('   - totalCollection:', response.data.totalCollection, typeof response.data.totalCollection);
-                            console.log('   - totalExpenses:', response.data.totalExpenses, typeof response.data.totalExpenses);
-                            console.log('   - finalBalance:', response.data.finalBalance, typeof response.data.finalBalance);
-                            
-                            console.log('5. 🎯 Testing manual dashboard update...');
-                            // Manually update dashboard elements
-                            App.updateDashboardManually(response.data);
-                            
-                        } else {
-                            console.error('4. ❌ API call failed:', response);
-                            if (response && response.message) {
-                                console.error('   Error message:', response.message);
-                            }
-                        }
-                        
-                        resolve(response);
-                    };
-                    
-                    script.onerror = function() {
-                        console.error('❌ JSONP request failed');
-                        document.head.removeChild(script);
-                        delete window[callbackName];
-                        resolve(null);
-                    };
-                    
-                    script.src = `${fullUrl}&callback=${callbackName}`;
-                    document.head.appendChild(script);
-                });
-            },
-            getUser: () => Auth.getCurrentUser(),
-            fixDashboard: async () => {
-                console.log('🔧 Force fixing dashboard...');
-                try {
-                    if (window.Dashboard) {
-                        Dashboard.cachedData = null;
-                        Dashboard.lastLoadTime = null;
-                        if (API.cache) API.cache.clear();
-                        await Dashboard.loadDashboardData();
-                        console.log('✅ Dashboard fixed');
-                    } else {
-                        console.error('❌ Dashboard module not available');
-                    }
-                } catch (error) {
-                    console.error('❌ Dashboard fix failed:', error);
-                }
-            },
-            testDashboardAPI: async () => {
-                console.log('🧪 Testing dashboard API...');
-                try {
-                    const response = await API.getDashboardStats();
-                    console.log('📊 API Response:', response);
-                    if (response.success && response.data && window.Dashboard) {
-                        Dashboard.updateStats(response.data);
-                        console.log('✅ Manual stats update completed');
-                    }
-                    return response;
-                } catch (error) {
-                    console.error('❌ API test failed:', error);
-                    return error;
-                }
-            },
-            
-            // Test dashboard data persistence 
-            testDashboardPersistence: async () => {
-                console.log('📊 Testing Dashboard Data Persistence...');
-                
-                try {
-                    // Clear any cached data
-                    if (window.Dashboard) {
-                        Dashboard.cachedData = null;
-                        Dashboard.lastLoadTime = null;
-                        console.log('🧹 Cleared dashboard cache');
-                    }
-                    
-                    // Navigate to dashboard
-                    showPage('dashboard');
-                    
-                    // Wait and test data flow
-                    setTimeout(() => {
-                        const elements = {
-                            activePlayersCount: document.getElementById('activePlayersCount')?.textContent,
-                            totalCollectionAmount: document.getElementById('totalCollectionAmount')?.textContent,
-                            totalExpenseAmount: document.getElementById('totalExpenseAmount')?.textContent,
-                            finalBalanceAmount: document.getElementById('finalBalanceAmount')?.textContent
-                        };
-                        
-                        console.log('📊 Current dashboard values:', elements);
-                        
-                        // Check if any show "undefined"
-                        const hasUndefined = Object.values(elements).some(val => val && val.includes('undefined'));
-                        
-                        if (hasUndefined) {
-                            console.error('❌ Found undefined values in dashboard!');
-                            console.log('🔧 Use debugApp.ultimateDashboard() to fix');
-                        } else {
-                            console.log('✅ No undefined values found');
-                        }
-                    }, 3000);
-                    
-                } catch (error) {
-                    console.error('❌ Dashboard persistence test failed:', error);
-                }
-            },
-            
-            // Test month filter consistency across all pages
-            testMonthFilters: async () => {
-                console.log('📅 Testing Month Filter Consistency Across All Pages...');
-                
-                const pages = ['dashboard', 'players', 'collection', 'expenses', 'logs', 'reports'];
-                const results = {};
-                
-                for (const page of pages) {
-                    try {
-                        console.log(`📅 Testing ${page} page...`);
-                        showPage(page);
-                        
-                        // Wait for page to load
-                        await new Promise(resolve => setTimeout(resolve, 1000));
-                        
-                        // Find month filter element
-                        const filterSelectors = [
-                            `${page}MonthFilter`,
-                            `${page}Month`,
-                            'reportMonth',
-                            'dashboardMonthFilter'
-                        ];
-                        
-                        let filterElement = null;
-                        for (const selector of filterSelectors) {
-                            filterElement = document.getElementById(selector);
-                            if (filterElement) break;
-                        }
-                        
-                        if (filterElement) {
-                            const options = Array.from(filterElement.options).map(opt => opt.value);
-                            results[page] = {
-                                found: true,
-                                elementId: filterElement.id,
-                                optionCount: options.length,
-                                options: options,
-                                selectedValue: filterElement.value
-                            };
-                            console.log(`📅 ${page}: Found ${options.length} options`);
-                        } else {
-                            results[page] = { found: false };
-                            console.log(`📅 ${page}: No month filter found`);
-                        }
-                        
-                    } catch (error) {
-                        results[page] = { error: error.message };
-                        console.error(`📅 ${page}: Error -`, error);
-                    }
-                }
-                
-                console.log('📅 Month Filter Test Results:', results);
-                
-                // Check consistency
-                const foundPages = Object.keys(results).filter(page => results[page].found);
-                if (foundPages.length > 1) {
-                    const firstPageOptions = results[foundPages[0]].options;
-                    const allConsistent = foundPages.every(page => 
-                        JSON.stringify(results[page].options) === JSON.stringify(firstPageOptions)
-                    );
-                    
-                    if (allConsistent) {
-                        console.log('✅ All month filters are consistent!');
-                    } else {
-                        console.warn('⚠️ Month filters are NOT consistent between pages');
-                    }
-                }
-                
-                return results;
-            },
-            
-            // Test dashboard cards specifically
-            testDashboardCards: async () => {
-                console.log('🔧 Testing Dashboard Cards Specifically...');
-                
-                // Navigate to dashboard
-                showPage('dashboard');
-                
-                // Wait a bit
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                
-                // Get current values
-                const elements = {
-                    activePlayersCount: document.getElementById('activePlayersCount'),
-                    totalCollectionAmount: document.getElementById('totalCollectionAmount'),
-                    totalExpenseAmount: document.getElementById('totalExpenseAmount'),
-                    finalBalanceAmount: document.getElementById('finalBalanceAmount'),
-                    monthlyIncome: document.getElementById('monthlyIncome'),
-                    monthlyExpenses: document.getElementById('monthlyExpenses'),
-                    monthlyNet: document.getElementById('monthlyNet')
-                };
-                
-                console.log('🔧 Current element values:');
-                Object.entries(elements).forEach(([key, element]) => {
-                    if (element) {
-                        console.log(`   ${key}: "${element.textContent}"`);
-                        
-                        // Check for undefined in text content
-                        if (element.textContent.includes('undefined')) {
-                            console.error(`❌ FOUND UNDEFINED in ${key}: "${element.textContent}"`);
-                        }
-                    } else {
-                        console.error(`❌ Element not found: ${key}`);
-                    }
-                });
-                
-                // Test CurrencyUtils function
-                console.log('🔧 Testing CurrencyUtils.format:');
-                console.log('   CurrencyUtils.format(10):', CurrencyUtils.format(10));
-                console.log('   CurrencyUtils.format(undefined):', CurrencyUtils.format(undefined));
-                console.log('   CurrencyUtils.format(null):', CurrencyUtils.format(null));
-                console.log('   CurrencyUtils.format("15"):', CurrencyUtils.format("15"));
-                
-                // Force dashboard reload
-                if (window.Dashboard) {
-                    console.log('🔧 Forcing dashboard reload...');
-                    Dashboard.cachedData = null;
-                    Dashboard.lastLoadTime = null;
-                    Dashboard.loadDashboardData();
-                }
-            },
-            
-            // Test context-aware monthly status
-            testMonthlyStatus: () => {
-                console.log('🗓️ Testing Context-Aware Monthly Status...');
-                
-                // Test different pages
-                const pages = ['players', 'collection'];
-                
-                pages.forEach(page => {
-                    console.log(`🗓️ Testing ${page} page...`);
-                    showPage(page);
-                    
-                    setTimeout(() => {
-                        // Check what month filter is active
-                        const monthFilter = document.getElementById(`${page}MonthFilter`);
-                        if (monthFilter) {
-                            console.log(`📅 ${page} month filter:`, monthFilter.value || 'All');
-                        }
-                        
-                        // For collection, test getCurrentSelectedMonth
-                        if (page === 'collection' && window.Collection) {
-                            const selectedMonth = Collection.getCurrentSelectedMonth();
-                            console.log(`📅 Collection getCurrentSelectedMonth():`, selectedMonth);
-                        }
-                        
-                        // For players, check if edit modal would show single month
-                        if (page === 'players' && window.Players) {
-                            console.log(`🗓️ Players page ready for single-month status editing`);
-                        }
-                    }, 1000);
-                });
-            },
-            
-            // Test navigation and month defaults
-            testNavigationAndMonths: async () => {
-                console.log('🧪 Testing Navigation and Month Defaults...');
-                
-                const tests = [
-                    { page: 'players-add', description: 'Players Add Form' },
-                    { page: 'players-view', description: 'Players View Table' },
-                    { page: 'collection-add', description: 'Collection Add Form' },
-                    { page: 'collection-view', description: 'Collection View Table' }
-                ];
-                
-                for (const test of tests) {
-                    console.log(`🧪 Testing ${test.description}...`);
-                    
-                    try {
-                        showPage(test.page);
-                        
-                        // Wait for page to load
-                        await new Promise(resolve => setTimeout(resolve, 1500));
-                        
-                        // Check month filters
-                        const monthElements = [
-                            'playersMonthFilter',
-                            'collectionMonthFilter', 
-                            'collectionMonth',
-                            'dashboardMonthFilter'
-                        ];
-                        
-                        let foundFilters = 0;
-                        monthElements.forEach(elementId => {
-                            const element = document.getElementById(elementId);
-                            if (element) {
-                                foundFilters++;
-                                console.log(`📅 ${elementId}: "${element.value}" (${element.options.length} options)`);
-                                
-                                // Check if current month is available
-                                const currentMonth = DateUtils.getMonthKey(new Date());
-                                const hasCurrentMonth = Array.from(element.options).some(opt => opt.value === currentMonth);
-                                console.log(`   Current month (${currentMonth}) available: ${hasCurrentMonth}`);
-                            }
-                        });
-                        
-                        console.log(`✅ ${test.description}: ${foundFilters} month filters found`);
-                        
-                    } catch (error) {
-                        console.error(`❌ ${test.description}: Error -`, error);
-                    }
-                }
-                
-                console.log('🧪 Navigation and Month test complete!');
-            },
-            
-            // Test back to dashboard buttons
-            testBackButtons: async () => {
-                console.log('🏠 Testing Back to Dashboard Buttons...');
-                
-                const pages = [
-                    'players-add', 'players-view',
-                    'collection-add', 'collection-view', 
-                    'expenses-add', 'expenses-view',
-                    'reports', 'logs', 'admin'
-                ];
-                
-                for (const page of pages) {
-                    console.log(`🏠 Testing ${page}...`);
-                    
-                    try {
-                        showPage(page);
-                        
-                        // Wait for page to load
-                        await new Promise(resolve => setTimeout(resolve, 800));
-                        
-                        // Look for back to dashboard button
-                        const backButtons = document.querySelectorAll('button[onclick="showPage(\'dashboard\')"]');
-                        
-                        if (backButtons.length > 0) {
-                            console.log(`✅ ${page}: Found ${backButtons.length} back button(s)`);
-                            backButtons.forEach((btn, index) => {
-                                const text = btn.textContent?.trim() || btn.getAttribute('aria-label') || 'Unknown';
-                                console.log(`   Button ${index + 1}: "${text}"`);
-                            });
-                        } else {
-                            console.error(`❌ ${page}: No back to dashboard button found`);
-                        }
-                        
-                    } catch (error) {
-                        console.error(`❌ ${page}: Error -`, error);
-                    }
-                }
-                
-                console.log('🏠 Back button test complete!');
-            },
-            
-            // Test players navigation specifically
-            testPlayersNavigation: async () => {
-                console.log('👥 Testing Players Navigation...');
-                
-                // Test if Players module exists
-                console.log('1. 🔍 Checking Players module:', !!window.Players);
-                if (window.Players) {
-                    console.log('   - renderAddForm:', typeof window.Players.renderAddForm);
-                    console.log('   - renderViewTable:', typeof window.Players.renderViewTable);
-                } else {
-                    console.error('❌ Players module not found!');
-                    return;
-                }
-                
-                // Test authentication
-                console.log('2. 🔐 Checking authentication:', Auth.isAuthenticated());
-                if (!Auth.isAuthenticated()) {
-                    console.error('❌ User not authenticated!');
-                    return;
-                }
-                
-                // Test user permissions
-                const user = Auth.getCurrentUser();
-                console.log('3. 👤 Current user:', user);
-                
-                // Test page content area
-                const contentArea = document.getElementById('pageContent');
-                console.log('4. 📄 Content area found:', !!contentArea);
-                
-                // Test players-add navigation
-                console.log('5. 🧪 Testing players-add navigation...');
-                try {
-                    showPage('players-add');
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                    
-                    const hasPlayerForm = !!document.querySelector('.add-player-page');
-                    console.log('   ✅ Players Add Form loaded:', hasPlayerForm);
-                    
-                    if (!hasPlayerForm) {
-                        console.error('   ❌ Players Add Form not found in DOM');
-                        console.log('   📋 Current page content:', contentArea?.innerHTML?.substring(0, 200) + '...');
-                    }
-                } catch (error) {
-                    console.error('   ❌ Error loading players-add:', error);
-                }
-                
-                // Test players-view navigation
-                console.log('6. 🧪 Testing players-view navigation...');
-                try {
-                    showPage('players-view');
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                    
-                    const hasPlayerTable = !!document.querySelector('.view-players-page');
-                    console.log('   ✅ Players View Table loaded:', hasPlayerTable);
-                    
-                    if (!hasPlayerTable) {
-                        console.error('   ❌ Players View Table not found in DOM');
-                        console.log('   📋 Current page content:', contentArea?.innerHTML?.substring(0, 200) + '...');
-                    }
-                } catch (error) {
-                    console.error('   ❌ Error loading players-view:', error);
-                }
-                
-                console.log('👥 Players navigation test complete!');
-            },
-            
-            // Quick test for immediate checking
-            quickPlayersTest: () => {
-                console.log('⚡ Quick Players Test...');
-                console.log('Players module exists:', !!window.Players);
-                console.log('Auth status:', Auth.isAuthenticated());
-                console.log('Current user:', Auth.getCurrentUser());
-                console.log('Page content area:', !!document.getElementById('pageContent'));
-                
-                // Try direct call
-                console.log('Attempting direct showPage call...');
-                try {
-                    showPage('players-add');
-                    console.log('✅ showPage call completed');
-                } catch (error) {
-                    console.error('❌ showPage error:', error);
-                }
-            }
-        };
-        
-        // Setup mobile navigation
-        this.setupMobileNavigation();
-        if (Auth.isAuthenticated()) {
-            this.showPage('dashboard');
-        }
     },
     
-    // Setup global event listeners
-    setupEventListeners: function() {
-        // Handle browser back/forward buttons
-        window.addEventListener('popstate', (event) => {
-            if (event.state && event.state.page) {
-                this.showPage(event.state.page, false);
-            }
-        });
-        
-        // Handle window resize for responsive adjustments
-        window.addEventListener('resize', this.handleResize.bind(this));
-        
-        // Handle clicks outside dropdowns to close them
-        document.addEventListener('click', this.handleGlobalClick.bind(this));
-        
-        // Keyboard shortcuts
-        document.addEventListener('keydown', this.handleKeyboardShortcuts.bind(this));
-    },
-    
-    // Setup mobile navigation
-    setupMobileNavigation: function() {
+    // Setup mobile menu functionality
+    setupMobileMenu: function() {
         const mobileMenuToggle = document.getElementById('mobileMenuToggle');
-        const sidebar = document.getElementById('sidebar');
+        const sidebar = document.querySelector('.sidebar');
         
-        if (mobileMenuToggle) {
+        if (mobileMenuToggle && sidebar) {
             mobileMenuToggle.addEventListener('click', () => {
-                this.toggleMobileMenu();
+                sidebar.classList.toggle('mobile-open');
             });
-        }
-        
-        // Create overlay for mobile
-        const overlay = document.createElement('div');
-        overlay.className = 'sidebar-overlay';
-        overlay.addEventListener('click', () => {
-            this.closeMobileMenu();
-        });
-        document.body.appendChild(overlay);
-    },
-    
-    // Toggle mobile menu
-    toggleMobileMenu: function() {
-        console.log('🔄 toggleMobileMenu called');
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.querySelector('.sidebar-overlay');
-        
-        console.log('📱 Mobile menu elements:', {
-            sidebar: !!sidebar,
-            overlay: !!overlay,
-            sidebarClasses: sidebar?.className || 'not found',
-            overlayClasses: overlay?.className || 'not found',
-            windowWidth: window.innerWidth
-        });
-        
-        if (sidebar) {
-            const isShowing = sidebar.classList.contains('show');
-            if (isShowing) {
-                sidebar.classList.remove('show');
-                console.log('📱 Closing sidebar');
-            } else {
-                sidebar.classList.add('show');
-                console.log('📱 Opening sidebar');
-            }
-            console.log('📱 Sidebar now has classes:', sidebar.className);
-        } else {
-            console.error('❌ Sidebar element not found!');
-        }
-        
-        if (overlay) {
-            const isShowing = overlay.classList.contains('show');
-            if (isShowing) {
-                overlay.classList.remove('show');
-                document.body.style.overflow = '';
-            } else {
-                overlay.classList.add('show');
-                document.body.style.overflow = 'hidden';
-            }
-            console.log('📱 Overlay now has classes:', overlay.className);
-        } else {
-            console.error('❌ Overlay element not found!');
-        }
-    },
-    
-    // Close mobile menu
-    closeMobileMenu: function() {
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.querySelector('.sidebar-overlay');
-        
-        if (sidebar) {
-            sidebar.classList.remove('show');
-        }
-        if (overlay) {
-            overlay.classList.remove('show');
-        }
-    },
-    
-    // Test function for mobile menu debugging
-    testMobileMenu: function() {
-        console.log('🧪 Testing Mobile Menu...');
-        
-        // Check if elements exist
-        const button = document.getElementById('mobileMenuToggle');
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.querySelector('.sidebar-overlay');
-        
-        console.log('📱 Elements check:', {
-            button: !!button,
-            sidebar: !!sidebar,
-            overlay: !!overlay,
-            windowWidth: window.innerWidth,
-            isMobile: window.innerWidth <= 768
-        });
-        
-        if (button) {
-            console.log('📱 Button styles:', {
-                display: getComputedStyle(button).display,
-                visibility: getComputedStyle(button).visibility,
-                pointerEvents: getComputedStyle(button).pointerEvents
+            
+            // Close mobile menu when clicking outside
+            document.addEventListener('click', (event) => {
+                if (!sidebar.contains(event.target) && !mobileMenuToggle.contains(event.target)) {
+                    sidebar.classList.remove('mobile-open');
+                }
             });
-        }
-        
-        if (sidebar) {
-            console.log('📱 Sidebar styles:', {
-                transform: getComputedStyle(sidebar).transform,
-                position: getComputedStyle(sidebar).position,
-                zIndex: getComputedStyle(sidebar).zIndex,
-                classes: sidebar.className
-            });
-        }
-        
-        // Try to trigger manually
-        if (button) {
-            console.log('📱 Triggering button click manually...');
-            button.click();
-        }
-    },
-    
-    // Force mobile menu setup (new function)
-    forceMobileMenuSetup: function() {
-        console.log('📱 Setting up mobile menu...');
-        
-        setTimeout(() => {
-            const mobileToggle = document.getElementById('mobileMenuToggle');
-            if (mobileToggle) {
-                console.log('📱 Force setting up mobile menu button...');
-                
-                // Remove any existing listeners
-                const newToggle = mobileToggle.cloneNode(true);
-                mobileToggle.parentNode.replaceChild(newToggle, mobileToggle);
-                
-                // Add fresh listener
-                newToggle.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    console.log('📱 Mobile menu button clicked!');
-                    this.toggleMobileMenu();
+            
+            // Close mobile menu when clicking nav links
+            const navLinks = sidebar.querySelectorAll('a:not(.nav-dropdown-toggle)');
+            navLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    sidebar.classList.remove('mobile-open');
                 });
-                
-                console.log('✅ Mobile menu button setup complete');
-            } else {
-                console.error('❌ Mobile menu button not found during force setup');
-            }
-        }, 1000); // Wait 1 second for DOM to be ready
-    },
-    
-    // Manual dashboard update function (works without dashboard page loaded)
-    updateDashboardManually: function(data) {
-        console.log('🎯 Manually updating dashboard elements with data:', data);
-        
-        // Find dashboard elements
-        const activePlayersElement = document.getElementById('activePlayersCount');
-        const totalCollectionElement = document.getElementById('totalCollectionAmount');
-        const totalExpenseElement = document.getElementById('totalExpenseAmount');
-        const finalBalanceElement = document.getElementById('finalBalanceAmount');
-        
-        console.log('📍 Dashboard elements found:', {
-            activePlayersElement: !!activePlayersElement,
-            totalCollectionElement: !!totalCollectionElement,
-            totalExpenseElement: !!totalExpenseElement,
-            finalBalanceElement: !!finalBalanceElement
-        });
-        
-        if (!activePlayersElement) {
-            console.log('❌ Dashboard elements not found - dashboard page not loaded');
-            console.log('💡 Suggestion: Navigate to dashboard page first');
-            return;
-        }
-        
-        // Update elements manually
-        try {
-            // Active Players
-            const count = data.activePlayersCount !== undefined ? data.activePlayersCount : 0;
-            activePlayersElement.textContent = count;
-            console.log('✅ Updated activePlayersCount to:', count);
-            
-            // Total Collection
-            const collection = data.totalCollection !== undefined ? data.totalCollection : 0;
-            if (totalCollectionElement) {
-                totalCollectionElement.textContent = this.formatCurrency(collection);
-                console.log('✅ Updated totalCollection to:', collection);
-            }
-            
-            // Total Expenses
-            const expenses = data.totalExpenses !== undefined ? data.totalExpenses : 0;
-            if (totalExpenseElement) {
-                totalExpenseElement.textContent = this.formatCurrency(expenses);
-                console.log('✅ Updated totalExpenses to:', expenses);
-            }
-            
-            // Final Balance
-            const balance = data.finalBalance !== undefined ? data.finalBalance : 0;
-            if (finalBalanceElement) {
-                finalBalanceElement.textContent = this.formatCurrency(balance);
-                console.log('✅ Updated finalBalance to:', balance);
-            }
-            
-            // Monthly summary elements
-            const monthlyIncomeElement = document.getElementById('monthlyIncome');
-            const monthlyExpensesElement = document.getElementById('monthlyExpenses');
-            const monthlyNetElement = document.getElementById('monthlyNet');
-            
-            if (monthlyIncomeElement) {
-                monthlyIncomeElement.textContent = this.formatCurrency(collection);
-                console.log('✅ Updated monthly income');
-            }
-            
-            if (monthlyExpensesElement) {
-                monthlyExpensesElement.textContent = this.formatCurrency(expenses);
-                console.log('✅ Updated monthly expenses');
-            }
-            
-            if (monthlyNetElement) {
-                monthlyNetElement.textContent = this.formatCurrency(balance);
-                console.log('✅ Updated monthly net');
-            }
-            
-            console.log('🎉 Manual dashboard update completed!');
-            
-        } catch (error) {
-            console.error('❌ Error updating dashboard elements:', error);
-        }
-    },
-    
-    // Helper function to format currency
-    formatCurrency: function(amount) {
-        if (amount === undefined || amount === null || isNaN(amount)) {
-            return 'QAR 0.00';
-        }
-        return `QAR ${parseFloat(amount).toFixed(2)}`;
-    },
-    
-    // Handle window resize
-    handleResize: function() {
-        // Close mobile menu on desktop
-        if (window.innerWidth > 768) {
-            this.closeMobileMenu();
-        }
-        
-        // Adjust table layouts for mobile
-        this.adjustTablesForMobile();
-    },
-    
-    // Handle global clicks
-    handleGlobalClick: function(event) {
-        // Close profile dropdown if clicking outside
-        const profileDropdown = document.getElementById('profileDropdown');
-        if (profileDropdown && profileDropdown.classList.contains('show')) {
-            if (!event.target.closest('.user-profile')) {
-                profileDropdown.classList.remove('show');
-            }
-        }
-    },
-    
-    // Handle keyboard shortcuts
-    handleKeyboardShortcuts: function(event) {
-        // Only handle shortcuts when not typing in inputs
-        if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
-            return;
-        }
-        
-        // Alt + D = Dashboard
-        if (event.altKey && event.key === 'd') {
-            event.preventDefault();
-            this.showPage('dashboard');
-        }
-        
-        // Alt + P = Players
-        if (event.altKey && event.key === 'p') {
-            event.preventDefault();
-            this.showPage('players-view');
-        }
-        
-        // Alt + C = Collections
-        if (event.altKey && event.key === 'c') {
-            event.preventDefault();
-            this.showPage('collection-view');
-        }
-        
-        // Alt + E = Expenses
-        if (event.altKey && event.key === 'e') {
-            event.preventDefault();
-            this.showPage('expenses-view');
-        }
-        
-        // Alt + R = Reports
-        if (event.altKey && event.key === 'r') {
-            event.preventDefault();
-            this.showPage('reports');
-        }
-        
-        // Escape = Close modals
-        if (event.key === 'Escape') {
-            const activeModal = document.querySelector('.modal.show');
-            if (activeModal) {
-                activeModal.classList.remove('show');
-                setTimeout(() => activeModal.remove(), 300);
-            }
+            });
         }
     },
     
@@ -1023,39 +119,6 @@ const App = {
         return true;
     },
     
-    // Update page title
-    updatePageTitle: function(page) {
-        const pageTitles = {
-            'dashboard': 'Dashboard',
-            'players-add': 'Add Player',
-            'players-view': 'Players',
-            'collection-add': 'Add Collection',
-            'collection-view': 'Collections',
-            'expenses-add': 'Add Expense',
-            'expenses-view': 'Expenses',
-            'reports': 'Reports',
-            'logs': 'System Logs',
-            'admin': 'Admin Panel'
-        };
-        
-        const title = pageTitles[page] || 'Racket Warrior';
-        document.getElementById('pageTitle').textContent = title;
-        document.title = `${title} - Racket Warrior`;
-    },
-    
-    // Update navigation active state
-    updateNavigation: function(page) {
-        // Remove active class from all nav items
-        const navItems = document.querySelectorAll('.sidebar-nav a');
-        navItems.forEach(item => item.classList.remove('active'));
-        
-        // Add active class to current page
-        const activeItem = document.querySelector(`[onclick="showPage('${page}')"]`);
-        if (activeItem) {
-            activeItem.classList.add('active');
-        }
-    },
-    
     // Load page content
     loadPageContent: function(page) {
         const contentArea = document.getElementById('pageContent');
@@ -1065,334 +128,243 @@ const App = {
             return;
         }
         
-        // Load page-specific content immediately (UI is local)
+        // Load page-specific content
         switch (page) {
-                case 'dashboard':
-                    if (window.Dashboard) {
-                        Dashboard.render(contentArea);
-                    }
-                    break;
-                case 'players-add':
-                    console.log('🔄 Processing players-add navigation...');
-                    console.log('   - Players module exists:', !!window.Players);
-                    console.log('   - Content area:', !!contentArea);
-                    if (window.Players) {
-                        console.log('📱 Calling Players.renderAddForm...');
-                        try {
-                            Players.renderAddForm(contentArea);
-                            console.log('✅ Players.renderAddForm completed');
-                            // Verify content was added
-                            const addedContent = contentArea.querySelector('.add-player-page');
-                            console.log('✅ Add form content in DOM:', !!addedContent);
-                            
-                            // Additional verification
-                            if (!addedContent) {
-                                console.error('❌ CRITICAL: Add form not found in DOM after rendering!');
-                                console.log('📋 Current content area HTML length:', contentArea.innerHTML.length);
-                                console.log('📋 Current content area classes:', [...contentArea.children].map(el => el.className));
-                                
-                                // Try to detect what went wrong
-                                const hasPlayerText = contentArea.innerHTML.includes('Add New Player');
-                                const hasFormElement = contentArea.innerHTML.includes('addPlayerForm');
-                                console.log('📋 Contains "Add New Player" text:', hasPlayerText);
-                                console.log('📋 Contains "addPlayerForm" ID:', hasFormElement);
-                            }
-                        } catch (error) {
-                            console.error('❌ Error in Players.renderAddForm:', error);
-                            console.error('❌ Error stack:', error.stack);
-                        }
-                    } else {
-                        console.error('❌ Players module not found');
-                    }
-                    break;
-                case 'players-view':
-                    console.log('🔄 Processing players-view navigation...');
-                    console.log('   - Players module exists:', !!window.Players);
-                    console.log('   - Content area:', !!contentArea);
-                    if (window.Players) {
-                        console.log('📱 Calling Players.renderViewTable...');
-                        try {
-                            Players.renderViewTable(contentArea);
-                            console.log('✅ Players.renderViewTable completed');
-                            // Verify content was added
-                            const addedContent = contentArea.querySelector('.view-players-page');
-                            console.log('✅ View table content in DOM:', !!addedContent);
-                            
-                            // Additional verification
-                            if (!addedContent) {
-                                console.error('❌ CRITICAL: View table not found in DOM after rendering!');
-                                console.log('📋 Current content area HTML length:', contentArea.innerHTML.length);
-                                console.log('📋 Current content area classes:', [...contentArea.children].map(el => el.className));
-                                
-                                // Try to detect what went wrong
-                                const hasPlayersText = contentArea.innerHTML.includes('Players');
-                                const hasTableContainer = contentArea.innerHTML.includes('playersTableContainer');
-                                console.log('📋 Contains "Players" text:', hasPlayersText);
-                                console.log('📋 Contains "playersTableContainer" ID:', hasTableContainer);
-                            }
-                        } catch (error) {
-                            console.error('❌ Error in Players.renderViewTable:', error);
-                            console.error('❌ Error stack:', error.stack);
-                        }
-                    } else {
-                        console.error('❌ Players module not found');
-                    }
-                    break;
-                case 'collection-add':
-                    if (window.Collection) {
-                        Collection.renderAddForm(contentArea);
-                    }
-                    break;
-                case 'collection-view':
-                    if (window.Collection) {
-                        Collection.renderViewTable(contentArea);
-                    }
-                    break;
-                case 'expenses-add':
-                    if (window.Expenses) {
-                        Expenses.renderAddForm(contentArea);
-                    }
-                    break;
-                case 'expenses-view':
-                    if (window.Expenses) {
-                        Expenses.renderViewTable(contentArea);
-                    }
-                    break;
-                case 'reports':
-                    if (window.Reports) {
-                        Reports.render(contentArea);
-                    }
-                    break;
-                case 'logs':
-                    if (window.Logs) {
-                        Logs.render(contentArea);
-                    }
-                    break;
-                case 'admin':
-                    if (window.Admin) {
-                        Admin.render(contentArea);
-                    }
-                    break;
-                default:
-                    contentArea.innerHTML = `
-                        <div class="text-center" style="padding: 3rem;">
-                            <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--warning-color); margin-bottom: 1rem;"></i>
-                            <h2>Page Not Found</h2>
-                            <p style="color: var(--text-secondary); margin-bottom: 2rem;">The page you're looking for doesn't exist.</p>
-                            <button class="btn btn-primary" onclick="showPage('dashboard')">
-                                <i class="fas fa-home"></i>
-                                Go to Dashboard
-                            </button>
-                        </div>
-                    `;
+            case 'dashboard':
+                if (window.Dashboard) {
+                    Dashboard.render(contentArea);
+                }
+                break;
+            case 'players-add':
+                if (window.Players) {
+                    Players.renderAddForm(contentArea);
+                } else {
+                    console.error('❌ Players module not found');
+                }
+                break;
+            case 'players-view':
+                if (window.Players) {
+                    Players.renderViewTable(contentArea);
+                } else {
+                    console.error('❌ Players module not found');
+                }
+                break;
+            case 'collection-add':
+                if (window.Collection) {
+                    Collection.renderAddForm(contentArea);
+                }
+                break;
+            case 'collection-view':
+                if (window.Collection) {
+                    Collection.renderViewTable(contentArea);
+                }
+                break;
+            case 'expenses-add':
+                if (window.Expenses) {
+                    Expenses.renderAddForm(contentArea);
+                }
+                break;
+            case 'expenses-view':
+                if (window.Expenses) {
+                    Expenses.renderViewTable(contentArea);
+                }
+                break;
+            case 'reports':
+                if (window.Reports) {
+                    Reports.render(contentArea);
+                }
+                break;
+            case 'logs':
+                if (window.Logs) {
+                    Logs.render(contentArea);
+                }
+                break;
+            case 'admin':
+                if (window.Admin) {
+                    Admin.render(contentArea);
+                }
+                break;
+            default:
+                contentArea.innerHTML = `
+                    <div class="text-center" style="padding: 3rem;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--warning-color); margin-bottom: 1rem;"></i>
+                        <h2>Page Not Found</h2>
+                        <p style="color: var(--text-secondary); margin-bottom: 2rem;">The page you're looking for doesn't exist.</p>
+                        <button class="btn btn-primary" onclick="showPage('dashboard')">
+                            <i class="fas fa-home"></i>
+                            Go to Dashboard
+                        </button>
+                    </div>
+                `;
         }
     },
     
-    // Adjust tables for mobile view
-    adjustTablesForMobile: function() {
-        const tables = document.querySelectorAll('.table');
+    // Update page title
+    updatePageTitle: function(page) {
+        const titles = {
+            'dashboard': 'Dashboard',
+            'players-add': 'Add Player',
+            'players-view': 'Players',
+            'collection-add': 'Add Collection',
+            'collection-view': 'Collections',
+            'expenses-add': 'Add Expense',
+            'expenses-view': 'Expenses',
+            'reports': 'Reports',
+            'logs': 'System Logs',
+            'admin': 'Administration'
+        };
         
-        tables.forEach(table => {
-            if (window.innerWidth <= 576) {
-                table.classList.add('table-mobile');
-                
-                // Add data labels for mobile view
-                const rows = table.querySelectorAll('tbody tr');
-                const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
-                
-                rows.forEach(row => {
-                    const cells = row.querySelectorAll('td');
-                    cells.forEach((cell, index) => {
-                        if (headers[index]) {
-                            cell.setAttribute('data-label', headers[index]);
-                        }
-                    });
-                });
-            } else {
-                table.classList.remove('table-mobile');
+        const title = titles[page] || 'Racket Warrior';
+        document.title = `${title} - Racket Warrior`;
+    },
+    
+    // Update navigation active state
+    updateNavigation: function(page) {
+        // Remove active class from all nav items
+        document.querySelectorAll('.sidebar-nav a').forEach(link => {
+            link.classList.remove('active');
+        });
+        
+        // Add active class to current page
+        const currentNavItem = document.querySelector(`[onclick="showPage('${page}')"]`);
+        if (currentNavItem) {
+            currentNavItem.classList.add('active');
+        }
+    },
+    
+    // Close mobile menu
+    closeMobileMenu: function() {
+        const sidebar = document.querySelector('.sidebar');
+        if (sidebar) {
+            sidebar.classList.remove('mobile-open');
+        }
+    },
+    
+    // Setup browser navigation
+    setupBrowserNavigation: function() {
+        window.addEventListener('popstate', (event) => {
+            if (event.state && event.state.page) {
+                this.showPage(event.state.page, false);
             }
         });
+        
+        // Handle initial hash
+        const hash = window.location.hash.substring(1);
+        if (hash && this.checkPagePermissions(hash)) {
+            this.showPage(hash, false);
+        }
+    },
+    
+    // Setup change photo handlers
+    setupChangePhotoHandlers: function() {
+        // Profile photo click handler
+        const profilePhoto = document.getElementById('userPhoto');
+        if (profilePhoto) {
+            profilePhoto.addEventListener('click', () => {
+                this.showChangePhotoModal();
+            });
+        }
+        
+        // File upload area click handler
+        const fileUploadArea = document.getElementById('fileUploadArea');
+        if (fileUploadArea) {
+            fileUploadArea.addEventListener('click', () => {
+                const photoFile = document.getElementById('photoFile');
+                if (photoFile) {
+                    photoFile.click();
+                }
+            });
+        }
+        
+        // File input change handler
+        const photoFile = document.getElementById('photoFile');
+        if (photoFile) {
+            photoFile.addEventListener('change', (event) => {
+                this.handlePhotoSelection(event);
+            });
+        }
+        
+        // Upload form submission
+        const uploadForm = document.getElementById('uploadPhotoForm');
+        if (uploadForm) {
+            uploadForm.addEventListener('submit', (event) => {
+                this.handlePhotoUpload(event);
+            });
+        }
     },
     
     // Show change photo modal
-    showChangePhoto: function() {
-        const modal = UIUtils.createModal({
-            title: '📷 Change Profile Photo',
-            content: this.getChangePhotoContent(),
-            showCloseButton: true
-        });
-        
-        this.setupChangePhotoHandlers();
-    },
-    
-    // Get change photo modal content
-    getChangePhotoContent: function() {
-        return `
-            <div class="photo-upload-container">
-                <div class="current-photo-section">
-                    <h4><i class="fas fa-user-circle"></i> Current Photo</h4>
-                    <div class="current-photo-display">
-                        <img id="currentPhoto" src="${Auth.getCurrentUser().photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(Auth.getCurrentUser().name)}&background=667eea&color=fff&size=200`}" alt="Current Photo" class="current-photo-img">
-                    </div>
-                </div>
-                
-                <div class="upload-section">
-                    <h4><i class="fas fa-upload"></i> Upload New Photo</h4>
-                    <form id="changePhotoForm" class="photo-upload-form">
-                        <div class="file-upload-area" id="fileUploadArea">
-                            <div class="upload-icon">
-                                <i class="fas fa-cloud-upload-alt"></i>
-                            </div>
-                            <p class="upload-text">
-                                <strong>Click to select</strong> or drag and drop your photo here
-                            </p>
-                            <p class="upload-info">
-                                Maximum file size: 5MB<br>
-                                Supported formats: JPG, PNG, GIF
-                            </p>
-                            <input type="file" id="photoFile" accept="image/*" required class="file-input">
-                        </div>
-                        
-                        <div id="photoPreview" class="photo-preview" style="display: none;">
-                            <h5><i class="fas fa-eye"></i> Preview</h5>
-                            <img id="previewImage" class="preview-img">
-                            <button type="button" class="btn-remove-preview" onclick="App.removePhotoPreview()">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-                        
-                        <div class="form-actions">
-                            <button type="button" class="btn-unified btn-unified-secondary" onclick="this.closest('.modal').remove()">
-                                <i class="fas fa-times"></i>
-                                Cancel
-                            </button>
-                            <button type="submit" class="btn-unified btn-unified-primary" disabled id="uploadPhotoBtn">
-                                <i class="fas fa-upload"></i>
-                                Upload Photo
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        `;
-    },
-    
-    // Setup change photo form handlers
-    setupChangePhotoHandlers: function() {
-        const photoFile = document.getElementById('photoFile');
-        const photoPreview = document.getElementById('photoPreview');
-        const previewImage = document.getElementById('previewImage');
-        const uploadButton = document.getElementById('uploadPhotoBtn');
-        const changePhotoForm = document.getElementById('changePhotoForm');
-        const fileUploadArea = document.getElementById('fileUploadArea');
-        
-        // Setup drag and drop
-        if (fileUploadArea) {
-            fileUploadArea.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                fileUploadArea.classList.add('dragover');
-            });
+    showChangePhotoModal: function() {
+        const modal = document.getElementById('changePhotoModal');
+        if (modal) {
+            modal.style.display = 'flex';
             
-            fileUploadArea.addEventListener('dragleave', (e) => {
-                e.preventDefault();
-                fileUploadArea.classList.remove('dragover');
-            });
-            
-            fileUploadArea.addEventListener('drop', (e) => {
-                e.preventDefault();
-                fileUploadArea.classList.remove('dragover');
-                const files = e.dataTransfer.files;
-                if (files.length > 0) {
-                    photoFile.files = files;
-                    this.handleFileSelection(files[0]);
-                }
-            });
-            
-            fileUploadArea.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('📸 File upload area clicked, target:', e.target);
-                
-                // Find the file input (it might be recreated dynamically)
-                const currentPhotoFile = document.getElementById('photoFile');
-                if (currentPhotoFile) {
-                    console.log('📸 Triggering photo file input...');
-                    currentPhotoFile.click();
-                } else {
-                    console.error('❌ Photo file input not found!');
-                    UIUtils.showNotification('❌ Photo upload not available', 'error');
-                }
-            });
-        }
-        
-        if (photoFile) {
-            photoFile.addEventListener('change', (event) => {
-                console.log('Photo file input changed, files:', event.target.files);
-                const file = event.target.files[0];
-                if (file) {
-                    console.log('File selected:', file.name, file.size, file.type);
-                    this.handleFileSelection(file);
-                } else {
-                    console.log('No file selected');
-                }
-            });
-        } else {
-            console.error('Photo file input not found!');
-        }
-        
-        if (changePhotoForm) {
-            changePhotoForm.addEventListener('submit', this.handlePhotoUpload.bind(this));
+            // Update current photo
+            this.updateCurrentPhotoInModal();
         }
     },
     
-    // Handle file selection
-    handleFileSelection: function(file) {
-        const photoPreview = document.getElementById('photoPreview');
-        const previewImage = document.getElementById('previewImage');
-        const uploadButton = document.getElementById('uploadPhotoBtn');
+    // Update current photo in modal
+    updateCurrentPhotoInModal: function() {
+        const user = Auth.getCurrentUser();
+        if (!user) return;
         
-        if (file) {
-            // Validate file size (5MB max)
-            if (file.size > 5 * 1024 * 1024) {
-                UIUtils.showNotification('File size must be less than 5MB', 'error');
-                this.removePhotoPreview();
-                return;
+        const currentPhoto = document.getElementById('currentPhoto');
+        if (currentPhoto) {
+            const photoUrl = user.photo_url || UIUtils.generateAvatarUrl(user.username || user.email);
+            currentPhoto.src = photoUrl;
+        }
+    },
+    
+    // Handle photo selection
+    handlePhotoSelection: function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            UIUtils.showNotification('Please select an image file', 'error');
+            return;
+        }
+        
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            UIUtils.showNotification('Image size must be less than 5MB', 'error');
+            return;
+        }
+        
+        // Show preview
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const preview = document.getElementById('photoPreview');
+            if (preview) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
             }
-            
-            // Validate file type
-            if (!file.type.startsWith('image/')) {
-                UIUtils.showNotification('Please select a valid image file', 'error');
-                this.removePhotoPreview();
-                return;
-            }
-            
-            // Show preview
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                previewImage.src = e.target.result;
-                photoPreview.style.display = 'block';
-                uploadButton.disabled = false;
-            };
-            reader.readAsDataURL(file);
-        } else {
-            this.removePhotoPreview();
+        };
+        reader.readAsDataURL(file);
+        
+        // Update UI
+        const fileName = document.getElementById('fileName');
+        if (fileName) {
+            fileName.textContent = file.name;
+        }
+        
+        const uploadSection = document.getElementById('uploadSection');
+        if (uploadSection) {
+            uploadSection.style.display = 'block';
         }
     },
     
-    // Remove photo preview
-    removePhotoPreview: function() {
-        const photoFile = document.getElementById('photoFile');
-        const photoPreview = document.getElementById('photoPreview');
-        const uploadButton = document.getElementById('uploadPhotoBtn');
-        
-        if (photoFile) photoFile.value = '';
-        if (photoPreview) photoPreview.style.display = 'none';
-        if (uploadButton) uploadButton.disabled = true;
-    },
-    
-    // Update user photo in UI
+    // Update user photo URL
     updateUserPhoto: function(photoUrl) {
-        // Update profile photo in header
+        const user = Auth.getCurrentUser();
+        if (user) {
+            user.photo_url = photoUrl;
+            Auth.setCurrentUser(user);
+        }
+        
+        // Update profile photo
         const userPhoto = document.getElementById('userPhoto');
         if (userPhoto) {
             userPhoto.src = photoUrl;
@@ -1434,358 +406,60 @@ const App = {
             if (response.success) {
                 // Update user profile photo
                 const currentUser = Auth.getCurrentUser();
-                currentUser.photo_url = response.data.photo_url; // Fixed to match backend response structure
+                currentUser.photo_url = response.data.photo_url;
                 Auth.setCurrentUser(currentUser);
                 
-                // Update auth token if provided
-                if (response.data.token) {
-                    StorageUtils.set(CONFIG.STORAGE_KEYS.AUTH_TOKEN, response.data.token);
-                }
-                
-                // Update UI
+                // Update all photo displays
                 this.updateUserPhoto(response.data.photo_url);
-                Auth.updateUserProfile();
                 
-                UIUtils.showNotification(response.message || '✅ Profile photo updated successfully!', 'success');
+                UIUtils.showNotification('Photo updated successfully', 'success');
                 
                 // Close modal
-                event.target.closest('.modal').remove();
+                const modal = document.getElementById('changePhotoModal');
+                if (modal) {
+                    modal.style.display = 'none';
+                }
+                
+                // Reset form
+                event.target.reset();
+                const uploadSection = document.getElementById('uploadSection');
+                if (uploadSection) {
+                    uploadSection.style.display = 'none';
+                }
+                
             } else {
-                UIUtils.showNotification(response.message || 'Failed to upload photo', 'error');
+                UIUtils.showNotification('Failed to upload photo: ' + response.message, 'error');
             }
         } catch (error) {
-            console.error('Photo upload error details:', error);
-            Logger.error('Photo upload error', error);
-            UIUtils.showNotification('Failed to upload photo: ' + error.message, 'error');
+            Logger.error('Photo upload error:', error);
+            UIUtils.showNotification('Error uploading photo', 'error');
         } finally {
-            UIUtils.hideLoading(submitButton);
+            UIUtils.hideLoading(submitButton, 'Upload Photo');
         }
-    },
-    
-    // Get current page
-    getCurrentPage: function() {
-        return this.currentPage;
-    },
-    
-    // Refresh current page
-    refreshCurrentPage: function() {
-        this.showPage(this.currentPage, false);
     }
 };
 
-// Global functions for HTML onclick handlers
+// Global function for navigation
 window.showPage = function(page) {
     App.showPage(page);
 };
 
-window.showChangePhoto = function() {
-    App.showChangePhoto();
-};
-
-window.removePhotoPreview = function() {
-    App.removePhotoPreview();
-};
-
 // Initialize app when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    // Hide loading screen after a short delay to show the animation
-    setTimeout(() => {
-        const loadingScreen = document.getElementById('loadingScreen');
-        if (loadingScreen) {
-            loadingScreen.style.display = 'none';
-        }
-        
-        // Initialize the app
-        App.init();
-    }, 1000);
+    App.init();
 });
 
-// Export App module
-window.App = App;
-
-// Make mobile menu test available globally
-window.testMobileMenu = () => App.testMobileMenu();
-
-// Make ultimate dashboard test available globally
-window.testDashboard = () => debugApp.ultimateDashboard();
-
-// Quick dashboard test function (available immediately)
-window.quickDashboardTest = async function() {
-    console.log('🚀 QUICK DASHBOARD TEST STARTING...');
-    
-    // Step 1: Check if we're logged in
-    const token = localStorage.getItem('racket_warrior_token');
-    const userJson = localStorage.getItem('racket_warrior_user');
-    
-    console.log('1. 🔐 Authentication Check:', {
-        hasToken: !!token,
-        hasUser: !!userJson,
-        tokenLength: token?.length || 0
-    });
-    
-    if (!token || !userJson) {
-        console.error('❌ Not logged in! Please login first.');
-        return;
-    }
-    
-    // Step 2: Navigate to dashboard if not already there
-    if (typeof showPage === 'function') {
-        console.log('2. 📍 Navigating to dashboard...');
-        showPage('dashboard');
-        
-        // Wait for page to load
-        setTimeout(async () => {
-            console.log('3. 📡 Testing API call...');
-            await debugApp.ultimateDashboard();
-        }, 1500);
-    } else {
-        console.log('2. 📡 Testing API directly...');
-        await debugApp.ultimateDashboard();
-    }
-};
-
-// Quick global test functions for immediate testing
-window.testPlayersAdd = () => {
-    console.log('🧪 Quick test: players-add');
-    showPage('players-add');
-};
-
-window.testPlayersView = () => {
-    console.log('🧪 Quick test: players-view');
-    showPage('players-view');
-};
-
-// Test all refresh buttons across the app
-window.testAllRefreshButtons = async () => {
-    console.log('🔄 Testing All Refresh Buttons...');
-    
-    const refreshTests = [
-        { page: 'dashboard', buttonId: 'refreshDashboard', name: 'Dashboard' },
-        { page: 'players-view', buttonId: 'refreshPlayers', name: 'Players' },
-        { page: 'collection-view', buttonId: 'refreshCollections', name: 'Collections' },
-        { page: 'expenses-view', buttonId: 'refreshExpenses', name: 'Expenses' },
-        { page: 'reports', buttonId: 'refreshReport', name: 'Reports' },
-        { page: 'logs', buttonId: 'refreshLogs', name: 'Logs' }
-    ];
-    
-    for (const test of refreshTests) {
-        console.log(`🔄 Testing ${test.name} refresh...`);
-        
-        try {
-            // Navigate to page
-            showPage(test.page);
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            // Find refresh button
-            const refreshBtn = document.getElementById(test.buttonId);
-            
-            if (refreshBtn) {
-                console.log(`✅ ${test.name}: Refresh button found`);
-                console.log(`   - Button text: "${refreshBtn.textContent?.trim()}"`);
-                console.log(`   - Button enabled: ${!refreshBtn.disabled}`);
-                console.log(`   - Button visible: ${refreshBtn.offsetParent !== null}`);
-                
-                // Test click (but don't actually trigger to avoid spam)
-                const hasClickListener = refreshBtn.onclick !== null || 
-                                       refreshBtn.getAttribute('onclick') !== null ||
-                                       getEventListeners(refreshBtn)?.click?.length > 0;
-                console.log(`   - Has click handler: ${hasClickListener}`);
-            } else {
-                console.error(`❌ ${test.name}: Refresh button (${test.buttonId}) not found`);
-            }
-        } catch (error) {
-            console.error(`❌ ${test.name}: Error testing refresh -`, error);
-        }
-    }
-    
-    console.log('🔄 Refresh button test complete!');
-};
-
-// Test reports cards specifically
-window.testReportsCards = async () => {
-    console.log('📊 Testing Reports Cards...');
-    
-    // Navigate to reports
-    showPage('reports');
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Check if Reports module exists
-    console.log('1. 📊 Reports module exists:', !!window.Reports);
-    
-    // Check current month
-    console.log('2. 📅 Current month:', window.Reports?.currentMonth);
-    
-    // Check report data
-    console.log('3. 📋 Report data exists:', !!window.Reports?.reportData);
-    if (window.Reports?.reportData) {
-        console.log('   - Summary data:', window.Reports.reportData.summary);
-    }
-    
-    // Check DOM elements
-    const summaryCards = document.querySelectorAll('.summary-card');
-    console.log('4. 🎴 Summary cards found:', summaryCards.length);
-    
-    summaryCards.forEach((card, index) => {
-        const cardTitle = card.querySelector('h4')?.textContent || 'Unknown';
-        const cardValue = card.querySelector('.summary-number')?.textContent || 'No value';
-        console.log(`   Card ${index + 1} (${cardTitle}): "${cardValue}"`);
-        
-        if (cardValue.includes('undefined')) {
-            console.error(`❌ Card ${index + 1} has undefined value!`);
-        }
-    });
-    
-    // Try manual refresh
-    console.log('5. 🔄 Testing manual refresh...');
-    const refreshBtn = document.getElementById('refreshReport');
-    if (refreshBtn) {
-        refreshBtn.click();
-        console.log('   ✅ Refresh button clicked');
-    } else {
-        console.error('   ❌ Refresh button not found');
-    }
-    
-    console.log('📊 Reports test complete!');
-};
-
-// Specific debug for players navigation issue
-window.debugPlayersNavigation = async () => {
-    console.log('🔍 DEBUG: Players Navigation Issue');
-    
-    // Step 1: Check initial state
-    console.log('1. 📋 Initial state check...');
-    console.log('   - Players module exists:', !!window.Players);
-    console.log('   - Auth status:', Auth.isAuthenticated());
-    console.log('   - Current page:', App.currentPage);
-    
-    const contentArea = document.getElementById('pageContent');
-    console.log('   - Content area exists:', !!contentArea);
-    console.log('   - Content area content length:', contentArea?.innerHTML?.length || 0);
-    
-    // Step 2: Test players-add navigation
-    console.log('\n2. 🧪 Testing players-add navigation...');
-    console.log('   - Before navigation - current content:', contentArea?.innerHTML?.substring(0, 100) + '...');
-    
-    try {
+// Simple test functions for debugging
+window.testPlayers = () => {
+    console.log('Testing Players module:', !!window.Players);
+    if (window.Players) {
         showPage('players-add');
-        
-        // Give it time to render
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        console.log('   - After navigation - page:', App.currentPage);
-        console.log('   - After navigation - content length:', contentArea?.innerHTML?.length || 0);
-        console.log('   - After navigation - content preview:', contentArea?.innerHTML?.substring(0, 100) + '...');
-        
-        // Check for specific elements
-        const addPlayerPage = document.querySelector('.add-player-page');
-        const addPlayerForm = document.getElementById('addPlayerForm');
-        const playerNameInput = document.getElementById('playerName');
-        
-        console.log('   - .add-player-page found:', !!addPlayerPage);
-        console.log('   - #addPlayerForm found:', !!addPlayerForm);
-        console.log('   - #playerName input found:', !!playerNameInput);
-        
-        if (!addPlayerPage) {
-            console.error('❌ Add player page not rendered!');
-            console.log('   - Current content classes:', [...(contentArea?.children || [])].map(el => el.className));
-        }
-        
-    } catch (error) {
-        console.error('❌ Error during players-add navigation:', error);
     }
-    
-    // Step 3: Test players-view navigation
-    console.log('\n3. 🧪 Testing players-view navigation...');
-    
-    try {
-        showPage('players-view');
-        
-        // Give it time to render
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        console.log('   - After navigation - page:', App.currentPage);
-        console.log('   - After navigation - content length:', contentArea?.innerHTML?.length || 0);
-        
-        // Check for specific elements
-        const viewPlayersPage = document.querySelector('.view-players-page');
-        const playersTable = document.getElementById('playersTableContainer');
-        const playersSearch = document.getElementById('playersSearch');
-        
-        console.log('   - .view-players-page found:', !!viewPlayersPage);
-        console.log('   - #playersTableContainer found:', !!playersTable);
-        console.log('   - #playersSearch found:', !!playersSearch);
-        
-        if (!viewPlayersPage) {
-            console.error('❌ View players page not rendered!');
-            console.log('   - Current content classes:', [...(contentArea?.children || [])].map(el => el.className));
-        }
-        
-    } catch (error) {
-        console.error('❌ Error during players-view navigation:', error);
-    }
-    
-    // Step 4: Test sidebar clicks
-    console.log('\n4. 🧪 Testing sidebar navigation...');
-    
-    const addPlayerLink = document.querySelector('a[onclick="showPage(\'players-add\')"]');
-    const viewPlayerLink = document.querySelector('a[onclick="showPage(\'players-view\')"]');
-    
-    console.log('   - Add player sidebar link found:', !!addPlayerLink);
-    console.log('   - View player sidebar link found:', !!viewPlayerLink);
-    
-    if (addPlayerLink) {
-        console.log('   - Add player link text:', addPlayerLink.textContent?.trim());
-        console.log('   - Add player link onclick:', addPlayerLink.getAttribute('onclick'));
-    }
-    
-    if (viewPlayerLink) {
-        console.log('   - View player link text:', viewPlayerLink.textContent?.trim());
-        console.log('   - View player link onclick:', viewPlayerLink.getAttribute('onclick'));
-    }
-    
-    console.log('\n🔍 Players navigation debug complete!');
 };
 
-// Direct test of Players functions
-window.testPlayersDirectly = () => {
-    console.log('🎯 DIRECT TEST: Players Functions');
-    
-    const contentArea = document.getElementById('pageContent');
-    if (!contentArea) {
-        console.error('❌ No content area found');
-        return;
-    }
-    
-    console.log('1. 🧪 Testing Players.renderAddForm directly...');
-    
-    try {
-        // Store original content
-        const originalContent = contentArea.innerHTML;
-        
-        // Try direct call
-        console.log('   - Calling Players.renderAddForm...');
-        Players.renderAddForm(contentArea);
-        
-        // Check result
-        const newContent = contentArea.innerHTML;
-        console.log('   - Content changed:', originalContent !== newContent);
-        console.log('   - New content length:', newContent.length);
-        console.log('   - Add form found:', !!document.querySelector('.add-player-page'));
-        
-        // Test getAddFormHTML directly
-        console.log('2. 🧪 Testing getAddFormHTML directly...');
-        const html = Players.getAddFormHTML();
-        console.log('   - HTML returned:', !!html);
-        console.log('   - HTML length:', html?.length || 0);
-        console.log('   - HTML preview:', html?.substring(0, 100) + '...');
-        
-        // Test setupAddFormHandlers directly
-        console.log('3. 🧪 Testing setupAddFormHandlers directly...');
-        Players.setupAddFormHandlers();
-        console.log('   - Setup completed without error');
-        
-    } catch (error) {
-        console.error('❌ Error in direct test:', error);
-        console.error('Error stack:', error.stack);
+window.testReports = () => {
+    console.log('Testing Reports module:', !!window.Reports);
+    if (window.Reports) {
+        showPage('reports');
     }
 };

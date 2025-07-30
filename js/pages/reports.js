@@ -136,25 +136,19 @@ const Reports = {
         
         try {
             UIUtils.showLoading();
-            console.log('📊 Loading report data for month:', this.currentMonth);
             
             const response = await API.makeRequest('get_monthly_report', { month: this.currentMonth });
             
             if (response.success && response.data) {
-                console.log('📊 Raw report data received:', response.data);
-                
                 // Sanitize and ensure data structure
                 this.reportData = this.sanitizeReportData(response.data);
-                console.log('📊 Sanitized report data:', this.reportData);
-                
                 this.renderReport();
             } else {
-                console.warn('📊 API failed, using fallback data:', response.message);
                 UIUtils.showNotification('Failed to load report: ' + response.message, 'error');
                 this.showTestReport(); // Fallback to test data
             }
         } catch (error) {
-            console.error('📊 Error loading report:', error);
+            console.error('Error loading report:', error);
             UIUtils.showNotification('Error loading report', 'error');
             this.showTestReport(); // Fallback to test data
         } finally {
@@ -164,8 +158,6 @@ const Reports = {
     
     // Sanitize report data to ensure all required fields exist
     sanitizeReportData: function(rawData) {
-        console.log('🔧 Sanitizing report data...');
-        
         const sanitized = {
             month: rawData.month || this.currentMonth || DateUtils.getMonthYear(new Date()),
             monthLabel: rawData.monthLabel || this.getMonthLabel(this.currentMonth),
@@ -187,7 +179,6 @@ const Reports = {
             sanitized.summary.netBalance = sanitized.summary.totalCollection - sanitized.summary.totalExpenses;
         }
         
-        console.log('✅ Data sanitization complete:', sanitized.summary);
         return sanitized;
     },
     
