@@ -353,22 +353,29 @@ const Players = {
             filteredData = DataUtils.filterBySearch(filteredData, searchTerm, ['Name', 'Phone', 'Email']);
         }
         
-        // Apply month filter
+        // Apply month filter - show only players who have activity in selected month
         const monthFilter = document.getElementById('playersMonthFilter')?.value;
-        if (monthFilter) {
+        if (monthFilter && monthFilter !== 'all') {
+            console.log('🔍 Filtering players for month:', monthFilter);
+            
             filteredData = filteredData.filter(player => {
                 if (player.MonthlyStatus) {
                     try {
                         const monthlyStatus = JSON.parse(player.MonthlyStatus);
-                        return monthlyStatus[monthFilter] === 'active';
+                        // Check if player has any activity (active or inactive) in this month
+                        const hasActivityInMonth = monthlyStatus.hasOwnProperty(monthFilter);
+                        console.log(`👤 Player ${player.Name}: Month ${monthFilter} activity:`, hasActivityInMonth, monthlyStatus[monthFilter]);
+                        return hasActivityInMonth;
                     } catch (e) {
-                        // If no monthly status, fall back to general Status
-                        return player.Status === 'active';
+                        console.warn('👤 Failed to parse MonthlyStatus for player:', player.Name, e);
+                        return false;
                     }
                 }
-                // If no monthly status, fall back to general Status
-                return player.Status === 'active';
+                console.log(`👤 Player ${player.Name}: No MonthlyStatus data`);
+                return false;
             });
+            
+            console.log(`🔍 Filtered to ${filteredData.length} players for month ${monthFilter}`);
         }
         
         // Apply status filter

@@ -22,6 +22,9 @@ const App = {
         // Force setup mobile menu (crucial fix)
         this.forceMobileMenuSetup();
         
+        // Setup comprehensive activity logging
+        ActivityLogger.setupAutoLogging();
+        
         // Debug commands for troubleshooting
         window.debugApp = {
             clearCache: () => {
@@ -47,6 +50,29 @@ const App = {
                          testMobile: () => App.testMobileMenu(),
              
              // NEW: Test logs display
+             // Test comprehensive logging
+             testAllLogging: async () => {
+                console.log('📋 Testing ALL Logging Features...');
+                
+                try {
+                    // Test direct logging
+                    await ActivityLogger.logAction('TEST_ACTION', 'Testing comprehensive logging system', 'test');
+                    console.log('✅ Direct action logging works');
+                    
+                    // Test page visit logging
+                    await ActivityLogger.logPageVisit('test-page');
+                    console.log('✅ Page visit logging works');
+                    
+                    // Test click logging
+                    await ActivityLogger.logClick('test-button', 'Testing button click');
+                    console.log('✅ Click logging works');
+                    
+                    console.log('🎉 All logging tests passed!');
+                } catch (error) {
+                    console.error('❌ Logging test failed:', error);
+                }
+            },
+            
              testLogs: async () => {
                 console.log('📋 Testing Logs Display...');
                 try {
@@ -571,6 +597,9 @@ const App = {
         }
         
         Logger.info(`Navigating to page: ${page}`);
+        
+        // Log page visit for comprehensive tracking
+        ActivityLogger.logPageVisit(page);
         
         // Check permissions
         if (!this.checkPagePermissions(page)) {

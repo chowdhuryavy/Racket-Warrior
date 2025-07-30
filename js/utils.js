@@ -1,5 +1,69 @@
 // Utility Functions for Racket Warrior App
 
+// Comprehensive Activity Logger
+const ActivityLogger = {
+    // Log page visits
+    logPageVisit: async function(page) {
+        try {
+            console.log(`📋 Logging page visit: ${page}`);
+            await API.logPageVisit(page);
+        } catch (error) {
+            console.warn('📋 Failed to log page visit:', error);
+        }
+    },
+    
+    // Log button clicks
+    logClick: async function(element, details = '') {
+        try {
+            console.log(`📋 Logging click: ${element}`);
+            await API.logClick(element, details);
+        } catch (error) {
+            console.warn('📋 Failed to log click:', error);
+        }
+    },
+    
+    // Log user actions
+    logAction: async function(action, details = '', type = 'user', status = 'success') {
+        try {
+            console.log(`📋 Logging action: ${action}`);
+            await API.logAction(action, details, type, status);
+        } catch (error) {
+            console.warn('📋 Failed to log action:', error);
+        }
+    },
+    
+    // Auto-log common UI interactions
+    setupAutoLogging: function() {
+        console.log('📋 Setting up automatic activity logging...');
+        
+        // Log all button clicks
+        document.addEventListener('click', (e) => {
+            const button = e.target.closest('button');
+            if (button) {
+                const buttonText = button.textContent?.trim() || button.getAttribute('aria-label') || 'Unknown Button';
+                const buttonId = button.id || 'no-id';
+                this.logClick(`Button: ${buttonText} (${buttonId})`);
+            }
+            
+            // Log navigation link clicks
+            const link = e.target.closest('a[href], .nav-link');
+            if (link) {
+                const linkText = link.textContent?.trim() || link.getAttribute('aria-label') || 'Unknown Link';
+                this.logClick(`Navigation: ${linkText}`);
+            }
+        });
+        
+        // Log form submissions
+        document.addEventListener('submit', (e) => {
+            const form = e.target;
+            const formId = form.id || 'unknown-form';
+            this.logAction('FORM_SUBMIT', `Form submitted: ${formId}`, 'interaction');
+        });
+        
+        console.log('✅ Auto-logging setup complete');
+    }
+};
+
 // Logger utility
 const Logger = {
     debug: function(message, data = null) {

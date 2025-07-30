@@ -212,15 +212,19 @@ const Logs = {
                 return null;
             }
             
-            // Create a standardized log object
+            // Create a standardized log object with enhanced fields
             const processedLog = {
                 id: log.id || log.ID || index + 1,
                 timestamp: log.timestamp || log.Timestamp || log.created_at || new Date().toISOString(),
                 type: log.type || log.Type || 'system',
                 action: log.action || log.Action || 'Unknown Action',
                 user: log.user || log.User || log.email || 'System',
+                role: log.role || log.Role || 'unknown',
                 details: log.details || log.Details || log.description || 'No details available',
-                status: log.status || log.Status || 'unknown'
+                status: log.status || log.Status || 'unknown',
+                ip: log.ip || log.IP || 'N/A',
+                userAgent: log.userAgent || log.UserAgent || 'N/A',
+                month: log.month || log.Month || null
             };
             
             // Validate required fields

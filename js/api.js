@@ -207,6 +207,19 @@ const API = {
     getAvailableMonths: async function() {
         return await this.makeRequest('get_available_months');
     },
+    
+    // Comprehensive logging APIs
+    logPageVisit: async function(page) {
+        return await this.makeRequest('log_page_visit', { page });
+    },
+    
+    logClick: async function(element, details = '') {
+        return await this.makeRequest('log_click', { element, details });
+    },
+    
+    logAction: async function(action, details = '', type = 'user', status = 'success') {
+        return await this.makeRequest('add_log', { action, details, type, status });
+    },
 
     // Logs APIs
     getLogs: async function(filters = {}) {

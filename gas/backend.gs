@@ -33,7 +33,7 @@ const SHEETS = {
   },
   logs: {
     name: 'Logs',
-    columns: ['timestamp', 'user', 'role', 'action', 'details']
+    columns: ['ID', 'Timestamp', 'User', 'Role', 'Type', 'Action', 'Details', 'Status', 'IP', 'UserAgent', 'Month']
   },
   settings: {
     name: 'Settings',
@@ -133,6 +133,8 @@ function doGet(e) {
       // Logs
       case 'get_logs': result = handleGetLogs(e.parameter); break;
       case 'add_log': result = handleAddLog(e.parameter); break;
+      case 'log_page_visit': result = handleLogPageVisit(e.parameter); break;
+      case 'log_click': result = handleLogClick(e.parameter); break;
       
       // Settings
       case 'get_settings': result = handleGetSettings(e.parameter); break;
@@ -235,6 +237,8 @@ function doPost(e) {
       // Logs
       case 'get_logs': result = handleGetLogs(e.parameter); break;
       case 'add_log': result = handleAddLog(e.parameter); break;
+      case 'log_page_visit': result = handleLogPageVisit(e.parameter); break;
+      case 'log_click': result = handleLogClick(e.parameter); break;
         
       // Settings
       case 'get_settings': result = handleGetSettings(e.parameter); break;
@@ -1651,7 +1655,7 @@ function handleGetLogs(params) {
  */
 function handleAddLog(params) {
   try {
-    const { token, action, details } = params;
+    const { token, action, details, type, status } = params;
     
     const user = verifyToken(token);
     if (!user) {
@@ -1662,12 +1666,52 @@ function handleAddLog(params) {
       return { success: false, message: 'Action is required' };
     }
     
-    addLog(action, details || '', user.email, user.role);
+    addLog(action, details || '', user.email, user.role, type, status);
     
     return { success: true, message: 'Log added successfully' };
     
   } catch (error) {
     return { success: false, message: 'Failed to add log: ' + error.toString() };
+  }
+}
+
+/**
+ * Handle page visit logging
+ */
+function handleLogPageVisit(params) {
+  try {
+    const { token, page } = params;
+    
+    const user = verifyToken(token);
+    if (!user) {
+      return { success: false, message: 'Unauthorized access' };
+    }
+    
+    addPageLog(page, user.email, user.role);
+    
+    return { success: true, message: 'Page visit logged' };
+  } catch (error) {
+    return { success: false, message: 'Failed to log page visit: ' + error.toString() };
+  }
+}
+
+/**
+ * Handle click logging
+ */
+function handleLogClick(params) {
+  try {
+    const { token, element, details } = params;
+    
+    const user = verifyToken(token);
+    if (!user) {
+      return { success: false, message: 'Unauthorized access' };
+    }
+    
+    addClickLog(element, user.email, user.role);
+    
+    return { success: true, message: 'Click logged' };
+  } catch (error) {
+    return { success: false, message: 'Failed to log click: ' + error.toString() };
   }
 }
 
@@ -1896,22 +1940,70 @@ function hasPermission(userRole, action) {
 }
 
 /**
- * Add log entry
+ * Add comprehensive log entry
  */
-function addLog(action, details, userEmail, userRole) {
+function addLog(action, details, userEmail, userRole, type = 'user', status = 'success', additionalData = {}) {
   try {
     const logsSheet = getSheet(SHEETS.logs.name);
     const timestamp = new Date().toISOString();
+    const month = getMonthFromDate(timestamp);
+    
+    // Generate unique ID
+    const id = generateUniqueId();
+    
+    // Determine log type from action
+    const logType = type || determineLogType(action);
     
     logsSheet.appendRow([
-      timestamp,
-      userEmail || 'SYSTEM',
-      userRole || 'unknown',
-      action,
-      details || ''
+      id,                                    // ID
+      timestamp,                            // Timestamp  
+      userEmail || 'SYSTEM',               // User
+      userRole || 'unknown',               // Role
+      logType,                             // Type (auth, user, player, finance, system)
+      action,                              // Action
+      details || '',                       // Details
+      status,                              // Status (success, error, warning)
+      additionalData.ip || 'N/A',         // IP Address
+      additionalData.userAgent || 'N/A',   // User Agent
+      month                                // Month
     ]);
+    
+    console.log(`📋 Log added: ${action} by ${userEmail}`);
   } catch (error) {
+    console.error('📋 Failed to add log:', error);
   }
+}
+
+/**
+ * Determine log type from action
+ */
+function determineLogType(action) {
+  const actionUpper = action.toUpperCase();
+  
+  if (actionUpper.includes('LOGIN') || actionUpper.includes('LOGOUT') || actionUpper.includes('PASSWORD')) {
+    return 'auth';
+  } else if (actionUpper.includes('USER') || actionUpper.includes('ROLE')) {
+    return 'user';
+  } else if (actionUpper.includes('PLAYER')) {
+    return 'player';
+  } else if (actionUpper.includes('INCOME') || actionUpper.includes('EXPENSE') || actionUpper.includes('FINANCE')) {
+    return 'finance';
+  } else if (actionUpper.includes('SETTING') || actionUpper.includes('PHOTO')) {
+    return 'system';
+  } else {
+    return 'general';
+  }
+}
+
+/**
+ * Add enhanced logging for all page visits and clicks
+ */
+function addPageLog(page, userEmail, userRole) {
+  addLog(`PAGE_VISIT`, `User visited ${page} page`, userEmail, userRole, 'navigation', 'success');
+}
+
+function addClickLog(element, userEmail, userRole) {
+  addLog(`UI_CLICK`, `User clicked ${element}`, userEmail, userRole, 'interaction', 'success');
 }
 
 /**
