@@ -5,14 +5,14 @@ const Logs = {
     currentFilter: 'all',
     
     // Render logs page
-    render: function(container) {
+    render: async function(container) {
         container.innerHTML = this.getHTML();
-        this.init();
+        await this.init();
     },
     
     // Initialize logs page
-    init: function() {
-        this.setupMonthFilter();
+    init: async function() {
+        await this.setupMonthFilter();
         this.setupEventListeners();
         this.loadLogs();
     },
@@ -119,18 +119,16 @@ const Logs = {
     },
     
     // Setup month filter
-    setupMonthFilter: function() {
-        const monthFilter = document.getElementById('logsMonthFilter');
-        if (!monthFilter) return;
-
-        const months = DateUtils.generateMonthOptions();
-        monthFilter.innerHTML = '<option value="">All Months</option>';
-        months.forEach(month => {
-            const option = document.createElement('option');
-            option.value = month.value;
-            option.textContent = month.label;
-            monthFilter.appendChild(option);
-        });
+    setupMonthFilter: async function() {
+        try {
+            const availableMonths = await DateUtils.setupAvailableMonthsFilter('logsMonthFilter', {
+                allTimeLabel: 'All Months'
+            });
+            
+            console.log('📅 Logs month filter setup complete with', availableMonths.length, 'months');
+        } catch (error) {
+            console.error('📅 Failed to setup logs month filter:', error);
+        }
     },
     
     // Setup event listeners

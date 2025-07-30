@@ -241,90 +241,24 @@ const Dashboard = {
     // Setup month filter dropdown
     setupMonthFilter: async function() {
         try {
-            const monthFilter = document.getElementById('dashboardMonthFilter');
+            const availableMonths = await DateUtils.setupAvailableMonthsFilter('dashboardMonthFilter', {
+                allTimeLabel: 'All Time'
+            });
             
+            // Get the selected month from the filter
+            const monthFilter = document.getElementById('dashboardMonthFilter');
             if (monthFilter) {
-                // Clear existing options except "All Time"
-                monthFilter.innerHTML = '<option value="">All Time</option>';
-                
-                console.log('📅 Loading available months from API...');
-                
-                // Get available months from API
-                const response = await API.getAvailableMonths();
-                
-                if (response && response.success && response.data) {
-                    console.log('📅 Available months:', response.data);
-                    
-                    // Add available months from API
-                    response.data.forEach(monthKey => {
-                        const option = document.createElement('option');
-                        option.value = monthKey;
-                        option.textContent = DateUtils.formatMonthForDisplay(monthKey);
-                        monthFilter.appendChild(option);
-                    });
-                    
-                    // Set current month as default if it exists in available months
-                    const currentMonth = DateUtils.getMonthKey(new Date());
-                    if (response.data.includes(currentMonth)) {
-                        monthFilter.value = currentMonth;
-                        this.currentMonth = currentMonth;
-                    } else if (response.data.length > 0) {
-                        // Use the latest available month
-                        const latestMonth = response.data[response.data.length - 1];
-                        monthFilter.value = latestMonth;
-                        this.currentMonth = latestMonth;
-                    } else {
-                        // No data available, use all time
-                        monthFilter.value = '';
-                        this.currentMonth = null;
-                    }
-                } else {
-                    console.warn('📅 No available months data, falling back to generated months');
-                    
-                    // Fallback to generated months if API fails
-                    const months = DateUtils.generateMonthOptions();
-                    months.forEach(month => {
-                        const option = document.createElement('option');
-                        option.value = month.value;
-                        option.textContent = month.label;
-                        monthFilter.appendChild(option);
-                    });
-                    
-                    // Set current month as default
-                    const currentMonth = DateUtils.getMonthKey(new Date());
-                    monthFilter.value = currentMonth;
-                    this.currentMonth = currentMonth;
-                }
+                this.currentMonth = monthFilter.value || null;
                 
                 // Set as global month
                 DateUtils.setGlobalMonth(this.currentMonth);
                 
-                console.log('📅 Month filter setup complete, current month:', this.currentMonth);
+                console.log('📅 Dashboard month filter setup complete, current month:', this.currentMonth);
+                console.log('📅 Available months:', availableMonths.length);
             }
         } catch (error) {
-            console.error('📅 Failed to setup month filter:', error);
+            console.error('📅 Failed to setup dashboard month filter:', error);
             Logger.error('Failed to setup month filter', error);
-            
-            // Fallback setup on error
-            try {
-                const monthFilter = document.getElementById('dashboardMonthFilter');
-                if (monthFilter) {
-                    monthFilter.innerHTML = '<option value="">All Time</option>';
-                    const months = DateUtils.generateMonthOptions();
-                    months.forEach(month => {
-                        const option = document.createElement('option');
-                        option.value = month.value;
-                        option.textContent = month.label;
-                        monthFilter.appendChild(option);
-                    });
-                    const currentMonth = DateUtils.getMonthKey(new Date());
-                    monthFilter.value = currentMonth;
-                    this.currentMonth = currentMonth;
-                    DateUtils.setGlobalMonth(currentMonth);
-                }
-            } catch (fallbackError) {
-                console.error('📅 Fallback month filter setup also failed:', fallbackError);
-            }
         }
     },
     

@@ -318,7 +318,7 @@ const Players = {
             
             if (response.success) {
                 this.currentData = response.data || [];
-                this.setupMonthFilter();
+                await this.setupMonthFilter();
                 this.filterAndRenderTable();
             } else {
                 throw new Error(response.message || 'Failed to load players');
@@ -331,45 +331,15 @@ const Players = {
     },
     
     // Setup month filter
-    setupMonthFilter: function() {
-        const monthFilter = document.getElementById('playersMonthFilter');
-        if (!monthFilter || !this.currentData) return;
-        
-        const months = new Set();
-        
-        this.currentData.forEach(player => {
-            if (player.MonthlyStatus) {
-                try {
-                    const monthlyStatus = JSON.parse(player.MonthlyStatus);
-                    Object.keys(monthlyStatus).forEach(month => months.add(month));
-                } catch (e) {
-                    Logger.warn('Invalid monthly status JSON', player.MonthlyStatus);
-                }
-            }
+    setupMonthFilter: async function() {
+        try {
+            const availableMonths = await DateUtils.setupAvailableMonthsFilter('playersMonthFilter', {
+                allTimeLabel: 'All Months'
+            });
             
-            // Also add join date month
-            if (player.JoinDate) {
-                const month = DateUtils.getMonthYear(player.JoinDate);
-                months.add(month);
-            }
-        });
-        
-        // Preserve current selection
-        const currentValue = monthFilter.value;
-        
-        // Clear and rebuild options
-        monthFilter.innerHTML = '<option value="">All Months</option>';
-        
-        Array.from(months).sort().reverse().forEach(month => {
-            const option = document.createElement('option');
-            option.value = month;
-            option.textContent = DateUtils.parseMonthYear(month);
-            monthFilter.appendChild(option);
-        });
-        
-        // Restore selection
-        if (currentValue) {
-            monthFilter.value = currentValue;
+            console.log('📅 Players month filter setup complete with', availableMonths.length, 'months');
+        } catch (error) {
+            console.error('📅 Failed to setup players month filter:', error);
         }
     },
     

@@ -4,7 +4,7 @@ const Collection = {
     filteredData: [],
 
     // Render Add Collection Form
-    renderAddForm: function(container) {
+    renderAddForm: async function(container) {
         container.innerHTML = `
             <div class="collection-add-page">
                 <div class="page-header">
@@ -80,11 +80,11 @@ const Collection = {
                 </div>
             </div>
         `;
-        this.init();
+        await this.init();
     },
 
     // Render View Collections Table
-    renderViewTable: function(container) {
+    renderViewTable: async function(container) {
         container.innerHTML = `
             <div class="collection-view-page">
                 <div class="page-header">
@@ -132,17 +132,17 @@ const Collection = {
                 </div>
             </div>
         `;
-        this.init();
+        await this.init();
     },
 
     // Initialize the collection forms and tables
-    init: function() {
+    init: async function() {
         if (document.getElementById('addCollectionForm')) {
             this.initializeAddForm();
         }
         
         if (document.getElementById('collectionsTableContainer')) {
-            this.initializeViewTable();
+                            await this.initializeViewTable();
         }
     },
 
@@ -170,9 +170,9 @@ const Collection = {
 
     },
 
-    // Initialize View Table
-    initializeViewTable: function() {
-        this.setupMonthFilter();
+        // Initialize View Table
+    initializeViewTable: async function() {
+        await this.setupMonthFilter();
         this.loadCollectionsData();
         
         // Setup event listeners with error handling
@@ -300,20 +300,16 @@ const Collection = {
     },
 
     // Setup month filter for view table
-    setupMonthFilter: function() {
-        const monthFilter = document.getElementById('collectionMonthFilter');
-        if (!monthFilter) return;
-
-        const months = DateUtils.generateMonthOptions();
-        monthFilter.innerHTML = '<option value="">All Months</option>';
-        months.forEach(month => {
-            const option = document.createElement('option');
-            option.value = month.value;
-            option.textContent = month.label;
-            monthFilter.appendChild(option);
-        });
-        
-
+    setupMonthFilter: async function() {
+        try {
+            const availableMonths = await DateUtils.setupAvailableMonthsFilter('collectionMonthFilter', {
+                allTimeLabel: 'All Months'
+            });
+            
+            console.log('📅 Collection month filter setup complete with', availableMonths.length, 'months');
+        } catch (error) {
+            console.error('📅 Failed to setup collection month filter:', error);
+        }
     },
 
     // Handle Add Collection Form Submission

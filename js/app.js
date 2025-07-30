@@ -64,6 +64,33 @@ const App = {
                 }
             },
             
+            // NEW: Test available months API
+            testMonths: async () => {
+                console.log('📅 Testing Available Months API...');
+                try {
+                    const response = await API.getAvailableMonths();
+                    console.log('📅 API Response:', response);
+                    
+                    if (response && response.success && Array.isArray(response.data)) {
+                        console.log('✅ Available months:', response.data);
+                        console.log('✅ Total months with data:', response.data.length);
+                        
+                        if (response.data.length > 0) {
+                            console.log('📈 Months breakdown:');
+                            response.data.forEach((month, index) => {
+                                console.log(`   ${index + 1}. ${month} (${DateUtils.formatMonthForDisplay(month)})`);
+                            });
+                        } else {
+                            console.log('ℹ️ No months with data found');
+                        }
+                    } else {
+                        console.error('❌ Invalid response from API:', response);
+                    }
+                } catch (error) {
+                    console.error('❌ Error testing months API:', error);
+                }
+            },
+            
             // NEW: Ultimate dashboard test that works from anywhere
             ultimateDashboard: async () => {
                 console.log('🔧 ULTIMATE DASHBOARD DEBUG (Global Version)');

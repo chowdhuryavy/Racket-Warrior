@@ -4,7 +4,7 @@ const Expenses = {
     filteredData: [],
 
     // Render Add Expense Form
-    renderAddForm: function(container) {
+    renderAddForm: async function(container) {
         container.innerHTML = `
             <div class="expenses-add-page">
                 <div class="page-header">
@@ -86,11 +86,11 @@ const Expenses = {
                 </div>
             </div>
         `;
-        this.init();
+        await this.init();
     },
 
     // Render View Expenses Table
-    renderViewTable: function(container) {
+    renderViewTable: async function(container) {
         container.innerHTML = `
             <div class="expenses-view-page">
                 <div class="page-header">
@@ -144,17 +144,17 @@ const Expenses = {
                 </div>
             </div>
         `;
-        this.init();
+        await this.init();
     },
 
     // Initialize the expense forms and tables
-    init: function() {
+    init: async function() {
         if (document.getElementById('addExpenseForm')) {
             this.initializeAddForm();
         }
         
         if (document.getElementById('expensesTableContainer')) {
-            this.initializeViewTable();
+                            await this.initializeViewTable();
         }
     },
 
@@ -172,9 +172,9 @@ const Expenses = {
         });
     },
 
-    // Initialize View Table
-    initializeViewTable: function() {
-        this.setupMonthFilter();
+        // Initialize View Table
+    initializeViewTable: async function() {
+        await this.setupMonthFilter();
         this.loadExpensesData();
         
         // Setup event listeners
@@ -219,18 +219,16 @@ const Expenses = {
     },
 
     // Setup month filter for view table
-    setupMonthFilter: function() {
-        const monthFilter = document.getElementById('expenseMonthFilter');
-        if (!monthFilter) return;
-
-        const months = DateUtils.generateMonthOptions();
-        monthFilter.innerHTML = '<option value="">All Months</option>';
-        months.forEach(month => {
-            const option = document.createElement('option');
-            option.value = month.value;
-            option.textContent = month.label;
-            monthFilter.appendChild(option);
-        });
+    setupMonthFilter: async function() {
+        try {
+            const availableMonths = await DateUtils.setupAvailableMonthsFilter('expenseMonthFilter', {
+                allTimeLabel: 'All Months'
+            });
+            
+            console.log('📅 Expenses month filter setup complete with', availableMonths.length, 'months');
+        } catch (error) {
+            console.error('📅 Failed to setup expenses month filter:', error);
+        }
     },
 
     // Handle Add Expense Form Submission

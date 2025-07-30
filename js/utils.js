@@ -154,6 +154,75 @@ const DateUtils = {
         return this.parseMonthYear(monthKey);
     },
 
+    // Centralized month filter setup for all pages
+    setupAvailableMonthsFilter: async function(filterId, options = {}) {
+        const filter = document.getElementById(filterId);
+        if (!filter) {
+            console.warn(`Month filter element '${filterId}' not found`);
+            return [];
+        }
+
+        try {
+            console.log(`📅 Setting up month filter: ${filterId}`);
+            
+            // Get available months from API
+            const response = await API.getAvailableMonths();
+            
+            let availableMonths = [];
+            
+            if (response && response.success && Array.isArray(response.data)) {
+                availableMonths = response.data;
+                console.log(`📅 Available months from API:`, availableMonths);
+            } else {
+                console.warn(`📅 API failed, using fallback months`);
+                // Fallback to generated months if API fails
+                const fallbackMonths = this.generateMonthOptions();
+                availableMonths = fallbackMonths.map(m => m.value);
+            }
+
+            // Clear existing options
+            const allTimeLabel = options.allTimeLabel || 'All Time';
+            filter.innerHTML = `<option value="">${allTimeLabel}</option>`;
+
+            // Add available months
+            availableMonths.forEach(monthKey => {
+                const option = document.createElement('option');
+                option.value = monthKey;
+                option.textContent = this.formatMonthForDisplay(monthKey);
+                filter.appendChild(option);
+            });
+
+            // Set default value if provided
+            if (options.defaultValue !== undefined) {
+                filter.value = options.defaultValue;
+            } else if (availableMonths.length > 0) {
+                // Set to latest month by default
+                const latestMonth = availableMonths[availableMonths.length - 1];
+                filter.value = latestMonth;
+            }
+
+            console.log(`✅ Month filter '${filterId}' setup complete with ${availableMonths.length} months`);
+            return availableMonths;
+
+        } catch (error) {
+            console.error(`❌ Error setting up month filter '${filterId}':`, error);
+            
+            // Fallback setup
+            const fallbackMonths = this.generateMonthOptions();
+            const allTimeLabel = options.allTimeLabel || 'All Time';
+            filter.innerHTML = `<option value="">${allTimeLabel}</option>`;
+            
+            fallbackMonths.forEach(month => {
+                const option = document.createElement('option');
+                option.value = month.value;
+                option.textContent = month.label;
+                filter.appendChild(option);
+            });
+            
+            return fallbackMonths.map(m => m.value);
+        }
+    },
+
     // Format date for input elements (YYYY-MM-DD)
     formatDateForInput: function(date) {
         if (!date) return '';
