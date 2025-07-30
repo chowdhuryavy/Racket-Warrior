@@ -1084,8 +1084,22 @@ const App = {
                             // Verify content was added
                             const addedContent = contentArea.querySelector('.add-player-page');
                             console.log('✅ Add form content in DOM:', !!addedContent);
+                            
+                            // Additional verification
+                            if (!addedContent) {
+                                console.error('❌ CRITICAL: Add form not found in DOM after rendering!');
+                                console.log('📋 Current content area HTML length:', contentArea.innerHTML.length);
+                                console.log('📋 Current content area classes:', [...contentArea.children].map(el => el.className));
+                                
+                                // Try to detect what went wrong
+                                const hasPlayerText = contentArea.innerHTML.includes('Add New Player');
+                                const hasFormElement = contentArea.innerHTML.includes('addPlayerForm');
+                                console.log('📋 Contains "Add New Player" text:', hasPlayerText);
+                                console.log('📋 Contains "addPlayerForm" ID:', hasFormElement);
+                            }
                         } catch (error) {
                             console.error('❌ Error in Players.renderAddForm:', error);
+                            console.error('❌ Error stack:', error.stack);
                         }
                     } else {
                         console.error('❌ Players module not found');
@@ -1103,8 +1117,22 @@ const App = {
                             // Verify content was added
                             const addedContent = contentArea.querySelector('.view-players-page');
                             console.log('✅ View table content in DOM:', !!addedContent);
+                            
+                            // Additional verification
+                            if (!addedContent) {
+                                console.error('❌ CRITICAL: View table not found in DOM after rendering!');
+                                console.log('📋 Current content area HTML length:', contentArea.innerHTML.length);
+                                console.log('📋 Current content area classes:', [...contentArea.children].map(el => el.className));
+                                
+                                // Try to detect what went wrong
+                                const hasPlayersText = contentArea.innerHTML.includes('Players');
+                                const hasTableContainer = contentArea.innerHTML.includes('playersTableContainer');
+                                console.log('📋 Contains "Players" text:', hasPlayersText);
+                                console.log('📋 Contains "playersTableContainer" ID:', hasTableContainer);
+                            }
                         } catch (error) {
                             console.error('❌ Error in Players.renderViewTable:', error);
+                            console.error('❌ Error stack:', error.stack);
                         }
                     } else {
                         console.error('❌ Players module not found');
@@ -1618,4 +1646,146 @@ window.testReportsCards = async () => {
     }
     
     console.log('📊 Reports test complete!');
+};
+
+// Specific debug for players navigation issue
+window.debugPlayersNavigation = async () => {
+    console.log('🔍 DEBUG: Players Navigation Issue');
+    
+    // Step 1: Check initial state
+    console.log('1. 📋 Initial state check...');
+    console.log('   - Players module exists:', !!window.Players);
+    console.log('   - Auth status:', Auth.isAuthenticated());
+    console.log('   - Current page:', App.currentPage);
+    
+    const contentArea = document.getElementById('pageContent');
+    console.log('   - Content area exists:', !!contentArea);
+    console.log('   - Content area content length:', contentArea?.innerHTML?.length || 0);
+    
+    // Step 2: Test players-add navigation
+    console.log('\n2. 🧪 Testing players-add navigation...');
+    console.log('   - Before navigation - current content:', contentArea?.innerHTML?.substring(0, 100) + '...');
+    
+    try {
+        showPage('players-add');
+        
+        // Give it time to render
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        console.log('   - After navigation - page:', App.currentPage);
+        console.log('   - After navigation - content length:', contentArea?.innerHTML?.length || 0);
+        console.log('   - After navigation - content preview:', contentArea?.innerHTML?.substring(0, 100) + '...');
+        
+        // Check for specific elements
+        const addPlayerPage = document.querySelector('.add-player-page');
+        const addPlayerForm = document.getElementById('addPlayerForm');
+        const playerNameInput = document.getElementById('playerName');
+        
+        console.log('   - .add-player-page found:', !!addPlayerPage);
+        console.log('   - #addPlayerForm found:', !!addPlayerForm);
+        console.log('   - #playerName input found:', !!playerNameInput);
+        
+        if (!addPlayerPage) {
+            console.error('❌ Add player page not rendered!');
+            console.log('   - Current content classes:', [...(contentArea?.children || [])].map(el => el.className));
+        }
+        
+    } catch (error) {
+        console.error('❌ Error during players-add navigation:', error);
+    }
+    
+    // Step 3: Test players-view navigation
+    console.log('\n3. 🧪 Testing players-view navigation...');
+    
+    try {
+        showPage('players-view');
+        
+        // Give it time to render
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        console.log('   - After navigation - page:', App.currentPage);
+        console.log('   - After navigation - content length:', contentArea?.innerHTML?.length || 0);
+        
+        // Check for specific elements
+        const viewPlayersPage = document.querySelector('.view-players-page');
+        const playersTable = document.getElementById('playersTableContainer');
+        const playersSearch = document.getElementById('playersSearch');
+        
+        console.log('   - .view-players-page found:', !!viewPlayersPage);
+        console.log('   - #playersTableContainer found:', !!playersTable);
+        console.log('   - #playersSearch found:', !!playersSearch);
+        
+        if (!viewPlayersPage) {
+            console.error('❌ View players page not rendered!');
+            console.log('   - Current content classes:', [...(contentArea?.children || [])].map(el => el.className));
+        }
+        
+    } catch (error) {
+        console.error('❌ Error during players-view navigation:', error);
+    }
+    
+    // Step 4: Test sidebar clicks
+    console.log('\n4. 🧪 Testing sidebar navigation...');
+    
+    const addPlayerLink = document.querySelector('a[onclick="showPage(\'players-add\')"]');
+    const viewPlayerLink = document.querySelector('a[onclick="showPage(\'players-view\')"]');
+    
+    console.log('   - Add player sidebar link found:', !!addPlayerLink);
+    console.log('   - View player sidebar link found:', !!viewPlayerLink);
+    
+    if (addPlayerLink) {
+        console.log('   - Add player link text:', addPlayerLink.textContent?.trim());
+        console.log('   - Add player link onclick:', addPlayerLink.getAttribute('onclick'));
+    }
+    
+    if (viewPlayerLink) {
+        console.log('   - View player link text:', viewPlayerLink.textContent?.trim());
+        console.log('   - View player link onclick:', viewPlayerLink.getAttribute('onclick'));
+    }
+    
+    console.log('\n🔍 Players navigation debug complete!');
+};
+
+// Direct test of Players functions
+window.testPlayersDirectly = () => {
+    console.log('🎯 DIRECT TEST: Players Functions');
+    
+    const contentArea = document.getElementById('pageContent');
+    if (!contentArea) {
+        console.error('❌ No content area found');
+        return;
+    }
+    
+    console.log('1. 🧪 Testing Players.renderAddForm directly...');
+    
+    try {
+        // Store original content
+        const originalContent = contentArea.innerHTML;
+        
+        // Try direct call
+        console.log('   - Calling Players.renderAddForm...');
+        Players.renderAddForm(contentArea);
+        
+        // Check result
+        const newContent = contentArea.innerHTML;
+        console.log('   - Content changed:', originalContent !== newContent);
+        console.log('   - New content length:', newContent.length);
+        console.log('   - Add form found:', !!document.querySelector('.add-player-page'));
+        
+        // Test getAddFormHTML directly
+        console.log('2. 🧪 Testing getAddFormHTML directly...');
+        const html = Players.getAddFormHTML();
+        console.log('   - HTML returned:', !!html);
+        console.log('   - HTML length:', html?.length || 0);
+        console.log('   - HTML preview:', html?.substring(0, 100) + '...');
+        
+        // Test setupAddFormHandlers directly
+        console.log('3. 🧪 Testing setupAddFormHandlers directly...');
+        Players.setupAddFormHandlers();
+        console.log('   - Setup completed without error');
+        
+    } catch (error) {
+        console.error('❌ Error in direct test:', error);
+        console.error('Error stack:', error.stack);
+    }
 };
