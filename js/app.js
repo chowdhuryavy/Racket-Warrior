@@ -301,6 +301,76 @@ const App = {
                 } catch (error) {
                     console.error('❌ Dashboard persistence test failed:', error);
                 }
+            },
+            
+            // Test month filter consistency across all pages
+            testMonthFilters: async () => {
+                console.log('📅 Testing Month Filter Consistency Across All Pages...');
+                
+                const pages = ['dashboard', 'players', 'collection', 'expenses', 'logs', 'reports'];
+                const results = {};
+                
+                for (const page of pages) {
+                    try {
+                        console.log(`📅 Testing ${page} page...`);
+                        showPage(page);
+                        
+                        // Wait for page to load
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        
+                        // Find month filter element
+                        const filterSelectors = [
+                            `${page}MonthFilter`,
+                            `${page}Month`,
+                            'reportMonth',
+                            'dashboardMonthFilter'
+                        ];
+                        
+                        let filterElement = null;
+                        for (const selector of filterSelectors) {
+                            filterElement = document.getElementById(selector);
+                            if (filterElement) break;
+                        }
+                        
+                        if (filterElement) {
+                            const options = Array.from(filterElement.options).map(opt => opt.value);
+                            results[page] = {
+                                found: true,
+                                elementId: filterElement.id,
+                                optionCount: options.length,
+                                options: options,
+                                selectedValue: filterElement.value
+                            };
+                            console.log(`📅 ${page}: Found ${options.length} options`);
+                        } else {
+                            results[page] = { found: false };
+                            console.log(`📅 ${page}: No month filter found`);
+                        }
+                        
+                    } catch (error) {
+                        results[page] = { error: error.message };
+                        console.error(`📅 ${page}: Error -`, error);
+                    }
+                }
+                
+                console.log('📅 Month Filter Test Results:', results);
+                
+                // Check consistency
+                const foundPages = Object.keys(results).filter(page => results[page].found);
+                if (foundPages.length > 1) {
+                    const firstPageOptions = results[foundPages[0]].options;
+                    const allConsistent = foundPages.every(page => 
+                        JSON.stringify(results[page].options) === JSON.stringify(firstPageOptions)
+                    );
+                    
+                    if (allConsistent) {
+                        console.log('✅ All month filters are consistent!');
+                    } else {
+                        console.warn('⚠️ Month filters are NOT consistent between pages');
+                    }
+                }
+                
+                return results;
             }
         };
         

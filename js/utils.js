@@ -245,8 +245,13 @@ const DateUtils = {
             }
 
             // Clear existing options
-            const allTimeLabel = options.allTimeLabel || 'All Time';
-            filter.innerHTML = `<option value="">${allTimeLabel}</option>`;
+            filter.innerHTML = '';
+            
+            // Add "All Time" option unless explicitly disabled
+            if (options.includeAll !== false) {
+                const allTimeLabel = options.allTimeLabel || 'All Time';
+                filter.innerHTML = `<option value="">${allTimeLabel}</option>`;
+            }
 
             // Add available months
             availableMonths.forEach(monthKey => {
@@ -259,9 +264,13 @@ const DateUtils = {
             // Set default value if provided
             if (options.defaultValue !== undefined) {
                 filter.value = options.defaultValue;
+            } else if (options.defaultToLatest && availableMonths.length > 0) {
+                // Set to latest month (first in array since they're sorted desc)
+                const latestMonth = availableMonths[0];
+                filter.value = latestMonth;
             } else if (availableMonths.length > 0) {
-                // Set to latest month by default
-                const latestMonth = availableMonths[availableMonths.length - 1];
+                // Set to latest month by default (standard behavior)
+                const latestMonth = availableMonths[0];
                 filter.value = latestMonth;
             }
 

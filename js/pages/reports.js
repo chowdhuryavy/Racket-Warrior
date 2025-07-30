@@ -5,15 +5,15 @@ const Reports = {
     reportData: null,
     
     // Render reports page
-    render: function(container) {
+    render: async function(container) {
         container.innerHTML = this.getHTML();
-        this.init();
+        await this.init();
     },
     
     // Initialize reports page
-    init: function() {
+    init: async function() {
         this.setupEventListeners();
-        this.setCurrentMonth();
+        await this.setupMonthFilter();
         this.loadReportData();
     },
     
@@ -96,28 +96,31 @@ const Reports = {
         }
     },
     
-    // Set current month
-    setCurrentMonth: function() {
-        const monthSelect = document.getElementById('reportMonth');
-        if (!monthSelect) return;
-        
-        // Generate month options for the last 12 months
-        const months = [];
-        const now = new Date();
-        
-        for (let i = 0; i < 12; i++) {
-            const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-            const monthValue = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-            const monthLabel = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
-            months.push({ value: monthValue, label: monthLabel });
+    // Setup month filter with actual data months (centralized)
+    setupMonthFilter: async function() {
+        try {
+            console.log('📅 Setting up Reports month filter with actual data...');
+            const availableMonths = await DateUtils.setupAvailableMonthsFilter('reportMonth', {
+                includeAll: false, // Don't include "All Time" option for reports
+                defaultToLatest: true // Default to latest month with data
+            });
+            
+            // Set current month to the latest available month
+            if (availableMonths && availableMonths.length > 0) {
+                this.currentMonth = availableMonths[0]; // Latest month (they're sorted desc)
+                console.log('📅 Reports month filter setup complete. Current month:', this.currentMonth);
+            } else {
+                // Fallback to current month if no data
+                const now = new Date();
+                this.currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                console.log('📅 No data months found, using current month:', this.currentMonth);
+            }
+        } catch (error) {
+            console.error('📅 Failed to setup reports month filter:', error);
+            // Fallback to current month
+            const now = new Date();
+            this.currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
         }
-        
-        monthSelect.innerHTML = '<option value="">Select Month</option>' + 
-                               months.map(month => `<option value="${month.value}">${month.label}</option>`).join('');
-        
-        // Set current month as default
-        this.currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-        monthSelect.value = this.currentMonth;
     },
     
     // Load report data

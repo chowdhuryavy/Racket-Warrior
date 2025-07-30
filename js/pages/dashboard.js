@@ -491,17 +491,54 @@ const Dashboard = {
         });
     },
     
-    // Update stats cards
+    // Sanitize dashboard data to prevent any undefined values
+    sanitizeDashboardData: function(rawData) {
+        console.log('🧹 Sanitizing dashboard data:', rawData);
+        
+        // Helper function to ensure numeric value
+        const ensureNumber = (value, fallback = 0) => {
+            if (value === null || value === undefined || value === '' || isNaN(value)) {
+                console.warn(`⚠️ Invalid numeric value detected: ${value}, using fallback: ${fallback}`);
+                return fallback;
+            }
+            const num = typeof value === 'number' ? value : parseFloat(value);
+            return isNaN(num) ? fallback : num;
+        };
+        
+        const sanitized = {
+            activePlayersCount: ensureNumber(rawData?.activePlayersCount, 0),
+            totalCollection: ensureNumber(rawData?.totalCollection, 0),
+            totalExpenses: ensureNumber(rawData?.totalExpenses, 0),
+            finalBalance: ensureNumber(rawData?.finalBalance, 0),
+            // Monthly summary fields
+            monthlyIncome: ensureNumber(rawData?.monthlyIncome, 0),
+            monthlyExpenses: ensureNumber(rawData?.monthlyExpenses, 0),
+            monthlyNet: ensureNumber(rawData?.monthlyNet, 0)
+        };
+        
+        // Ensure final balance is calculated correctly
+        sanitized.finalBalance = sanitized.totalCollection - sanitized.totalExpenses;
+        sanitized.monthlyNet = sanitized.monthlyIncome - sanitized.monthlyExpenses;
+        
+        console.log('✅ Data sanitization complete:', sanitized);
+        return sanitized;
+    },
+    
+    // Update stats cards (enhanced with bulletproof undefined prevention)
     updateStats: function(data) {
-        console.log('UpdateStats called with data:', data);
+        console.log('📊 UpdateStats called with data:', data);
         
         // Ensure data exists and has required properties
         if (!data || typeof data !== 'object') {
-            console.error('Invalid dashboard data received:', data);
+            console.error('❌ Invalid dashboard data received:', data);
             Logger.error('Invalid dashboard data received:', data);
             this.showErrorState();
             return;
         }
+        
+        // Sanitize and validate all data values before setting
+        const sanitizedData = this.sanitizeDashboardData(data);
+        console.log('📊 Sanitized dashboard data:', sanitizedData);
         
         // Update main stats
         const activePlayersElement = document.getElementById('activePlayersCount');
@@ -516,59 +553,57 @@ const Dashboard = {
             finalBalanceElement: !!finalBalanceElement
         });
         
+        // Use sanitized data for all elements
+        
         // Active Players Count
         if (activePlayersElement) {
-            const count = data.activePlayersCount !== undefined && data.activePlayersCount !== null ? data.activePlayersCount : 0;
-            console.log('Setting activePlayersCount to:', count, 'type:', typeof count);
-            activePlayersElement.textContent = count;
+            console.log('📊 Setting activePlayersCount to:', sanitizedData.activePlayersCount, 'type:', typeof sanitizedData.activePlayersCount);
+            activePlayersElement.textContent = sanitizedData.activePlayersCount;
             activePlayersElement.style.color = 'var(--text-primary)';
         } else {
-            console.error('activePlayersElement not found in DOM');
+            console.error('❌ activePlayersElement not found in DOM');
         }
         
         // Total Collection
         if (totalCollectionElement) {
-            const collection = data.totalCollection !== undefined && data.totalCollection !== null ? data.totalCollection : 0;
-            console.log('Setting totalCollection to:', collection, 'type:', typeof collection);
-            totalCollectionElement.textContent = CurrencyUtils.format(collection);
+            console.log('📊 Setting totalCollection to:', sanitizedData.totalCollection, 'type:', typeof sanitizedData.totalCollection);
+            totalCollectionElement.textContent = CurrencyUtils.format(sanitizedData.totalCollection);
             totalCollectionElement.style.color = 'var(--text-primary)';
         } else {
-            console.error('totalCollectionElement not found in DOM');
+            console.error('❌ totalCollectionElement not found in DOM');
         }
         
         // Total Expenses
         if (totalExpenseElement) {
-            const expenses = data.totalExpenses !== undefined && data.totalExpenses !== null ? data.totalExpenses : 0;
-            console.log('Setting totalExpenses to:', expenses, 'type:', typeof expenses);
-            totalExpenseElement.textContent = CurrencyUtils.format(expenses);
+            console.log('📊 Setting totalExpenses to:', sanitizedData.totalExpenses, 'type:', typeof sanitizedData.totalExpenses);
+            totalExpenseElement.textContent = CurrencyUtils.format(sanitizedData.totalExpenses);
             totalExpenseElement.style.color = 'var(--text-primary)';
         } else {
-            console.error('totalExpenseElement not found in DOM');
+            console.error('❌ totalExpenseElement not found in DOM');
         }
         
         // Final Balance
         if (finalBalanceElement) {
-            const balance = data.finalBalance !== undefined && data.finalBalance !== null ? data.finalBalance : 0;
-            console.log('Setting finalBalance to:', balance, 'type:', typeof balance);
-            finalBalanceElement.textContent = CurrencyUtils.format(balance);
+            console.log('📊 Setting finalBalance to:', sanitizedData.finalBalance, 'type:', typeof sanitizedData.finalBalance);
+            finalBalanceElement.textContent = CurrencyUtils.format(sanitizedData.finalBalance);
             
             // Update color based on balance
             finalBalanceElement.className = 'stat-card-value';
-            if (balance > 0) {
+            if (sanitizedData.finalBalance > 0) {
                 finalBalanceElement.style.color = 'var(--success-color)';
-            } else if (balance < 0) {
+            } else if (sanitizedData.finalBalance < 0) {
                 finalBalanceElement.style.color = 'var(--danger-color)';
             } else {
                 finalBalanceElement.style.color = 'var(--text-primary)';
             }
         } else {
-            console.error('finalBalanceElement not found in DOM');
+            console.error('❌ finalBalanceElement not found in DOM');
         }
         
-        // Update monthly summary
-        this.updateMonthlySummary(data);
+        // Update monthly summary with sanitized data
+        this.updateMonthlySummary(sanitizedData);
         
-        console.log('Dashboard stats updated successfully');
+        console.log('✅ Dashboard stats updated successfully with sanitized data');
     },
     
     // Custom dashboard API call (bypasses caching and adds debugging)
@@ -723,29 +758,44 @@ const Dashboard = {
         this.updateStats(defaultData);
     },
     
-    // Update monthly summary
+    // Update monthly summary (enhanced with sanitized data)
     updateMonthlySummary: function(data) {
+        console.log('📊 Updating monthly summary with data:', data);
+        
         const monthlyIncomeElement = document.getElementById('monthlyIncome');
         const monthlyExpensesElement = document.getElementById('monthlyExpenses');
         const monthlyNetElement = document.getElementById('monthlyNet');
         
-        // Use totalCollection instead of totalIncome for consistency
-        const income = data.totalCollection !== undefined ? data.totalCollection : 0;
-        const expenses = data.totalExpenses !== undefined ? data.totalExpenses : 0;
-        const net = income - expenses;
+        // Data is already sanitized, so we can use it directly
+        const income = data.totalCollection || 0;
+        const expenses = data.totalExpenses || 0;
+        const net = data.monthlyNet || (income - expenses);
+        
+        console.log('📊 Monthly summary values:', { income, expenses, net });
         
         if (monthlyIncomeElement) {
             monthlyIncomeElement.textContent = CurrencyUtils.format(income);
+            console.log('📊 Set monthly income to:', CurrencyUtils.format(income));
+        } else {
+            console.error('❌ monthlyIncomeElement not found');
         }
         
         if (monthlyExpensesElement) {
             monthlyExpensesElement.textContent = CurrencyUtils.format(expenses);
+            console.log('📊 Set monthly expenses to:', CurrencyUtils.format(expenses));
+        } else {
+            console.error('❌ monthlyExpensesElement not found');
         }
         
         if (monthlyNetElement) {
             monthlyNetElement.textContent = CurrencyUtils.format(net);
             monthlyNetElement.className = net >= 0 ? 'summary-value positive' : 'summary-value negative';
+            console.log('📊 Set monthly net to:', CurrencyUtils.format(net), 'class:', monthlyNetElement.className);
+        } else {
+            console.error('❌ monthlyNetElement not found');
         }
+        
+        console.log('✅ Monthly summary update complete');
     },
     
     // Update current month display
