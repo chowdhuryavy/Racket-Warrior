@@ -49,8 +49,104 @@ const App = {
                 if (window.debugDashboard && window.debugDashboard.manual) {
                     window.debugDashboard.manual();
                 } else {
-                    console.error('❌ Dashboard debug not available');
+                    console.error('❌ Dashboard debug not available - loading dashboard page first...');
+                    // Force load dashboard page to make debug functions available
+                    if (window.showPage) {
+                        showPage('dashboard');
+                        setTimeout(() => {
+                            if (window.debugDashboard && window.debugDashboard.manual) {
+                                window.debugDashboard.manual();
+                            } else {
+                                console.error('❌ Dashboard debug still not available after loading page');
+                            }
+                        }, 1000);
+                    }
                 }
+            },
+            
+            // NEW: Ultimate dashboard test that works from anywhere
+            ultimateDashboard: async () => {
+                console.log('🔧 ULTIMATE DASHBOARD DEBUG (Global Version)');
+                
+                // Step 1: Check authentication
+                const token = StorageUtils.get(CONFIG.STORAGE_KEYS.AUTH_TOKEN);
+                const user = Auth.getCurrentUser();
+                console.log('1. 🔐 Auth Status:', {
+                    hasToken: !!token,
+                    tokenLength: token?.length || 0,
+                    hasUser: !!user,
+                    userRole: user?.role || 'none',
+                    tokenPreview: token ? token.substring(0, 15) + '...' : 'none'
+                });
+                
+                if (!token || !user) {
+                    console.error('❌ Authentication missing');
+                    console.log('💡 Suggestion: Make sure you are logged in first');
+                    return;
+                }
+                
+                // Step 2: Direct API test using low-level JSONP
+                console.log('2. 📡 Testing dashboard API directly...');
+                
+                const params = {
+                    action: 'get_dashboard_stats',
+                    token: token,
+                    month: null
+                };
+                
+                const baseUrl = CONFIG.API_BASE_URL;
+                const urlParams = new URLSearchParams();
+                Object.keys(params).forEach(key => {
+                    if (params[key] !== null && params[key] !== undefined) {
+                        urlParams.append(key, params[key]);
+                    }
+                });
+                
+                const fullUrl = `${baseUrl}?${urlParams.toString()}`;
+                console.log('🌐 API URL:', fullUrl.replace(/token=[^&]+/, 'token=***'));
+                
+                return new Promise((resolve) => {
+                    const callbackName = 'global_dashboard_test_' + Date.now();
+                    const script = document.createElement('script');
+                    
+                    window[callbackName] = function(response) {
+                        console.log('3. 📥 Raw API Response:', response);
+                        
+                        // Clean up
+                        document.head.removeChild(script);
+                        delete window[callbackName];
+                        
+                        if (response && response.success && response.data) {
+                            console.log('4. ✅ API SUCCESS! Data received:');
+                            console.log('   - activePlayersCount:', response.data.activePlayersCount, typeof response.data.activePlayersCount);
+                            console.log('   - totalCollection:', response.data.totalCollection, typeof response.data.totalCollection);
+                            console.log('   - totalExpenses:', response.data.totalExpenses, typeof response.data.totalExpenses);
+                            console.log('   - finalBalance:', response.data.finalBalance, typeof response.data.finalBalance);
+                            
+                            console.log('5. 🎯 Testing manual dashboard update...');
+                            // Manually update dashboard elements
+                            App.updateDashboardManually(response.data);
+                            
+                        } else {
+                            console.error('4. ❌ API call failed:', response);
+                            if (response && response.message) {
+                                console.error('   Error message:', response.message);
+                            }
+                        }
+                        
+                        resolve(response);
+                    };
+                    
+                    script.onerror = function() {
+                        console.error('❌ JSONP request failed');
+                        document.head.removeChild(script);
+                        delete window[callbackName];
+                        resolve(null);
+                    };
+                    
+                    script.src = `${fullUrl}&callback=${callbackName}`;
+                    document.head.appendChild(script);
+                });
             },
             getUser: () => Auth.getCurrentUser(),
             fixDashboard: async () => {
@@ -255,6 +351,92 @@ const App = {
                 console.error('❌ Mobile menu button not found during force setup');
             }
         }, 1000); // Wait 1 second for DOM to be ready
+    },
+    
+    // Manual dashboard update function (works without dashboard page loaded)
+    updateDashboardManually: function(data) {
+        console.log('🎯 Manually updating dashboard elements with data:', data);
+        
+        // Find dashboard elements
+        const activePlayersElement = document.getElementById('activePlayersCount');
+        const totalCollectionElement = document.getElementById('totalCollectionAmount');
+        const totalExpenseElement = document.getElementById('totalExpenseAmount');
+        const finalBalanceElement = document.getElementById('finalBalanceAmount');
+        
+        console.log('📍 Dashboard elements found:', {
+            activePlayersElement: !!activePlayersElement,
+            totalCollectionElement: !!totalCollectionElement,
+            totalExpenseElement: !!totalExpenseElement,
+            finalBalanceElement: !!finalBalanceElement
+        });
+        
+        if (!activePlayersElement) {
+            console.log('❌ Dashboard elements not found - dashboard page not loaded');
+            console.log('💡 Suggestion: Navigate to dashboard page first');
+            return;
+        }
+        
+        // Update elements manually
+        try {
+            // Active Players
+            const count = data.activePlayersCount !== undefined ? data.activePlayersCount : 0;
+            activePlayersElement.textContent = count;
+            console.log('✅ Updated activePlayersCount to:', count);
+            
+            // Total Collection
+            const collection = data.totalCollection !== undefined ? data.totalCollection : 0;
+            if (totalCollectionElement) {
+                totalCollectionElement.textContent = this.formatCurrency(collection);
+                console.log('✅ Updated totalCollection to:', collection);
+            }
+            
+            // Total Expenses
+            const expenses = data.totalExpenses !== undefined ? data.totalExpenses : 0;
+            if (totalExpenseElement) {
+                totalExpenseElement.textContent = this.formatCurrency(expenses);
+                console.log('✅ Updated totalExpenses to:', expenses);
+            }
+            
+            // Final Balance
+            const balance = data.finalBalance !== undefined ? data.finalBalance : 0;
+            if (finalBalanceElement) {
+                finalBalanceElement.textContent = this.formatCurrency(balance);
+                console.log('✅ Updated finalBalance to:', balance);
+            }
+            
+            // Monthly summary elements
+            const monthlyIncomeElement = document.getElementById('monthlyIncome');
+            const monthlyExpensesElement = document.getElementById('monthlyExpenses');
+            const monthlyNetElement = document.getElementById('monthlyNet');
+            
+            if (monthlyIncomeElement) {
+                monthlyIncomeElement.textContent = this.formatCurrency(collection);
+                console.log('✅ Updated monthly income');
+            }
+            
+            if (monthlyExpensesElement) {
+                monthlyExpensesElement.textContent = this.formatCurrency(expenses);
+                console.log('✅ Updated monthly expenses');
+            }
+            
+            if (monthlyNetElement) {
+                monthlyNetElement.textContent = this.formatCurrency(balance);
+                console.log('✅ Updated monthly net');
+            }
+            
+            console.log('🎉 Manual dashboard update completed!');
+            
+        } catch (error) {
+            console.error('❌ Error updating dashboard elements:', error);
+        }
+    },
+    
+    // Helper function to format currency
+    formatCurrency: function(amount) {
+        if (amount === undefined || amount === null || isNaN(amount)) {
+            return 'QAR 0.00';
+        }
+        return `QAR ${parseFloat(amount).toFixed(2)}`;
     },
     
     // Handle window resize
@@ -812,3 +994,41 @@ window.App = App;
 
 // Make mobile menu test available globally
 window.testMobileMenu = () => App.testMobileMenu();
+
+// Make ultimate dashboard test available globally
+window.testDashboard = () => debugApp.ultimateDashboard();
+
+// Quick dashboard test function (available immediately)
+window.quickDashboardTest = async function() {
+    console.log('🚀 QUICK DASHBOARD TEST STARTING...');
+    
+    // Step 1: Check if we're logged in
+    const token = localStorage.getItem('racket_warrior_token');
+    const userJson = localStorage.getItem('racket_warrior_user');
+    
+    console.log('1. 🔐 Authentication Check:', {
+        hasToken: !!token,
+        hasUser: !!userJson,
+        tokenLength: token?.length || 0
+    });
+    
+    if (!token || !userJson) {
+        console.error('❌ Not logged in! Please login first.');
+        return;
+    }
+    
+    // Step 2: Navigate to dashboard if not already there
+    if (typeof showPage === 'function') {
+        console.log('2. 📍 Navigating to dashboard...');
+        showPage('dashboard');
+        
+        // Wait for page to load
+        setTimeout(async () => {
+            console.log('3. 📡 Testing API call...');
+            await debugApp.ultimateDashboard();
+        }, 1500);
+    } else {
+        console.log('2. 📡 Testing API directly...');
+        await debugApp.ultimateDashboard();
+    }
+};
