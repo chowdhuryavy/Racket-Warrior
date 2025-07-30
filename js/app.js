@@ -547,6 +547,90 @@ const App = {
                 }
                 
                 console.log('🏠 Back button test complete!');
+            },
+            
+            // Test players navigation specifically
+            testPlayersNavigation: async () => {
+                console.log('👥 Testing Players Navigation...');
+                
+                // Test if Players module exists
+                console.log('1. 🔍 Checking Players module:', !!window.Players);
+                if (window.Players) {
+                    console.log('   - renderAddForm:', typeof window.Players.renderAddForm);
+                    console.log('   - renderViewTable:', typeof window.Players.renderViewTable);
+                } else {
+                    console.error('❌ Players module not found!');
+                    return;
+                }
+                
+                // Test authentication
+                console.log('2. 🔐 Checking authentication:', Auth.isAuthenticated());
+                if (!Auth.isAuthenticated()) {
+                    console.error('❌ User not authenticated!');
+                    return;
+                }
+                
+                // Test user permissions
+                const user = Auth.getCurrentUser();
+                console.log('3. 👤 Current user:', user);
+                
+                // Test page content area
+                const contentArea = document.getElementById('pageContent');
+                console.log('4. 📄 Content area found:', !!contentArea);
+                
+                // Test players-add navigation
+                console.log('5. 🧪 Testing players-add navigation...');
+                try {
+                    showPage('players-add');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    const hasPlayerForm = !!document.querySelector('.add-player-page');
+                    console.log('   ✅ Players Add Form loaded:', hasPlayerForm);
+                    
+                    if (!hasPlayerForm) {
+                        console.error('   ❌ Players Add Form not found in DOM');
+                        console.log('   📋 Current page content:', contentArea?.innerHTML?.substring(0, 200) + '...');
+                    }
+                } catch (error) {
+                    console.error('   ❌ Error loading players-add:', error);
+                }
+                
+                // Test players-view navigation
+                console.log('6. 🧪 Testing players-view navigation...');
+                try {
+                    showPage('players-view');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    const hasPlayerTable = !!document.querySelector('.view-players-page');
+                    console.log('   ✅ Players View Table loaded:', hasPlayerTable);
+                    
+                    if (!hasPlayerTable) {
+                        console.error('   ❌ Players View Table not found in DOM');
+                        console.log('   📋 Current page content:', contentArea?.innerHTML?.substring(0, 200) + '...');
+                    }
+                } catch (error) {
+                    console.error('   ❌ Error loading players-view:', error);
+                }
+                
+                console.log('👥 Players navigation test complete!');
+            },
+            
+            // Quick test for immediate checking
+            quickPlayersTest: () => {
+                console.log('⚡ Quick Players Test...');
+                console.log('Players module exists:', !!window.Players);
+                console.log('Auth status:', Auth.isAuthenticated());
+                console.log('Current user:', Auth.getCurrentUser());
+                console.log('Page content area:', !!document.getElementById('pageContent'));
+                
+                // Try direct call
+                console.log('Attempting direct showPage call...');
+                try {
+                    showPage('players-add');
+                    console.log('✅ showPage call completed');
+                } catch (error) {
+                    console.error('❌ showPage error:', error);
+                }
             }
         };
         
@@ -989,17 +1073,39 @@ const App = {
                     }
                     break;
                 case 'players-add':
+                    console.log('🔄 Processing players-add navigation...');
+                    console.log('   - Players module exists:', !!window.Players);
+                    console.log('   - Content area:', !!contentArea);
                     if (window.Players) {
-                        console.log('📱 Navigating to Players Add Form');
-                        Players.renderAddForm(contentArea);
+                        console.log('📱 Calling Players.renderAddForm...');
+                        try {
+                            Players.renderAddForm(contentArea);
+                            console.log('✅ Players.renderAddForm completed');
+                            // Verify content was added
+                            const addedContent = contentArea.querySelector('.add-player-page');
+                            console.log('✅ Add form content in DOM:', !!addedContent);
+                        } catch (error) {
+                            console.error('❌ Error in Players.renderAddForm:', error);
+                        }
                     } else {
                         console.error('❌ Players module not found');
                     }
                     break;
                 case 'players-view':
+                    console.log('🔄 Processing players-view navigation...');
+                    console.log('   - Players module exists:', !!window.Players);
+                    console.log('   - Content area:', !!contentArea);
                     if (window.Players) {
-                        console.log('📱 Navigating to Players View Table');
-                        Players.renderViewTable(contentArea);
+                        console.log('📱 Calling Players.renderViewTable...');
+                        try {
+                            Players.renderViewTable(contentArea);
+                            console.log('✅ Players.renderViewTable completed');
+                            // Verify content was added
+                            const addedContent = contentArea.querySelector('.view-players-page');
+                            console.log('✅ View table content in DOM:', !!addedContent);
+                        } catch (error) {
+                            console.error('❌ Error in Players.renderViewTable:', error);
+                        }
                     } else {
                         console.error('❌ Players module not found');
                     }
@@ -1408,4 +1514,15 @@ window.quickDashboardTest = async function() {
         console.log('2. 📡 Testing API directly...');
         await debugApp.ultimateDashboard();
     }
+};
+
+// Quick global test functions for immediate testing
+window.testPlayersAdd = () => {
+    console.log('🧪 Quick test: players-add');
+    showPage('players-add');
+};
+
+window.testPlayersView = () => {
+    console.log('🧪 Quick test: players-view');
+    showPage('players-view');
 };
