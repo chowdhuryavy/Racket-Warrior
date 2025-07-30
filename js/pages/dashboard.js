@@ -567,8 +567,13 @@ const Dashboard = {
         // Total Collection
         if (totalCollectionElement) {
             console.log('📊 Setting totalCollection to:', sanitizedData.totalCollection, 'type:', typeof sanitizedData.totalCollection);
-            totalCollectionElement.textContent = CurrencyUtils.format(sanitizedData.totalCollection);
+            
+            // Clear existing content and set with manual formatting
+            totalCollectionElement.textContent = '';
+            const formattedCollection = `QAR ${parseFloat(sanitizedData.totalCollection || 0).toFixed(2)}`;
+            totalCollectionElement.textContent = formattedCollection;
             totalCollectionElement.style.color = 'var(--text-primary)';
+            console.log('📊 Final totalCollection text:', formattedCollection);
         } else {
             console.error('❌ totalCollectionElement not found in DOM');
         }
@@ -576,8 +581,13 @@ const Dashboard = {
         // Total Expenses
         if (totalExpenseElement) {
             console.log('📊 Setting totalExpenses to:', sanitizedData.totalExpenses, 'type:', typeof sanitizedData.totalExpenses);
-            totalExpenseElement.textContent = CurrencyUtils.format(sanitizedData.totalExpenses);
+            
+            // Clear existing content and set with manual formatting
+            totalExpenseElement.textContent = '';
+            const formattedExpenses = `QAR ${parseFloat(sanitizedData.totalExpenses || 0).toFixed(2)}`;
+            totalExpenseElement.textContent = formattedExpenses;
             totalExpenseElement.style.color = 'var(--text-primary)';
+            console.log('📊 Final totalExpenses text:', formattedExpenses);
         } else {
             console.error('❌ totalExpenseElement not found in DOM');
         }
@@ -585,7 +595,11 @@ const Dashboard = {
         // Final Balance
         if (finalBalanceElement) {
             console.log('📊 Setting finalBalance to:', sanitizedData.finalBalance, 'type:', typeof sanitizedData.finalBalance);
-            finalBalanceElement.textContent = CurrencyUtils.format(sanitizedData.finalBalance);
+            
+            // Clear existing content and set with manual formatting
+            finalBalanceElement.textContent = '';
+            const formattedBalance = `QAR ${parseFloat(sanitizedData.finalBalance || 0).toFixed(2)}`;
+            finalBalanceElement.textContent = formattedBalance;
             
             // Update color based on balance
             finalBalanceElement.className = 'stat-card-value';
@@ -596,6 +610,7 @@ const Dashboard = {
             } else {
                 finalBalanceElement.style.color = 'var(--text-primary)';
             }
+            console.log('📊 Final finalBalance text:', formattedBalance);
         } else {
             console.error('❌ finalBalanceElement not found in DOM');
         }
@@ -772,25 +787,46 @@ const Dashboard = {
         const net = data.monthlyNet || (income - expenses);
         
         console.log('📊 Monthly summary values:', { income, expenses, net });
+        console.log('📊 Testing CurrencyUtils.format:', {
+            income: income,
+            formatted: CurrencyUtils.format(income),
+            config_currency: CONFIG.DEFAULTS.CURRENCY,
+            manual_format: `QAR ${parseFloat(income).toFixed(2)}`
+        });
         
         if (monthlyIncomeElement) {
-            monthlyIncomeElement.textContent = CurrencyUtils.format(income);
-            console.log('📊 Set monthly income to:', CurrencyUtils.format(income));
+            // Clear any existing content first
+            monthlyIncomeElement.textContent = '';
+            
+            // Use manual formatting to avoid any undefined issues
+            const formattedIncome = `QAR ${parseFloat(income || 0).toFixed(2)}`;
+            monthlyIncomeElement.textContent = formattedIncome;
+            console.log('📊 Set monthly income to:', formattedIncome);
         } else {
             console.error('❌ monthlyIncomeElement not found');
         }
         
         if (monthlyExpensesElement) {
-            monthlyExpensesElement.textContent = CurrencyUtils.format(expenses);
-            console.log('📊 Set monthly expenses to:', CurrencyUtils.format(expenses));
+            // Clear any existing content first
+            monthlyExpensesElement.textContent = '';
+            
+            // Use manual formatting to avoid any undefined issues
+            const formattedExpenses = `QAR ${parseFloat(expenses || 0).toFixed(2)}`;
+            monthlyExpensesElement.textContent = formattedExpenses;
+            console.log('📊 Set monthly expenses to:', formattedExpenses);
         } else {
             console.error('❌ monthlyExpensesElement not found');
         }
         
         if (monthlyNetElement) {
-            monthlyNetElement.textContent = CurrencyUtils.format(net);
+            // Clear any existing content first
+            monthlyNetElement.textContent = '';
+            
+            // Use manual formatting to avoid any undefined issues
+            const formattedNet = `QAR ${parseFloat(net || 0).toFixed(2)}`;
+            monthlyNetElement.textContent = formattedNet;
             monthlyNetElement.className = net >= 0 ? 'summary-value positive' : 'summary-value negative';
-            console.log('📊 Set monthly net to:', CurrencyUtils.format(net), 'class:', monthlyNetElement.className);
+            console.log('📊 Set monthly net to:', formattedNet, 'class:', monthlyNetElement.className);
         } else {
             console.error('❌ monthlyNetElement not found');
         }

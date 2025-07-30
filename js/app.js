@@ -371,6 +371,57 @@ const App = {
                 }
                 
                 return results;
+            },
+            
+            // Test dashboard cards specifically
+            testDashboardCards: async () => {
+                console.log('🔧 Testing Dashboard Cards Specifically...');
+                
+                // Navigate to dashboard
+                showPage('dashboard');
+                
+                // Wait a bit
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Get current values
+                const elements = {
+                    activePlayersCount: document.getElementById('activePlayersCount'),
+                    totalCollectionAmount: document.getElementById('totalCollectionAmount'),
+                    totalExpenseAmount: document.getElementById('totalExpenseAmount'),
+                    finalBalanceAmount: document.getElementById('finalBalanceAmount'),
+                    monthlyIncome: document.getElementById('monthlyIncome'),
+                    monthlyExpenses: document.getElementById('monthlyExpenses'),
+                    monthlyNet: document.getElementById('monthlyNet')
+                };
+                
+                console.log('🔧 Current element values:');
+                Object.entries(elements).forEach(([key, element]) => {
+                    if (element) {
+                        console.log(`   ${key}: "${element.textContent}"`);
+                        
+                        // Check for undefined in text content
+                        if (element.textContent.includes('undefined')) {
+                            console.error(`❌ FOUND UNDEFINED in ${key}: "${element.textContent}"`);
+                        }
+                    } else {
+                        console.error(`❌ Element not found: ${key}`);
+                    }
+                });
+                
+                // Test CurrencyUtils function
+                console.log('🔧 Testing CurrencyUtils.format:');
+                console.log('   CurrencyUtils.format(10):', CurrencyUtils.format(10));
+                console.log('   CurrencyUtils.format(undefined):', CurrencyUtils.format(undefined));
+                console.log('   CurrencyUtils.format(null):', CurrencyUtils.format(null));
+                console.log('   CurrencyUtils.format("15"):', CurrencyUtils.format("15"));
+                
+                // Force dashboard reload
+                if (window.Dashboard) {
+                    console.log('🔧 Forcing dashboard reload...');
+                    Dashboard.cachedData = null;
+                    Dashboard.lastLoadTime = null;
+                    Dashboard.loadDashboardData();
+                }
             }
         };
         

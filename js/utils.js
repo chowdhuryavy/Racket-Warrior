@@ -589,10 +589,20 @@ const UIUtils = {
 
 // Currency Utilities
 const CurrencyUtils = {
-    // Format amount with currency
-    format: function(amount, currency = CONFIG.DEFAULTS.CURRENCY) {
-        if (isNaN(amount)) return `${currency} 0.00`;
-        return `${currency} ${parseFloat(amount).toFixed(2)}`;
+    // Format amount with currency (bulletproof)
+    format: function(amount, currency = 'QAR') {
+        // Ensure currency is defined
+        if (!currency || currency === undefined) {
+            currency = 'QAR';
+        }
+        
+        // Ensure amount is a valid number
+        const numAmount = parseFloat(amount);
+        if (isNaN(numAmount) || amount === null || amount === undefined) {
+            return `${currency} 0.00`;
+        }
+        
+        return `${currency} ${numAmount.toFixed(2)}`;
     },
     
     // Parse currency string to number
