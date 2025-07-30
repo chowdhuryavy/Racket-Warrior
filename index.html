@@ -1,8 +1,20 @@
 <!DOCTYPE html>
+<!-- 
+    IMPORTANT: If you see JavaScript syntax errors like "Identifier 'month' has already been declared"
+    or modules showing as false in console, please:
+    1. Hard refresh: Ctrl+F5 (Windows/Linux) or Cmd+Shift+R (Mac)
+    2. Clear browser cache: Developer Tools (F12) > Application > Storage > Clear site data
+    3. Or open in incognito/private mode
+    
+    Version: 2024123001 - Fixed duplicate variable declarations and module exports
+-->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Racket Warrior - Badminton Group Manager</title>
     
     <!-- External CSS -->
@@ -255,23 +267,38 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <!-- JavaScript -->
-    <script src="js/config.js"></script>
-    <script src="js/utils.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/api.js"></script>
-    <script src="js/app.js"></script>
-    <script src="js/pages/dashboard.js"></script>
-    <script src="js/pages/players.js"></script>
-    <script src="js/pages/collection.js"></script>
-    <script src="js/pages/expenses.js"></script>
-    <script src="js/pages/reports.js"></script>
-    <script src="js/pages/admin.js"></script>
-    <script src="js/pages/logs.js"></script>
+    <script src="js/config.js?v=2024123001"></script>
+    <script src="js/utils.js?v=2024123001"></script>
+    <script src="js/auth.js?v=2024123001"></script>
+    <script src="js/api.js?v=2024123001"></script>
+    <script src="js/app.js?v=2024123001"></script>
+    <script src="js/pages/dashboard.js?v=2024123001"></script>
+    <script src="js/pages/players.js?v=2024123001"></script>
+    <script src="js/pages/collection.js?v=2024123001"></script>
+    <script src="js/pages/expenses.js?v=2024123001"></script>
+    <script src="js/pages/reports.js?v=2024123001"></script>
+    <script src="js/pages/admin.js?v=2024123001"></script>
+    <script src="js/pages/logs.js?v=2024123001"></script>
     
     <script>
-        // Module loading verification
+        // Module loading verification with detailed error catching
+        console.log('🚀 Starting module loading verification...');
+        
+        // Check each script as it loads
+        document.querySelectorAll('script[src]').forEach((script, index) => {
+            script.addEventListener('load', () => {
+                console.log(`✅ Script ${index + 1} loaded: ${script.src.split('/').pop()}`);
+            });
+            script.addEventListener('error', (e) => {
+                console.error(`❌ Script ${index + 1} failed: ${script.src.split('/').pop()}`, e);
+            });
+        });
+        
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🔧 Module Loading Check:');
+            console.log('   - CONFIG:', !!window.CONFIG);
+            console.log('   - DateUtils:', !!window.DateUtils);
+            console.log('   - UIUtils:', !!window.UIUtils);
             console.log('   - Auth:', !!window.Auth);
             console.log('   - API:', !!window.API);
             console.log('   - App:', !!window.App);
@@ -283,11 +310,34 @@
             console.log('   - Admin:', !!window.Admin);
             console.log('   - Logs:', !!window.Logs);
             
-            if (!window.Players) {
-                console.error('❌ Players module failed to load!');
+            // Detailed error checking
+            const criticalModules = ['Players', 'Collection', 'App'];
+            criticalModules.forEach(module => {
+                if (!window[module]) {
+                    console.error(`❌ ${module} module failed to load!`);
+                    console.error(`   Check for syntax errors in js/pages/${module.toLowerCase()}.js or js/app.js`);
+                }
+            });
+            
+            // Test if we can access the modules
+            try {
+                if (window.Players && typeof window.Players.init === 'function') {
+                    console.log('✅ Players module methods accessible');
+                } else {
+                    console.error('❌ Players module methods not accessible');
+                }
+            } catch (e) {
+                console.error('❌ Error accessing Players module:', e);
             }
-            if (!window.Collection) {
-                console.error('❌ Collection module failed to load!');
+            
+            try {
+                if (window.Collection && typeof window.Collection.init === 'function') {
+                    console.log('✅ Collection module methods accessible');
+                } else {
+                    console.error('❌ Collection module methods not accessible');
+                }
+            } catch (e) {
+                console.error('❌ Error accessing Collection module:', e);
             }
         });
     </script>

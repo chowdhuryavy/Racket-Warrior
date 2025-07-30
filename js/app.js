@@ -463,3 +463,6 @@ window.testReports = () => {
         showPage('reports');
     }
 };
+
+// Export App module to global scope
+window.App = App;
