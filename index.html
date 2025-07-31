@@ -6,7 +6,7 @@
     2. Clear browser cache: Developer Tools (F12) > Application > Storage > Clear site data
     3. Or open in incognito/private mode
     
-    Version: 2024123006 - REMOVED ALL DUMMY DATA: Eliminated test users, dummy transactions, sample logs and reports
+    Version: 2024123008 - BACK TO BASICS: Clean simple initialization, removed conflicts, no debug spam
 -->
 <html lang="en">
 <head>
@@ -267,90 +267,28 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <!-- JavaScript -->
-    <script src="js/config.js?v=2024123006"></script>
-    <script src="js/utils.js?v=2024123006"></script>
-    <script src="js/auth.js?v=2024123006"></script>
-    <script src="js/api.js?v=2024123006"></script>
-    <script src="js/app.js?v=2024123006"></script>
-    <script src="js/pages/dashboard.js?v=2024123006"></script>
-    <script src="js/pages/players.js?v=2024123006"></script>
-    <script src="js/pages/collection.js?v=2024123006"></script>
-    <script src="js/pages/expenses.js?v=2024123006"></script>
-    <script src="js/pages/reports.js?v=2024123006"></script>
-    <script src="js/pages/admin.js?v=2024123006"></script>
-    <script src="js/pages/logs.js?v=2024123006"></script>
+    <script src="js/config.js?v=2024123008"></script>
+    <script src="js/utils.js?v=2024123008"></script>
+    <script src="js/auth.js?v=2024123008"></script>
+    <script src="js/api.js?v=2024123008"></script>
+    <script src="js/app.js?v=2024123008"></script>
+    <script src="js/pages/dashboard.js?v=2024123008"></script>
+    <script src="js/pages/players.js?v=2024123008"></script>
+    <script src="js/pages/collection.js?v=2024123008"></script>
+    <script src="js/pages/expenses.js?v=2024123008"></script>
+    <script src="js/pages/reports.js?v=2024123008"></script>
+    <script src="js/pages/admin.js?v=2024123008"></script>
+    <script src="js/pages/logs.js?v=2024123008"></script>
     
     <script>
-        // Wait for all scripts to load, then initialize
-        window.addEventListener('load', function() {
-            console.log('🚀 All resources loaded, checking modules...');
-            
-            // Give a small delay to ensure all script executions are complete
-            setTimeout(() => {
-                console.log('🔧 Module Loading Check:');
-                console.log('   - CONFIG:', !!window.CONFIG);
-                console.log('   - LoadingScreenUtils:', !!window.LoadingScreenUtils);
-                console.log('   - DateUtils:', !!window.DateUtils);
-                console.log('   - UIUtils:', !!window.UIUtils);
-                console.log('   - Auth:', !!window.Auth);
-                console.log('   - API:', !!window.API);
-                console.log('   - App:', !!window.App);
-                console.log('   - Dashboard:', !!window.Dashboard);
-                console.log('   - Players:', !!window.Players);
-                console.log('   - Collection:', !!window.Collection);
-                console.log('   - Expenses:', !!window.Expenses);
-                console.log('   - Reports:', !!window.Reports);
-                console.log('   - Admin:', !!window.Admin);
-                console.log('   - Logs:', !!window.Logs);
-                
-                // Check critical modules
-                const criticalModules = ['CONFIG', 'LoadingScreenUtils', 'Auth', 'Players', 'Collection'];
-                let allModulesLoaded = true;
-                
-                criticalModules.forEach(module => {
-                    if (!window[module]) {
-                        console.error(`❌ ${module} module failed to load!`);
-                        allModulesLoaded = false;
-                    }
-                });
-                
-                // Test module accessibility
-                try {
-                    if (window.Players && typeof window.Players.init === 'function') {
-                        console.log('✅ Players module methods accessible');
-                    } else {
-                        console.error('❌ Players module methods not accessible');
-                        allModulesLoaded = false;
-                    }
-                } catch (e) {
-                    console.error('❌ Error accessing Players module:', e);
-                    allModulesLoaded = false;
-                }
-                
-                try {
-                    if (window.Collection && typeof window.Collection.init === 'function') {
-                        console.log('✅ Collection module methods accessible');
-                    } else {
-                        console.error('❌ Collection module methods not accessible');
-                        allModulesLoaded = false;
-                    }
-                } catch (e) {
-                    console.error('❌ Error accessing Collection module:', e);
-                    allModulesLoaded = false;
-                }
-                
-                // Only initialize authentication if all modules are loaded
-                if (allModulesLoaded) {
-                    console.log('🚀 All modules loaded successfully, initializing authentication...');
-                    if (window.Auth && typeof window.Auth.init === 'function') {
-                        Auth.init();
-                    } else {
-                        console.error('❌ Auth.init not available');
-                    }
-                } else {
-                    console.error('❌ Cannot initialize authentication - missing required modules');
-                }
-            }, 100); // Small delay to ensure script execution is complete
+        // Simple initialization when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize authentication
+            if (window.Auth && typeof window.Auth.init === 'function') {
+                Auth.init();
+            } else {
+                console.error('Authentication module not available');
+            }
         });
     </script>
     

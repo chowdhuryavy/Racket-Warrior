@@ -838,5 +838,3 @@ window.PermissionUtils = PermissionUtils;
 window.DataUtils = DataUtils;
 window.DOMUtils = DOMUtils;
 window.FileUtils = FileUtils;
-
-console.log('✅ All utils exported to window, including LoadingScreenUtils');

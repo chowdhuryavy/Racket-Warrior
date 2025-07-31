@@ -460,25 +460,9 @@ window.showPage = function(page) {
     App.showPage(page);
 };
 
-// Initialize app when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    App.init();
-});
+// App initialization is handled by Auth.init() in index.html
 
-// Simple test functions for debugging
-window.testPlayers = () => {
-    console.log('Testing Players module:', !!window.Players);
-    if (window.Players) {
-        showPage('players-add');
-    }
-};
 
-window.testReports = () => {
-    console.log('Testing Reports module:', !!window.Reports);
-    if (window.Reports) {
-        showPage('reports');
-    }
-};
 
 // Export App module to global scope
 window.App = App;
