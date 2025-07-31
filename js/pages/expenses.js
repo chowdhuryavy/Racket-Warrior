@@ -57,15 +57,6 @@ const Expenses = {
                                 </div>
                             </div>
                             
-                            <div class="form-group">
-                                <label for="expenseMonth">Month <span class="required">*</span></label>
-                                <div class="input-wrapper">
-                                    <i class="fas fa-calendar-month"></i>
-                                    <select id="expenseMonth" name="month" required>
-                                        <option value="">Select Month</option>
-                                    </select>
-                                </div>
-                            </div>
                         </div>
 
                         <div class="form-row">
@@ -173,9 +164,6 @@ const Expenses = {
         // Set default date to today
         document.getElementById('expenseDate').value = DateUtils.formatDateForInput(new Date());
         
-        // Initialize month dropdown
-        this.initializeMonthDropdown('expenseMonth');
-        
         // Setup form submission
         document.getElementById('addExpenseForm').addEventListener('submit', (e) => {
             this.handleAddExpense(e);
@@ -251,12 +239,12 @@ const Expenses = {
             date: formData.get('date'),
             category: formData.get('category'),
             amount: parseFloat(formData.get('amount')),
-            month: formData.get('month'),
+            month: DateUtils.getMonthKey(new Date()), // Auto-set to current month
             description: formData.get('description').trim()
         };
         
         // Validation
-        if (!expenseData.date || !expenseData.category || !expenseData.amount || !expenseData.month || !expenseData.description) {
+        if (!expenseData.date || !expenseData.category || !expenseData.amount || !expenseData.description) {
             UIUtils.showNotification('Please fill in all required fields', 'error');
             return;
         }

@@ -50,16 +50,6 @@ const Collection = {
                                     <input type="number" id="collectionAmount" name="amount" min="0" step="0.01" placeholder="Enter amount" required>
                                 </div>
                             </div>
-                            
-                            <div class="form-group">
-                                <label for="collectionMonth">Month <span class="required">*</span></label>
-                                <div class="input-wrapper">
-                                    <i class="fas fa-calendar-month"></i>
-                                    <select id="collectionMonth" name="month" required>
-                                        <option value="">Select Month</option>
-                                    </select>
-                                </div>
-                            </div>
                         </div>
 
                         <div class="form-row">
@@ -161,20 +151,8 @@ const Collection = {
         // Set default date to today
         document.getElementById('collectionDate').value = DateUtils.formatDateForInput(new Date());
         
-        // Initialize month dropdown first (async)
-        await this.initializeMonthDropdown('collectionMonth');
-        
-        // Load players for dropdown (depends on month selection)
+        // Load players for dropdown
         this.loadPlayersForDropdown();
-        
-        // Setup month change listener to refresh players
-        const monthSelect = document.getElementById('collectionMonth');
-        if (monthSelect) {
-            monthSelect.addEventListener('change', () => {
-                console.log('📅 Month changed in add form, refreshing players...');
-                this.loadPlayersForDropdown();
-            });
-        }
         
         // Setup form submission
         const addForm = document.getElementById('addCollectionForm');
@@ -351,13 +329,13 @@ const Collection = {
             date: formData.get('date'),
             playerId: formData.get('playerId'),
             amount: parseFloat(formData.get('amount')),
-            month: formData.get('month'),
+            month: DateUtils.getMonthKey(new Date()), // Auto-set to current month
             description: formData.get('description') || '',
             token: StorageUtils.get(CONFIG.STORAGE_KEYS.AUTH_TOKEN)
         };
         
         // Validation
-        if (!collectionData.date || !collectionData.playerId || !collectionData.amount || !collectionData.month) {
+        if (!collectionData.date || !collectionData.playerId || !collectionData.amount) {
             UIUtils.showNotification('Please fill in all required fields', 'error');
             return;
         }

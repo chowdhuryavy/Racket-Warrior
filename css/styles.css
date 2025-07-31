@@ -3064,7 +3064,13 @@ body {
 /* Show mobile menu button on small screens */
 @media (max-width: 768px) {
     .mobile-menu-toggle {
-        display: block;
+        display: block !important;
+    }
+    
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
     }
 }
 
