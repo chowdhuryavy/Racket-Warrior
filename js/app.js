@@ -128,8 +128,6 @@ const App = {
             return;
         }
         
-        console.log(`🔄 Loading page content for: ${page}`);
-        
         // Clear existing content first
         contentArea.innerHTML = '<div class="loading-placeholder">Loading...</div>';
         
@@ -138,6 +136,8 @@ const App = {
             case 'dashboard':
                 if (window.Dashboard) {
                     Dashboard.render(contentArea);
+                } else {
+                    console.error('Dashboard module not found');
                 }
                 break;
             case 'players-add':

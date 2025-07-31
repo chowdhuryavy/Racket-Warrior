@@ -8,7 +8,9 @@ const Dashboard = {
     
     // Render dashboard page
     render: async function(container) {
+        console.log('📊 Dashboard.render called');
         container.innerHTML = this.getHTML();
+        console.log('📊 Dashboard HTML inserted, initializing...');
         
         // Initialize dashboard
         await this.init();
