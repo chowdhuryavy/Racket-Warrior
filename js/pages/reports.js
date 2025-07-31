@@ -359,8 +359,8 @@ const Reports = {
                                         <td>${player.name}</td>
                                         <td>${player.phone}</td>
                                         <td>
-                                            <span class="status-indicator ${player.status}">
-                                                ${player.status === 'active' ? '🟢' : '🔴'} ${player.status.charAt(0).toUpperCase() + player.status.slice(1)}
+                                            <span class="status-indicator ${player.status || 'unknown'}">
+                                                ${(player.status || 'unknown') === 'active' ? '🟢' : '🔴'} ${(player.status || 'unknown').charAt(0).toUpperCase() + (player.status || 'unknown').slice(1)}
                                             </span>
                                         </td>
                                         <td>${new Date(player.joinDate).toLocaleDateString()}</td>

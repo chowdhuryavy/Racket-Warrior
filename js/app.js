@@ -128,6 +128,11 @@ const App = {
             return;
         }
         
+        console.log(`🔄 Loading page content for: ${page}`);
+        
+        // Clear existing content first
+        contentArea.innerHTML = '<div class="loading-placeholder">Loading...</div>';
+        
         // Load page-specific content
         switch (page) {
             case 'dashboard':
@@ -436,6 +441,17 @@ const App = {
         } finally {
             UIUtils.hideLoading(submitButton, 'Upload Photo');
         }
+    },
+    
+    // Adjust tables for mobile view
+    adjustTablesForMobile: function() {
+        const tables = document.querySelectorAll('.table, .unified-table');
+        tables.forEach(table => {
+            // Add mobile-responsive class if not already present
+            if (!table.classList.contains('mobile-responsive')) {
+                table.classList.add('mobile-responsive');
+            }
+        });
     }
 };
 
