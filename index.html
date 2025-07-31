@@ -6,7 +6,7 @@
     2. Clear browser cache: Developer Tools (F12) > Application > Storage > Clear site data
     3. Or open in incognito/private mode
     
-    Version: 2024123003 - FIXED LOGIN: Added Auth.init() call, exported LoadingScreenUtils, fixed authentication flow
+    Version: 2024123004 - FIXED TIMING: Changed to window.load event, added debug logs, proper module loading sequence
 -->
 <html lang="en">
 <head>
@@ -267,79 +267,90 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <!-- JavaScript -->
-    <script src="js/config.js?v=2024123003"></script>
-    <script src="js/utils.js?v=2024123003"></script>
-    <script src="js/auth.js?v=2024123003"></script>
-    <script src="js/api.js?v=2024123003"></script>
-    <script src="js/app.js?v=2024123003"></script>
-    <script src="js/pages/dashboard.js?v=2024123003"></script>
-    <script src="js/pages/players.js?v=2024123003"></script>
-    <script src="js/pages/collection.js?v=2024123003"></script>
-    <script src="js/pages/expenses.js?v=2024123003"></script>
-    <script src="js/pages/reports.js?v=2024123003"></script>
-    <script src="js/pages/admin.js?v=2024123003"></script>
-    <script src="js/pages/logs.js?v=2024123003"></script>
+    <script src="js/config.js?v=2024123004"></script>
+    <script src="js/utils.js?v=2024123004"></script>
+    <script src="js/auth.js?v=2024123004"></script>
+    <script src="js/api.js?v=2024123004"></script>
+    <script src="js/app.js?v=2024123004"></script>
+    <script src="js/pages/dashboard.js?v=2024123004"></script>
+    <script src="js/pages/players.js?v=2024123004"></script>
+    <script src="js/pages/collection.js?v=2024123004"></script>
+    <script src="js/pages/expenses.js?v=2024123004"></script>
+    <script src="js/pages/reports.js?v=2024123004"></script>
+    <script src="js/pages/admin.js?v=2024123004"></script>
+    <script src="js/pages/logs.js?v=2024123004"></script>
     
     <script>
-        // Module loading verification with detailed error catching
-        console.log('🚀 Starting module loading verification...');
-        
-        // Check each script as it loads
-        document.querySelectorAll('script[src]').forEach((script, index) => {
-            script.addEventListener('load', () => {
-                console.log(`✅ Script ${index + 1} loaded: ${script.src.split('/').pop()}`);
-            });
-            script.addEventListener('error', (e) => {
-                console.error(`❌ Script ${index + 1} failed: ${script.src.split('/').pop()}`, e);
-            });
-        });
-        
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('🔧 Module Loading Check:');
-            console.log('   - CONFIG:', !!window.CONFIG);
-            console.log('   - LoadingScreenUtils:', !!window.LoadingScreenUtils);
-            console.log('   - DateUtils:', !!window.DateUtils);
-            console.log('   - UIUtils:', !!window.UIUtils);
-            console.log('   - Auth:', !!window.Auth);
-            console.log('   - API:', !!window.API);
-            console.log('   - App:', !!window.App);
-            console.log('   - Dashboard:', !!window.Dashboard);
-            console.log('   - Players:', !!window.Players);
-            console.log('   - Collection:', !!window.Collection);
-            console.log('   - Expenses:', !!window.Expenses);
-            console.log('   - Reports:', !!window.Reports);
-            console.log('   - Admin:', !!window.Admin);
-            console.log('   - Logs:', !!window.Logs);
+        // Wait for all scripts to load, then initialize
+        window.addEventListener('load', function() {
+            console.log('🚀 All resources loaded, checking modules...');
             
-            // Detailed error checking
-            const criticalModules = ['Players', 'Collection', 'App'];
-            criticalModules.forEach(module => {
-                if (!window[module]) {
-                    console.error(`❌ ${module} module failed to load!`);
-                    console.error(`   Check for syntax errors in js/pages/${module.toLowerCase()}.js or js/app.js`);
+            // Give a small delay to ensure all script executions are complete
+            setTimeout(() => {
+                console.log('🔧 Module Loading Check:');
+                console.log('   - CONFIG:', !!window.CONFIG);
+                console.log('   - LoadingScreenUtils:', !!window.LoadingScreenUtils);
+                console.log('   - DateUtils:', !!window.DateUtils);
+                console.log('   - UIUtils:', !!window.UIUtils);
+                console.log('   - Auth:', !!window.Auth);
+                console.log('   - API:', !!window.API);
+                console.log('   - App:', !!window.App);
+                console.log('   - Dashboard:', !!window.Dashboard);
+                console.log('   - Players:', !!window.Players);
+                console.log('   - Collection:', !!window.Collection);
+                console.log('   - Expenses:', !!window.Expenses);
+                console.log('   - Reports:', !!window.Reports);
+                console.log('   - Admin:', !!window.Admin);
+                console.log('   - Logs:', !!window.Logs);
+                
+                // Check critical modules
+                const criticalModules = ['CONFIG', 'LoadingScreenUtils', 'Auth', 'Players', 'Collection'];
+                let allModulesLoaded = true;
+                
+                criticalModules.forEach(module => {
+                    if (!window[module]) {
+                        console.error(`❌ ${module} module failed to load!`);
+                        allModulesLoaded = false;
+                    }
+                });
+                
+                // Test module accessibility
+                try {
+                    if (window.Players && typeof window.Players.init === 'function') {
+                        console.log('✅ Players module methods accessible');
+                    } else {
+                        console.error('❌ Players module methods not accessible');
+                        allModulesLoaded = false;
+                    }
+                } catch (e) {
+                    console.error('❌ Error accessing Players module:', e);
+                    allModulesLoaded = false;
                 }
-            });
-            
-            // Test if we can access the modules
-            try {
-                if (window.Players && typeof window.Players.init === 'function') {
-                    console.log('✅ Players module methods accessible');
+                
+                try {
+                    if (window.Collection && typeof window.Collection.init === 'function') {
+                        console.log('✅ Collection module methods accessible');
+                    } else {
+                        console.error('❌ Collection module methods not accessible');
+                        allModulesLoaded = false;
+                    }
+                } catch (e) {
+                    console.error('❌ Error accessing Collection module:', e);
+                    allModulesLoaded = false;
+                }
+                
+                // Only initialize authentication if all modules are loaded
+                if (allModulesLoaded) {
+                    console.log('🚀 All modules loaded successfully, initializing authentication...');
+                    if (window.Auth && typeof window.Auth.init === 'function') {
+                        Auth.init();
+                    } else {
+                        console.error('❌ Auth.init not available');
+                    }
                 } else {
-                    console.error('❌ Players module methods not accessible');
+                    console.error('❌ Cannot initialize authentication - missing required modules');
                 }
-            } catch (e) {
-                console.error('❌ Error accessing Players module:', e);
-            }
-            
-            try {
-                if (window.Collection && typeof window.Collection.init === 'function') {
-                    console.log('✅ Collection module methods accessible');
-                } else {
-                    console.error('❌ Collection module methods not accessible');
-                }
-            } catch (e) {
-                console.error('❌ Error accessing Collection module:', e);
-            }
+            }, 100); // Small delay to ensure script execution is complete
         });
     </script>
     

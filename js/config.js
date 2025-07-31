@@ -224,4 +224,7 @@ if (typeof module !== 'undefined' && module.exports) {
 // Export to global scope for browser
 if (typeof window !== 'undefined') {
     window.CONFIG = CONFIG;
+    console.log('✅ CONFIG exported to window');
+} else {
+    console.error('❌ window not available for CONFIG export');
 }
