@@ -691,11 +691,21 @@ function handleAddUser(params) {
     ]);
     
     // Send welcome email
-    sendWelcomeEmail(email, name, tempPassword);
+    const emailSent = sendWelcomeEmail(email, name, tempPassword);
     
-    addLog('USER_ADDED', `New user added: ${name} (${email}) with role ${role}`, user.email, user.role);
+    // Log user creation with email status
+    const logDetails = `New user added: ${name} (${email}) with role ${role}. Email ${emailSent ? 'sent successfully' : 'failed to send'}`;
+    const logSuccess = addLog('USER_ADDED', logDetails, user.email, user.role);
     
-    return { success: true, message: 'User added successfully. Welcome email sent.' };
+    if (!logSuccess) {
+      console.error('⚠️ User created but failed to log the action');
+    }
+    
+    const message = emailSent ? 
+      'User added successfully. Welcome email sent.' : 
+      'User added successfully. Warning: Welcome email failed to send.';
+    
+    return { success: true, message: message, emailSent: emailSent };
     
   } catch (error) {
     return { success: false, message: 'Failed to add user: ' + error.toString() };
@@ -1957,6 +1967,13 @@ function hasPermission(userRole, action) {
 }
 
 /**
+ * Generate unique ID for logs and records
+ */
+function generateUniqueId() {
+  return 'ID_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+}
+
+/**
  * Add comprehensive log entry
  */
 function addLog(action, details, userEmail, userRole, type = 'user', status = 'success', additionalData = {}) {
@@ -1985,9 +2002,11 @@ function addLog(action, details, userEmail, userRole, type = 'user', status = 's
       month                                // Month
     ]);
     
-    console.log(`📋 Log added: ${action} by ${userEmail}`);
+    console.log(`📋 Log added: ${action} by ${userEmail} [ID: ${id}]`);
+    return true;
   } catch (error) {
-    console.error('📋 Failed to add log:', error);
+    console.error('📋 Failed to add log:', error.toString());
+    return false;
   }
 }
 
@@ -2597,6 +2616,7 @@ function handleUploadPhoto(params) {
  */
 function sendWelcomeEmail(email, name, tempPassword) {
   try {
+    console.log(`📧 Attempting to send welcome email to: ${email}`);
     const subject = 'Welcome! RACKET WARRIOR';
     const htmlBody = `
 <!DOCTYPE html>
@@ -3118,8 +3138,10 @@ function sendWelcomeEmail(email, name, tempPassword) {
       htmlBody: htmlBody
     });
     
+    console.log(`✅ Welcome email sent successfully to: ${email}`);
     return true;
   } catch (error) {
+    console.error(`❌ Failed to send welcome email to ${email}:`, error.toString());
     return false;
   }
 }
