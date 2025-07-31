@@ -580,46 +580,21 @@ const Admin = {
                 this.updateStats();
             } else {
                 Logger.warn('Failed to load users:', response.message);
-                Logger.warn('Falling back to test users');
-                this.showTestUsers();
+                UIUtils.showNotification('Failed to load users: ' + response.message, 'error');
+                this.renderEmptyUsersList();
             }
         } catch (error) {
             Logger.error('Error loading users:', error);
-            Logger.warn('Falling back to test users due to error');
-            this.showTestUsers();
+            UIUtils.showNotification('Error loading users. Please try again.', 'error');
+            this.renderEmptyUsersList();
         } finally {
             UIUtils.hideLoading();
         }
     },
     
-    // Show test users as fallback
-    showTestUsers: function() {
-        this.users = [
-            {
-                email: 'admin@racketwarrior.com',
-                name: 'Admin User',
-                role: 'admin',
-                status: 'active',
-                created_at: '2024-01-15T10:30:00Z',
-                img_url: 'https://ui-avatars.com/api/?name=Admin+User&background=667eea&color=fff&size=48'
-            },
-            {
-                email: 'manager@example.com',
-                name: 'John Manager',
-                role: 'view_edit',
-                status: 'active',
-                created_at: '2024-01-16T14:20:00Z',
-                img_url: 'https://ui-avatars.com/api/?name=John+Manager&background=10b981&color=fff&size=48'
-            },
-            {
-                email: 'viewer@example.com',
-                name: 'Jane Viewer',
-                role: 'view',
-                status: 'active',
-                created_at: '2024-01-17T09:15:00Z',
-                img_url: 'https://ui-avatars.com/api/?name=Jane+Viewer&background=f59e0b&color=fff&size=48'
-            }
-        ];
+    // Show empty users list when no data is available
+    renderEmptyUsersList: function() {
+        this.users = [];
         this.renderUsers();
         this.updateStats();
     },

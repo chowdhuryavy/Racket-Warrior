@@ -693,51 +693,7 @@ const Dashboard = {
         });
     },
     
-    // Manual test function to debug dashboard data loading
-    manualTest: async function() {
-        console.log('🧪 Manual Dashboard Test Started...');
-        console.log('Current month:', this.currentMonth);
-        
-        try {
-            // Step 1: Test API with current month
-            console.log('1. Testing API.getDashboardStats(' + this.currentMonth + ')...');
-            const response = await API.getDashboardStats(this.currentMonth);
-            console.log('2. Raw API Response:', response);
-            console.log('3. Response success:', response?.success);
-            console.log('4. Response data:', response?.data);
-            
-            // Check if we have authentication
-            const token = StorageUtils.get(CONFIG.STORAGE_KEYS.AUTH_TOKEN);
-            console.log('5. Auth token exists:', !!token);
-            
-            if (response && response.success && response.data) {
-                console.log('6. ✅ API Success - Data received:', response.data);
-                console.log('7. Data breakdown:');
-                console.log('   - activePlayersCount:', response.data.activePlayersCount);
-                console.log('   - totalCollection:', response.data.totalCollection);
-                console.log('   - totalExpenses:', response.data.totalExpenses);
-                console.log('   - finalBalance:', response.data.finalBalance);
-                
-                // Step 2: Test updateStats directly
-                console.log('8. Testing updateStats with received data...');
-                this.updateStats(response.data);
-                
-                console.log('9. ✅ Manual test completed successfully!');
-                UIUtils.showNotification('✅ Manual test passed - Dashboard should now show data', 'success');
-            } else {
-                console.error('10. ❌ API failed:', response);
-                console.error('    - Success:', response?.success);
-                console.error('    - Message:', response?.message);
-                console.error('    - Data:', response?.data);
-                UIUtils.showNotification('❌ API test failed: ' + (response?.message || 'Unknown error'), 'error');
-            }
-        } catch (error) {
-            console.error('❌ Manual test error:', error);
-            console.error('   - Message:', error.message);
-            console.error('   - Stack:', error.stack);
-            UIUtils.showNotification('❌ Manual test error: ' + error.message, 'error');
-        }
-    },
+
     
     // Debug function to test API directly
     testAPI: async function() {

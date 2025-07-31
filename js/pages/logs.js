@@ -194,12 +194,12 @@ const Logs = {
             } else {
                 console.error('📋 Failed to load logs:', response.message);
                 UIUtils.showNotification('Failed to load logs: ' + response.message, 'error');
-                this.showTestLogs(); // Fallback to test data
+                this.renderEmptyLogs(); // Show empty logs instead of dummy data
             }
         } catch (error) {
             console.error('📋 Error loading logs:', error);
             UIUtils.showNotification('Error loading logs', 'error');
-            this.showTestLogs(); // Fallback to test data
+            this.renderEmptyLogs(); // Show empty logs instead of dummy data
         } finally {
             UIUtils.hideLoading();
         }
@@ -243,82 +243,9 @@ const Logs = {
         }).filter(log => log !== null); // Remove invalid entries
     },
     
-    // Show test logs as fallback
-    showTestLogs: function() {
-        this.logs = [
-            {
-                id: 1,
-                timestamp: '2024-01-20 10:30:15',
-                type: 'auth',
-                action: 'User Login',
-                user: 'admin@racketwarrior.com',
-                details: 'Successful login from 192.168.1.100',
-                status: 'success'
-            },
-            {
-                id: 2,
-                timestamp: '2024-01-20 10:25:32',
-                type: 'user',
-                action: 'Add Player',
-                user: 'john@example.com',
-                details: 'Added new player: John Smith',
-                status: 'success'
-            },
-            {
-                id: 3,
-                timestamp: '2024-01-20 10:20:45',
-                type: 'user',
-                action: 'Add Collection',
-                user: 'john@example.com',
-                details: 'Added collection: QAR 50.00 for January 2024',
-                status: 'success'
-            },
-            {
-                id: 4,
-                timestamp: '2024-01-20 10:15:23',
-                type: 'system',
-                action: 'Database Backup',
-                user: 'System',
-                details: 'Automatic backup completed successfully',
-                status: 'success'
-            },
-            {
-                id: 5,
-                timestamp: '2024-01-20 10:10:11',
-                type: 'auth',
-                action: 'Failed Login',
-                user: 'unknown@example.com',
-                details: 'Invalid credentials from 192.168.1.200',
-                status: 'error'
-            },
-            {
-                id: 6,
-                timestamp: '2024-01-20 10:05:55',
-                type: 'user',
-                action: 'Edit User',
-                user: 'admin@racketwarrior.com',
-                details: 'Updated role for jane@example.com to view_edit',
-                status: 'success'
-            },
-            {
-                id: 7,
-                timestamp: '2024-01-20 10:00:33',
-                type: 'error',
-                action: 'API Error',
-                user: 'System',
-                details: 'Failed to send email notification',
-                status: 'error'
-            },
-            {
-                id: 8,
-                timestamp: '2024-01-20 09:55:12',
-                type: 'user',
-                action: 'Delete Expense',
-                user: 'admin@racketwarrior.com',
-                details: 'Deleted expense: Court rental - QAR 100.00',
-                status: 'success'
-            }
-        ];
+    // Show empty logs when no data is available
+    renderEmptyLogs: function() {
+        this.logs = [];
         this.renderLogs();
         this.updateStats();
     },

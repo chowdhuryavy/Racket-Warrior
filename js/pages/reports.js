@@ -145,12 +145,12 @@ const Reports = {
                 this.renderReport();
             } else {
                 UIUtils.showNotification('Failed to load report: ' + response.message, 'error');
-                this.showTestReport(); // Fallback to test data
+                this.renderEmptyReport(); // Show empty report instead of dummy data
             }
         } catch (error) {
             console.error('Error loading report:', error);
             UIUtils.showNotification('Error loading report', 'error');
-            this.showTestReport(); // Fallback to test data
+            this.renderEmptyReport(); // Show empty report instead of dummy data
         } finally {
             UIUtils.hideLoading();
         }
@@ -193,8 +193,8 @@ const Reports = {
         }
     },
     
-    // Show test report as fallback
-    showTestReport: function() {
+    // Show empty report when no data is available
+    renderEmptyReport: function() {
         const monthLabel = this.currentMonth ? 
             new Date(this.currentMonth + '-01').toLocaleDateString('en-US', { year: 'numeric', month: 'long' }) :
             'Current Month';
@@ -203,36 +203,16 @@ const Reports = {
             month: this.currentMonth || DateUtils.getMonthYear(new Date()),
             monthLabel: monthLabel,
             summary: {
-                totalPlayers: 8,
-                activePlayers: 6,
-                inactivePlayers: 2,
-                totalCollection: 450.00,
-                totalExpenses: 280.00,
-                netBalance: 170.00
+                totalPlayers: 0,
+                activePlayers: 0,
+                inactivePlayers: 0,
+                totalCollection: 0,
+                totalExpenses: 0,
+                netBalance: 0
             },
-            players: [
-                { name: 'Ahmed Al-Mansouri', phone: '+974 5555 1234', status: 'active', joinDate: '2024-01-15' },
-                { name: 'Fatima Al-Rashid', phone: '+974 5555 2345', status: 'active', joinDate: '2024-01-10' },
-                { name: 'Omar Hassan', phone: '+974 5555 3456', status: 'active', joinDate: '2024-01-08' },
-                { name: 'Sarah Mohamed', phone: '+974 5555 4567', status: 'active', joinDate: '2024-01-12' },
-                { name: 'Ali Al-Thani', phone: '+974 5555 5678', status: 'active', joinDate: '2024-01-05' },
-                { name: 'Maryam Abdullah', phone: '+974 5555 6789', status: 'active', joinDate: '2024-01-18' },
-                { name: 'Hassan Al-Kuwari', phone: '+974 5555 7890', status: 'inactive', joinDate: '2023-12-20' },
-                { name: 'Nora Al-Naimi', phone: '+974 5555 8901', status: 'inactive', joinDate: '2023-12-15' }
-            ],
-            collections: [
-                { date: '2024-01-15', player: 'Ahmed Al-Mansouri', amount: 75.00, description: 'Monthly membership fee' },
-                { date: '2024-01-10', player: 'Fatima Al-Rashid', amount: 75.00, description: 'Monthly membership fee' },
-                { date: '2024-01-08', player: 'Omar Hassan', amount: 75.00, description: 'Monthly membership fee' },
-                { date: '2024-01-12', player: 'Sarah Mohamed', amount: 75.00, description: 'Monthly membership fee' },
-                { date: '2024-01-05', player: 'Ali Al-Thani', amount: 75.00, description: 'Monthly membership fee' },
-                { date: '2024-01-18', player: 'Maryam Abdullah', amount: 75.00, description: 'Monthly membership fee' }
-            ],
-            expenses: [
-                { date: '2024-01-05', category: 'Equipment', amount: 150.00, description: 'Professional shuttlecocks (12 tubes)' },
-                { date: '2024-01-12', category: 'Court Rental', amount: 80.00, description: 'Weekly court booking fee' },
-                { date: '2024-01-25', category: 'Refreshments', amount: 50.00, description: 'Post-game refreshments' }
-            ]
+            players: [],
+            collections: [],
+            expenses: []
         };
         this.renderReport();
     },
