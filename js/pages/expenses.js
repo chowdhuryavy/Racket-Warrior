@@ -461,16 +461,6 @@ const Expenses = {
                                 </select>
                             </div>
                         </div>
-                        
-                        <div class="form-group">
-                            <label for="editExpenseMonth">Month <span class="required">*</span></label>
-                            <div class="input-wrapper">
-                                <i class="fas fa-calendar-alt"></i>
-                                <select id="editExpenseMonth" required>
-                                    <option value="">Select Month</option>
-                                </select>
-                            </div>
-                        </div>
                     </div>
                     
                     <div class="form-group">
@@ -495,8 +485,7 @@ const Expenses = {
             `
         });
         
-        // Load months for edit form
-        await this.loadMonthsForEditForm(expense.Month);
+        // Month is auto-derived from date, no need to load month options
         
         // Setup form submission
         document.getElementById('editExpenseForm').addEventListener('submit', (e) => {
@@ -549,12 +538,12 @@ const Expenses = {
             date: document.getElementById('editExpenseDate').value,
             category: document.getElementById('editExpenseCategory').value,
             amount: parseFloat(document.getElementById('editExpenseAmount').value),
-            month: document.getElementById('editExpenseMonth').value,
+            month: DateUtils.getMonthKey(new Date(document.getElementById('editExpenseDate').value)), // Auto-derive from date
             description: document.getElementById('editExpenseDescription').value.trim()
         };
         
         // Validation
-        if (!expenseData.date || !expenseData.category || !expenseData.amount || !expenseData.month || !expenseData.description) {
+        if (!expenseData.date || !expenseData.category || !expenseData.amount || !expenseData.description) {
             UIUtils.showNotification('Please fill in all required fields', 'error');
             return;
         }

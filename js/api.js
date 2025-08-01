@@ -234,6 +234,11 @@ const API = {
         return await this.makeRequest('add_log', { action, details });
     },
 
+    // Reports APIs
+    getMonthlyReport: async function(month) {
+        return await this.makeRequest('get_monthly_report', { month });
+    },
+
     // Admin APIs
     getUsers: async function() {
         return await this.makeRequest('get_users');

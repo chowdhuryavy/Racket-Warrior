@@ -181,7 +181,7 @@ const Logs = {
     loadLogs: async function() {
         try {
             UIUtils.showLoading();
-            const response = await API.makeRequest('get_logs');
+            const response = await API.getLogs();
             
             console.log('📋 Raw logs response:', response);
             

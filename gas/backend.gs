@@ -45,8 +45,6 @@ const SHEETS = {
  * Handle GET requests
  */
 function doGet(e) {
-
-  
   // Safety check for parameters
   if (!e || !e.parameter) {
     const errorResult = { success: false, message: 'No parameters provided' };
@@ -377,7 +375,7 @@ function handleLogin(params) {
       name: user.name,
       role: user.role,
       needs_password_change: user.needs_password_change === 'TRUE',
-              photo_url: user.img_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.name) + '&background=667eea&color=fff&size=128'
+      photo_url: user.img_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.name) + '&background=667eea&color=fff&size=128'
     };
 
     return {
@@ -480,11 +478,14 @@ function handleVerifyOTP(params) {
       return { success: false, message: 'Invalid request' };
     }
     
-    // Check OTP and expiry
-    console.log(`🔍 OTP Debug - User: ${email}, Stored: ${user.resetToken}, Provided: ${otp}, Match: ${user.resetToken === otp}`);
+    // Check OTP and expiry (ensure both are strings for comparison)
+    const storedOTP = String(user.resetToken || '').trim();
+    const providedOTP = String(otp || '').trim();
     
-    if (user.resetToken !== otp) {
-      addLog('OTP_VERIFICATION_FAILED', `Invalid OTP for ${email}. Expected: ${user.resetToken}, Got: ${otp}`, email, user.role);
+    console.log(`🔍 OTP Debug - User: ${email}, Stored: "${storedOTP}", Provided: "${providedOTP}", Match: ${storedOTP === providedOTP}`);
+    
+    if (storedOTP !== providedOTP) {
+      addLog('OTP_VERIFICATION_FAILED', `Invalid OTP for ${email}. Expected: "${storedOTP}", Got: "${providedOTP}"`, email, user.role);
       return { success: false, message: 'Invalid OTP' };
     }
     

@@ -531,16 +531,6 @@ const Collection = {
                                 </select>
                             </div>
                         </div>
-                        
-                        <div class="form-group">
-                            <label for="editCollectionMonth">Month <span class="required">*</span></label>
-                            <div class="input-wrapper">
-                                <i class="fas fa-calendar-alt"></i>
-                                <select id="editCollectionMonth" required>
-                                    <option value="">Select Month</option>
-                                </select>
-                            </div>
-                        </div>
                     </div>
                     
                     <div class="form-group">
@@ -565,9 +555,8 @@ const Collection = {
             `
         });
         
-        // Load players and months for edit form
+        // Load players for edit form
         this.loadPlayersForEditForm(collection.PlayerId);
-        await this.loadMonthsForEditForm(collection.Month);
         
         // Setup form submission
         const editForm = document.getElementById('editCollectionForm');
@@ -646,12 +635,12 @@ const Collection = {
             date: document.getElementById('editCollectionDate').value,
             playerId: document.getElementById('editCollectionPlayer').value,
             amount: parseFloat(document.getElementById('editCollectionAmount').value),
-            month: document.getElementById('editCollectionMonth').value,
+            month: DateUtils.getMonthKey(new Date(document.getElementById('editCollectionDate').value)), // Auto-derive from date
             description: document.getElementById('editCollectionDescription').value || ''
         };
         
         // Validation
-        if (!collectionData.date || !collectionData.playerId || !collectionData.amount || !collectionData.month) {
+        if (!collectionData.date || !collectionData.playerId || !collectionData.amount) {
             UIUtils.showNotification('Please fill in all required fields', 'error');
             return;
         }

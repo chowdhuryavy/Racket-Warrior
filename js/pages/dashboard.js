@@ -333,11 +333,6 @@ const Dashboard = {
             // Show loading state
             this.showLoadingState();
             
-            // Get dashboard stats with timeout
-            const timeout = new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Request timeout')), 8000)
-            );
-            
             // Check authentication first
             const token = StorageUtils.get(CONFIG.STORAGE_KEYS.AUTH_TOKEN);
             const currentUser = Auth.getCurrentUser();
@@ -355,12 +350,9 @@ const Dashboard = {
                 return;
             }
             
-            // Try direct API call with explicit parameters
+            // Make dashboard API call (API has its own 15s timeout)
             console.log('📡 Making dashboard API call with month:', this.currentMonth);
-            const response = await Promise.race([
-                this.makeDashboardAPICall(this.currentMonth, token),
-                timeout
-            ]);
+            const response = await this.makeDashboardAPICall(this.currentMonth, token);
             
             console.log('📊 Dashboard API Response:', response);
             console.log('📊 Dashboard API Response Data:', response?.data);

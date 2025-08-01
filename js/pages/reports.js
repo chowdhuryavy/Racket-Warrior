@@ -137,7 +137,7 @@ const Reports = {
         try {
             UIUtils.showLoading();
             
-            const response = await API.makeRequest('get_monthly_report', { month: this.currentMonth });
+            const response = await API.getMonthlyReport(this.currentMonth);
             
             if (response.success && response.data) {
                 // Sanitize and ensure data structure

@@ -854,7 +854,7 @@ const Admin = {
         
         try {
             UIUtils.showLoading();
-            const response = await API.makeRequest('update_user', userData);
+            const response = await API.updateUser(userData.email, userData);
             
             if (response.success) {
                 UIUtils.showNotification('✅ User updated successfully!', 'success');
@@ -880,7 +880,7 @@ const Admin = {
         if (confirm(`Reset password for ${user.name}?\n\nA new temporary password will be sent to their email.`)) {
             try {
                 UIUtils.showLoading();
-                const response = await API.makeRequest('reset_user_password', { email: email });
+                const response = await API.resetUserPassword(email);
                 
                 if (response.success) {
                     UIUtils.showNotification('✅ Password reset email sent successfully!', 'success');
@@ -903,7 +903,7 @@ const Admin = {
         if (confirm(`⚠️ Delete User: ${user.name}\n\nThis action cannot be undone. Are you sure?`)) {
             try {
                 UIUtils.showLoading();
-                const response = await API.makeRequest('delete_user', { email: email });
+                const response = await API.deleteUser(email);
                 
                 if (response.success) {
                     UIUtils.showNotification('✅ User deleted successfully!', 'success');
