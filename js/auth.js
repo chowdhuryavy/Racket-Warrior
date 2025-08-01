@@ -361,9 +361,6 @@ const Auth = {
                         <div class="input-wrapper">
                             <i class="fas fa-lock"></i>
                             <input type="password" id="newPassword" placeholder="Enter new password" required>
-                            <span class="password-toggle" onclick="togglePassword('newPassword')">
-                                <i class="fas fa-eye"></i>
-                            </span>
                         </div>
                     </div>
                     <div class="form-group">
@@ -374,9 +371,6 @@ const Auth = {
                         <div class="input-wrapper">
                             <i class="fas fa-check-circle"></i>
                             <input type="password" id="confirmPassword" placeholder="Confirm new password" required>
-                            <span class="password-toggle" onclick="togglePassword('confirmPassword')">
-                                <i class="fas fa-eye"></i>
-                            </span>
                         </div>
                     </div>
                     
@@ -607,7 +601,7 @@ const Auth = {
         UIUtils.showLoading(submitButton, 'Resetting...');
         
         try {
-            const response = await API.resetPassword(this.resetToken, newPassword);
+            const response = await API.resetPassword(this.forgotEmail, this.resetToken, newPassword);
             
             if (response.success) {
                 UIUtils.showNotification('Password reset successfully! Please login with your new password.', 'success');

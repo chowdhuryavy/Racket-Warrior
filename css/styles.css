@@ -2060,6 +2060,8 @@ body {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
     animation: pulse 2s ease-in-out infinite;
+    position: relative;
+    z-index: 1;
 }
 
 .forgot-icon.success {
@@ -2077,6 +2079,44 @@ body {
     color: #1f2937;
     font-size: 1.5rem;
     font-weight: 700;
+}
+
+/* Mobile responsive forgot icon */
+@media (max-width: 768px) {
+    .forgot-icon-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        margin-bottom: 1.5rem;
+        padding: 0 1rem;
+    }
+    
+    .forgot-icon {
+        width: 70px;
+        height: 70px;
+        font-size: 1.8rem;
+        margin: 0;
+        flex-shrink: 0;
+        position: relative;
+        overflow: visible;
+    }
+    
+    .forgot-header {
+        text-align: center;
+        padding: 0 1rem;
+    }
+    
+    .forgot-header h3 {
+        font-size: 1.3rem;
+        line-height: 1.3;
+    }
+    
+    .forgot-header p {
+        font-size: 0.9rem;
+        line-height: 1.4;
+        margin-top: 0.5rem;
+    }
 }
 
 .forgot-header p {
