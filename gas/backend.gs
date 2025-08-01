@@ -481,8 +481,10 @@ function handleVerifyOTP(params) {
     }
     
     // Check OTP and expiry
+    console.log(`🔍 OTP Debug - User: ${email}, Stored: ${user.resetToken}, Provided: ${otp}, Match: ${user.resetToken === otp}`);
+    
     if (user.resetToken !== otp) {
-      addLog('OTP_VERIFICATION_FAILED', `Invalid OTP for ${email}`, email, user.role);
+      addLog('OTP_VERIFICATION_FAILED', `Invalid OTP for ${email}. Expected: ${user.resetToken}, Got: ${otp}`, email, user.role);
       return { success: false, message: 'Invalid OTP' };
     }
     
@@ -3286,6 +3288,19 @@ function handleUpdatePlayerMonthlyStatus(params) {
     
     // Update the monthly status for the specific month
     monthlyStatus[month] = status;
+    
+    // Auto-carryforward: If setting a player as active, also set them active for next month
+    if (status === 'active') {
+      const currentDate = new Date(month + '-01');
+      const nextMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
+      const nextMonthKey = nextMonth.getFullYear() + '-' + String(nextMonth.getMonth() + 1).padStart(2, '0');
+      
+      // Only carryforward if next month doesn't already have a status
+      if (!monthlyStatus[nextMonthKey]) {
+        monthlyStatus[nextMonthKey] = 'active';
+        console.log(`🔄 Auto-carryforward: ${player.Name} set to active for ${nextMonthKey}`);
+      }
+    }
     
     // Update the sheet (MonthlyStatus is column 8, index 7)
     const rowIndex = playerIndex + 2; // +2 because array is 0-indexed and sheet starts at row 2

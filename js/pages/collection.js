@@ -507,7 +507,7 @@ const Collection = {
                             <label for="editCollectionDate">Date <span class="required">*</span></label>
                             <div class="input-wrapper">
                                 <i class="fas fa-calendar"></i>
-                                <input type="date" id="editCollectionDate" value="${collection.Date}" required>
+                                <input type="date" id="editCollectionDate" value="${DateUtils.formatDateForInput(new Date(collection.Date))}" required>
                             </div>
                         </div>
                         
@@ -570,9 +570,14 @@ const Collection = {
         await this.loadMonthsForEditForm(collection.Month);
         
         // Setup form submission
-        document.getElementById('editCollectionForm').addEventListener('submit', (e) => {
-            this.handleEditCollection(e);
-        });
+        const editForm = document.getElementById('editCollectionForm');
+        if (editForm) {
+            editForm.addEventListener('submit', (e) => {
+                this.handleEditCollection(e);
+            });
+        } else {
+            console.error('❌ editCollectionForm not found in DOM');
+        }
     },
 
     // Load players for edit form
@@ -688,10 +693,8 @@ const Collection = {
         }
         
         const confirmed = await UIUtils.confirm(
-            'Delete Collection',
             `Are you sure you want to delete this collection of ${CurrencyUtils.format(collection.Amount)} from ${collection.PlayerName}?`,
-            'Yes, Delete',
-            'Cancel'
+            'Delete Collection'
         );
         
         if (!confirmed) return;

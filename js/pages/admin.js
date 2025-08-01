@@ -569,7 +569,7 @@ const Admin = {
         try {
             UIUtils.showLoading();
             Logger.info('Loading users from API...');
-            const response = await API.makeRequest('get_users');
+            const response = await API.getUsers();
             
             Logger.info('API response received:', response);
             
