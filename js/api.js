@@ -119,19 +119,6 @@ const API = {
                 reject(new Error(`Failed to load script: ${endpoint}. Check if Google Apps Script is deployed correctly.`));
             };
             
-            // Add timeout handling
-            const timeoutId = setTimeout(() => {
-                cleanup();
-                reject(new Error('Request timeout'));
-            }, this.timeout);
-            
-            // Override cleanup to also clear timeout
-            const originalCleanup = cleanup;
-            cleanup = () => {
-                clearTimeout(timeoutId);
-                originalCleanup();
-            };
-            
             document.head.appendChild(script);
         });
     },

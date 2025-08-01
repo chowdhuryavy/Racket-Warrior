@@ -395,7 +395,7 @@ const Dashboard = {
                 error: error,
                 message: error.message,
                 stack: error.stack,
-                currentMonth: this.currentMonth
+                currentMonth: this.currentMonth || DateUtils.getMonthKey(new Date())
             });
             Logger.error('Failed to load dashboard data', error);
             

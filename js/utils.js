@@ -229,7 +229,12 @@ const DateUtils = {
         try {
             console.log(`📅 Setting up month filter: ${filterId}`);
             
-            // Get available months from API
+            // Get available months from API (check if API is available)
+            if (typeof window.API === 'undefined') {
+                console.error('❌ API not available yet, using fallback months');
+                throw new Error('API not loaded');
+            }
+            
             const response = await API.getAvailableMonths();
             
             let availableMonths = [];

@@ -787,7 +787,7 @@ const Admin = {
             // Show loading screen for user creation
             LoadingScreenUtils.showUserCreation();
             
-            const response = await API.makeRequest('add_user', userData);
+            const response = await API.addUser(userData);
             
             if (response.success) {
                 // Update loading message
@@ -812,8 +812,9 @@ const Admin = {
                 UIUtils.showNotification('❌ Failed to add user: ' + response.message, 'error');
             }
         } catch (error) {
+            console.error('❌ Error adding user:', error);
             LoadingScreenUtils.hide();
-            UIUtils.showNotification('❌ Error adding user', 'error');
+            UIUtils.showNotification('❌ Error adding user: ' + error.message, 'error');
         }
     },
     
