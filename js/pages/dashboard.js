@@ -39,8 +39,15 @@ const Dashboard = {
         // Setup event listeners
         this.setupEventListeners();
         
-        // Setup auto-refresh
-        AutoRefresh.start('dashboard', () => this.loadDashboardData(), 60000);
+        // Setup auto-refresh only after initial load completes
+        setTimeout(() => {
+            AutoRefresh.start('dashboard', () => {
+                // Only auto-refresh if dashboard is still visible
+                if (document.querySelector('.dashboard-page')) {
+                    this.loadDashboardData();
+                }
+            }, 60000);
+        }, 1000);
     },
     
     // Handle month change
@@ -556,6 +563,13 @@ const Dashboard = {
     updateStats: function(data) {
         console.log('📊 UpdateStats called with data:', data);
         
+        // Check if dashboard DOM is ready
+        if (!document.querySelector('.dashboard-page')) {
+            console.warn('⚠️ Dashboard DOM not ready, retrying in 100ms...');
+            setTimeout(() => this.updateStats(data), 100);
+            return;
+        }
+        
         // Ensure data exists and has required properties
         if (!data || typeof data !== 'object') {
             console.error('❌ Invalid dashboard data received:', data);
@@ -760,6 +774,13 @@ const Dashboard = {
     // Update monthly summary (enhanced with sanitized data)
     updateMonthlySummary: function(data) {
         console.log('📊 Updating monthly summary with data:', data);
+        
+        // Check if dashboard DOM is ready
+        if (!document.querySelector('.dashboard-page')) {
+            console.warn('⚠️ Dashboard DOM not ready for monthly summary, retrying in 100ms...');
+            setTimeout(() => this.updateMonthlySummary(data), 100);
+            return;
+        }
         
         const monthlyIncomeElement = document.getElementById('monthlyIncome');
         const monthlyExpensesElement = document.getElementById('monthlyExpenses');

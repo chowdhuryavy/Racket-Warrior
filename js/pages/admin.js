@@ -570,6 +570,13 @@ const Admin = {
             if (!skipLoadingIndicator) {
                 UIUtils.showLoading();
             }
+            
+            // Check if admin page is still active
+            if (!document.querySelector('.admin-page')) {
+                console.warn('⚠️ Admin page not active, skipping user load');
+                return;
+            }
+            
             Logger.info('Loading users from API...');
             const response = await API.getUsers();
             
@@ -806,14 +813,22 @@ const Admin = {
                 
                 // Clear API cache to ensure fresh data
                 API.clearCache('users');
-                this.closeModal('addUserModal');
                 
-                // Load users and hide loading screen
+                // Load users first, then close modal
                 try {
+                    LoadingScreenUtils.updateMessage('Refreshing user list...');
                     await this.loadUsers(true); // Skip loading indicator since we already have one
                     console.log('✅ Users loaded successfully after user creation');
+                    
+                    // Close modal after successful refresh
+                    this.closeModal('addUserModal');
+                    
+                    // Small delay to ensure UI update
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
                 } catch (loadError) {
                     console.error('❌ Failed to load users after creation:', loadError);
+                    this.closeModal('addUserModal');
                     UIUtils.showNotification('⚠️ User created but failed to refresh list. Please refresh page.', 'warning');
                 }
                 LoadingScreenUtils.hide();

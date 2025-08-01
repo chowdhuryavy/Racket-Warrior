@@ -2538,7 +2538,7 @@ body {
 
 /* Page Content */
 .page-content {
-    padding: 2rem;
+    padding: 1rem 2rem;
     max-width: 1400px;
     margin: 0 auto;
 }
@@ -2554,7 +2554,7 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1rem;
-    padding: 1.5rem 2rem;
+    padding: 1rem 2rem;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border-radius: 20px;
     color: white;
@@ -3128,7 +3128,26 @@ body {
     
     /* Ensure page content has proper spacing */
     .page-content {
-        padding: 1rem 0.5rem; /* Consistent mobile padding */
+        padding: 0.5rem; /* Reduced mobile padding */
+    }
+    
+    /* Dashboard header mobile spacing */
+    .dashboard-header {
+        padding: 0.75rem 1rem; /* Reduced mobile padding */
+        margin-bottom: 0.75rem; /* Reduced margin */
+    }
+    
+    /* Page headers mobile spacing */
+    .reports-page .page-header,
+    .logs-page .page-header,
+    .admin-page .page-header,
+    .add-player-page .page-header,
+    .add-collection-page .page-header,
+    .add-expense-page .page-header {
+        padding: 0.75rem 1rem; /* Reduced mobile padding */
+        margin-bottom: 0.75rem; /* Reduced margin */
+        flex-direction: column; /* Stack on mobile */
+        text-align: center; /* Center text */
     }
     
     /* Fix container spacing on mobile */
@@ -4022,17 +4041,20 @@ body {
 
 .reports-page .page-header,
 .logs-page .page-header,
-.admin-page .page-header {
+.admin-page .page-header,
+.add-player-page .page-header,
+.add-collection-page .page-header,
+.add-expense-page .page-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
     gap: 1rem;
-    padding: 2rem;
+    padding: 1rem 2rem;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border-radius: 16px;
     color: white;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
 }
 
 .page-header .header-left h1 {
