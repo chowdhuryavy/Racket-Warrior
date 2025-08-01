@@ -12,6 +12,9 @@ const Dashboard = {
         container.innerHTML = this.getHTML();
         console.log('📊 Dashboard HTML inserted, initializing...');
         
+        // Small delay to ensure DOM is ready
+        await new Promise(resolve => setTimeout(resolve, 10));
+        
         // Initialize dashboard
         await this.init();
     },
@@ -405,7 +408,11 @@ const Dashboard = {
                 finalBalance: 0
             };
             
-            this.updateStats(fallbackData);
+            // Check if DOM elements exist before updating
+            setTimeout(() => {
+                this.updateStats(fallbackData);
+                this.updateMonthlySummary(fallbackData);
+            }, 50);
             
             if (error.message === 'Request timeout') {
                 UIUtils.showNotification('⏱️ Dashboard loading slowly. Showing cached data.', 'warning');
@@ -737,6 +744,12 @@ const Dashboard = {
         const monthlyIncomeElement = document.getElementById('monthlyIncome');
         const monthlyExpensesElement = document.getElementById('monthlyExpenses');
         const monthlyNetElement = document.getElementById('monthlyNet');
+        
+        console.log('Monthly summary elements found:', {
+            monthlyIncomeElement: !!monthlyIncomeElement,
+            monthlyExpensesElement: !!monthlyExpensesElement,
+            monthlyNetElement: !!monthlyNetElement
+        });
         
         // Data is already sanitized, so we can use it directly
         const income = data.totalCollection || 0;

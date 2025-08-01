@@ -356,9 +356,7 @@ const Collection = {
                 event.target.reset();
                 document.getElementById('collectionDate').value = DateUtils.formatDateForInput(new Date());
                 
-                // Re-select current month
-                const currentMonth = DateUtils.getMonthKey(new Date());
-                document.getElementById('collectionMonth').value = currentMonth;
+                // Month is now auto-set, no need to reset dropdown
                 
                 await API.addLog('ADD_COLLECTION', `Added collection: ${CurrencyUtils.format(collectionData.amount)} from player ${collectionData.playerId}`);
             } else {
@@ -731,7 +729,6 @@ const Collection = {
     getCurrentSelectedMonth: function() {
         // Try different month filter elements based on current page context
         const monthSelectors = [
-            'collectionMonth',           // Add form month (if exists)
             'collectionMonthFilter',     // View page month filter
             'dashboardMonthFilter'       // Fallback to dashboard filter
         ];

@@ -3,7 +3,7 @@
 const API = {
     // Base configuration
     baseURL: CONFIG.API_BASE_URL,
-    timeout: 30000, // 30 seconds for Google Apps Script
+    timeout: 15000, // 15 seconds for faster response
     
     // Request cache for performance
     cache: new Map(),
@@ -117,6 +117,19 @@ const API = {
             script.onerror = (error) => {
                 cleanup();
                 reject(new Error(`Failed to load script: ${endpoint}. Check if Google Apps Script is deployed correctly.`));
+            };
+            
+            // Add timeout handling
+            const timeoutId = setTimeout(() => {
+                cleanup();
+                reject(new Error('Request timeout'));
+            }, this.timeout);
+            
+            // Override cleanup to also clear timeout
+            const originalCleanup = cleanup;
+            cleanup = () => {
+                clearTimeout(timeoutId);
+                originalCleanup();
             };
             
             document.head.appendChild(script);

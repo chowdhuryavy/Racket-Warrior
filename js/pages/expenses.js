@@ -265,9 +265,7 @@ const Expenses = {
                 event.target.reset();
                 document.getElementById('expenseDate').value = DateUtils.formatDateForInput(new Date());
                 
-                // Re-select current month
-                const currentMonth = DateUtils.getMonthKey(new Date());
-                document.getElementById('expenseMonth').value = currentMonth;
+                // Month is now auto-set, no need to reset dropdown
                 
                 await API.addLog('ADD_EXPENSE', `Added expense: ${expenseData.category} - ${CurrencyUtils.format(expenseData.amount)}`);
             } else {
