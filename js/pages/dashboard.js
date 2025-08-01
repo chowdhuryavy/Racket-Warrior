@@ -24,6 +24,12 @@ const Dashboard = {
         // Setup month filter first
         await this.setupMonthFilter();
         
+        // Setup month change listener
+        AppState.addListener('month', (data) => {
+            console.log('📅 Dashboard received month change:', data);
+            this.handleMonthChange(data.newMonth);
+        });
+        
         // Load dashboard data
         await this.loadDashboardData();
         
@@ -32,6 +38,26 @@ const Dashboard = {
         
         // Setup event listeners
         this.setupEventListeners();
+        
+        // Setup auto-refresh
+        AutoRefresh.start('dashboard', () => this.loadDashboardData(), 60000);
+    },
+    
+    // Handle month change
+    handleMonthChange: async function(newMonth) {
+        console.log('📅 Dashboard handling month change to:', newMonth);
+        this.currentMonth = newMonth;
+        
+        // Update month filter dropdown
+        const monthFilter = document.getElementById('dashboardMonthFilter');
+        if (monthFilter && monthFilter.value !== newMonth) {
+            monthFilter.value = newMonth || '';
+        }
+        
+        // Refresh data for new month
+        await this.loadDashboardData();
+        
+        UIUtils.showNotification(`📅 Switched to ${newMonth ? DateUtils.formatMonthForDisplay(newMonth) : 'All Time'}`, 'info');
     },
     
     // Get dashboard HTML
@@ -315,9 +341,8 @@ const Dashboard = {
             // Prevent multiple simultaneous loads
             if (this.isLoading) return;
             
-            // Use cache if data is recent (within 30 seconds)
-            const now = Date.now();
-            if (this.cachedData && this.lastLoadTime && (now - this.lastLoadTime) < 30000) {
+            // Use cache if data is recent (check AppState)
+            if (this.cachedData && !AppState.needsRefresh('dashboard')) {
                 console.log('📋 Using cached dashboard data:', this.cachedData);
                 this.updateStats(this.cachedData);
                 this.updateCurrentMonthDisplay();
@@ -367,7 +392,10 @@ const Dashboard = {
                 }
                 
                 this.cachedData = response.data;
-                this.lastLoadTime = now;
+                this.lastLoadTime = Date.now();
+                
+                // Mark data as refreshed in AppState
+                AppState.markDataRefreshed('dashboard');
                 this.updateStats(response.data);
                 await this.loadRecentActivities();
                 this.updateCurrentMonthDisplay();

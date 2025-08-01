@@ -12,6 +12,10 @@ const App = {
             return;
         }
         
+        // Initialize state management
+        AppState.init();
+        ConnectionMonitor.init();
+        
         // Setup mobile menu
         this.setupMobileMenu();
         

@@ -150,8 +150,16 @@ const DateUtils = {
     
     setGlobalMonth: function(month) {
         this._globalMonth = month;
-        // Notify all pages of month change
+        
+        // Update centralized state
+        if (window.AppState) {
+            AppState.setMonth(month);
+        }
+        
+        // Notify all pages of month change (legacy support)
         window.dispatchEvent(new CustomEvent('monthFilterChanged', { detail: month }));
+        
+        console.log('📅 Global month updated:', month);
     },
     
     getGlobalMonth: function() {
@@ -830,6 +838,508 @@ const FileUtils = {
     }
 };
 
+// Form Management Utilities - Add before AppState
+const FormUtils = {
+    // Form state tracking
+    formStates: {},
+    autoSaveIntervals: {},
+    
+    // Initialize form with smart features
+    initForm: function(formId, options = {}) {
+        const form = document.getElementById(formId);
+        if (!form) {
+            console.warn(`❌ Form ${formId} not found`);
+            return;
+        }
+        
+        const config = {
+            autoSave: options.autoSave || false,
+            autoSaveInterval: options.autoSaveInterval || 10000, // 10 seconds
+            validationRules: options.validationRules || {},
+            onAutoSave: options.onAutoSave || null,
+            preserveState: options.preserveState !== false // Default true
+        };
+        
+        this.formStates[formId] = {
+            config,
+            isDirty: false,
+            lastSaved: null,
+            originalData: this.getFormData(form)
+        };
+        
+        // Setup auto-save if enabled
+        if (config.autoSave && config.onAutoSave) {
+            this.startAutoSave(formId);
+        }
+        
+        // Setup form change tracking
+        this.setupFormTracking(formId);
+        
+        console.log(`📝 Form ${formId} initialized with smart features`);
+    },
+    
+    // Start auto-save for form
+    startAutoSave: function(formId) {
+        this.stopAutoSave(formId); // Clear any existing interval
+        
+        const state = this.formStates[formId];
+        if (!state || !state.config.onAutoSave) return;
+        
+        this.autoSaveIntervals[formId] = setInterval(() => {
+            if (state.isDirty && AppState.isOnline) {
+                console.log(`💾 Auto-saving form: ${formId}`);
+                this.autoSaveForm(formId);
+            }
+        }, state.config.autoSaveInterval);
+    },
+    
+    // Stop auto-save for form
+    stopAutoSave: function(formId) {
+        if (this.autoSaveIntervals[formId]) {
+            clearInterval(this.autoSaveIntervals[formId]);
+            delete this.autoSaveIntervals[formId];
+        }
+    },
+    
+    // Setup form change tracking
+    setupFormTracking: function(formId) {
+        const form = document.getElementById(formId);
+        if (!form) return;
+        
+        const trackChange = () => {
+            const state = this.formStates[formId];
+            if (state) {
+                state.isDirty = true;
+                console.log(`📝 Form ${formId} marked as dirty`);
+            }
+        };
+        
+        // Track all form inputs
+        form.addEventListener('input', trackChange);
+        form.addEventListener('change', trackChange);
+        form.addEventListener('keyup', trackChange);
+    },
+    
+    // Get form data as object
+    getFormData: function(form) {
+        const formData = new FormData(form);
+        const data = {};
+        
+        for (let [key, value] of formData.entries()) {
+            data[key] = value;
+        }
+        
+        return data;
+    },
+    
+    // Auto-save form data
+    autoSaveForm: async function(formId) {
+        const form = document.getElementById(formId);
+        const state = this.formStates[formId];
+        
+        if (!form || !state) return;
+        
+        try {
+            const formData = this.getFormData(form);
+            await state.config.onAutoSave(formData);
+            
+            state.isDirty = false;
+            state.lastSaved = Date.now();
+            
+            // Show subtle save indicator
+            this.showSaveIndicator(formId, 'saved');
+            
+        } catch (error) {
+            console.error(`❌ Auto-save failed for ${formId}:`, error);
+            this.showSaveIndicator(formId, 'error');
+            
+            // Queue for retry if offline
+            if (!AppState.isOnline) {
+                ConnectionMonitor.queueRetry(
+                    () => this.autoSaveForm(formId),
+                    { formId, data: this.getFormData(form) }
+                );
+            }
+        }
+    },
+    
+    // Show save indicator
+    showSaveIndicator: function(formId, type) {
+        const form = document.getElementById(formId);
+        if (!form) return;
+        
+        // Remove any existing indicator
+        const existingIndicator = form.querySelector('.save-indicator');
+        if (existingIndicator) {
+            existingIndicator.remove();
+        }
+        
+        // Create new indicator
+        const indicator = document.createElement('div');
+        indicator.className = `save-indicator save-indicator-${type}`;
+        
+        const icon = type === 'saved' ? '✅' : type === 'saving' ? '💾' : '❌';
+        const text = type === 'saved' ? 'Saved' : type === 'saving' ? 'Saving...' : 'Save failed';
+        
+        indicator.innerHTML = `<span>${icon} ${text}</span>`;
+        indicator.style.cssText = `
+            position: absolute;
+            top: -10px;
+            right: 10px;
+            background: ${type === 'saved' ? '#10b981' : type === 'saving' ? '#f59e0b' : '#ef4444'};
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(-5px);
+            transition: all 0.3s ease;
+        `;
+        
+        form.style.position = 'relative';
+        form.appendChild(indicator);
+        
+        // Animate in
+        setTimeout(() => {
+            indicator.style.opacity = '1';
+            indicator.style.transform = 'translateY(0)';
+        }, 10);
+        
+        // Auto-remove after 3 seconds
+        setTimeout(() => {
+            if (indicator.parentNode) {
+                indicator.style.opacity = '0';
+                indicator.style.transform = 'translateY(-5px)';
+                setTimeout(() => {
+                    if (indicator.parentNode) {
+                        indicator.remove();
+                    }
+                }, 300);
+            }
+        }, 3000);
+    },
+    
+    // Validate form with custom rules
+    validateForm: function(formId, showErrors = true) {
+        const form = document.getElementById(formId);
+        const state = this.formStates[formId];
+        
+        if (!form || !state) return true;
+        
+        const rules = state.config.validationRules;
+        const errors = [];
+        
+        for (const [fieldName, rule] of Object.entries(rules)) {
+            const field = form.querySelector(`[name="${fieldName}"]`);
+            if (!field) continue;
+            
+            const value = field.value.trim();
+            
+            // Required validation
+            if (rule.required && !value) {
+                errors.push({ field: fieldName, message: rule.requiredMessage || `${fieldName} is required` });
+                continue;
+            }
+            
+            // Custom validation function
+            if (rule.validate && typeof rule.validate === 'function') {
+                const result = rule.validate(value, form);
+                if (result !== true) {
+                    errors.push({ field: fieldName, message: result || `Invalid ${fieldName}` });
+                }
+            }
+            
+            // Pattern validation
+            if (value && rule.pattern && !rule.pattern.test(value)) {
+                errors.push({ field: fieldName, message: rule.patternMessage || `Invalid ${fieldName} format` });
+            }
+        }
+        
+        if (showErrors && errors.length > 0) {
+            this.showFormErrors(formId, errors);
+        }
+        
+        return errors.length === 0;
+    },
+    
+    // Show form validation errors
+    showFormErrors: function(formId, errors) {
+        const form = document.getElementById(formId);
+        if (!form) return;
+        
+        // Clear existing errors
+        this.clearFormErrors(formId);
+        
+        errors.forEach(error => {
+            const field = form.querySelector(`[name="${error.field}"]`);
+            if (field) {
+                // Add error class
+                field.classList.add('error');
+                
+                // Add error message
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'field-error';
+                errorDiv.textContent = error.message;
+                errorDiv.style.cssText = `
+                    color: #ef4444;
+                    font-size: 0.75rem;
+                    margin-top: 0.25rem;
+                `;
+                
+                field.parentNode.appendChild(errorDiv);
+            }
+        });
+    },
+    
+    // Clear form validation errors
+    clearFormErrors: function(formId) {
+        const form = document.getElementById(formId);
+        if (!form) return;
+        
+        // Remove error classes
+        form.querySelectorAll('.error').forEach(field => {
+            field.classList.remove('error');
+        });
+        
+        // Remove error messages
+        form.querySelectorAll('.field-error').forEach(error => {
+            error.remove();
+        });
+    },
+    
+    // Reset form to original state
+    resetForm: function(formId) {
+        const form = document.getElementById(formId);
+        const state = this.formStates[formId];
+        
+        if (!form || !state) return;
+        
+        // Reset form fields
+        form.reset();
+        
+        // Restore original data if available
+        if (state.originalData) {
+            for (const [key, value] of Object.entries(state.originalData)) {
+                const field = form.querySelector(`[name="${key}"]`);
+                if (field) {
+                    field.value = value;
+                }
+            }
+        }
+        
+        // Clear errors and dirty state
+        this.clearFormErrors(formId);
+        state.isDirty = false;
+        
+        console.log(`🔄 Form ${formId} reset to original state`);
+    },
+    
+    // Cleanup form when done
+    cleanup: function(formId) {
+        this.stopAutoSave(formId);
+        delete this.formStates[formId];
+        console.log(`🧹 Cleaned up form: ${formId}`);
+    }
+};
+
+// State Management System - Add at the end of file
+const AppState = {
+    // Global state
+    currentMonth: null,
+    currentUser: null,
+    lastDataRefresh: {},
+    isOnline: navigator.onLine,
+    
+    // State change listeners
+    listeners: {
+        month: [],
+        user: [],
+        data: [],
+        connection: []
+    },
+    
+    // Initialize state management
+    init: function() {
+        // Monitor connection status
+        window.addEventListener('online', () => {
+            this.isOnline = true;
+            this.notifyListeners('connection', { online: true });
+        });
+        
+        window.addEventListener('offline', () => {
+            this.isOnline = false;
+            this.notifyListeners('connection', { online: false });
+        });
+        
+        console.log('🏗️ AppState initialized');
+    },
+    
+    // Set global month and notify all modules
+    setMonth: function(month) {
+        if (this.currentMonth !== month) {
+            const oldMonth = this.currentMonth;
+            this.currentMonth = month;
+            
+            console.log(`📅 Global month changed: ${oldMonth} → ${month}`);
+            
+            // Notify all month listeners
+            this.notifyListeners('month', { 
+                oldMonth, 
+                newMonth: month,
+                timestamp: Date.now()
+            });
+            
+            // Clear data refresh timestamps for new month
+            this.lastDataRefresh = {};
+        }
+    },
+    
+    // Set current user
+    setUser: function(user) {
+        this.currentUser = user;
+        this.notifyListeners('user', user);
+    },
+    
+    // Mark data as refreshed
+    markDataRefreshed: function(type) {
+        this.lastDataRefresh[type] = Date.now();
+        this.notifyListeners('data', { type, timestamp: Date.now() });
+    },
+    
+    // Check if data needs refresh (older than 30 seconds)
+    needsRefresh: function(type) {
+        const lastRefresh = this.lastDataRefresh[type];
+        if (!lastRefresh) return true;
+        return (Date.now() - lastRefresh) > 30000; // 30 seconds
+    },
+    
+    // Add state listener
+    addListener: function(type, callback) {
+        if (this.listeners[type]) {
+            this.listeners[type].push(callback);
+        }
+    },
+    
+    // Remove state listener
+    removeListener: function(type, callback) {
+        if (this.listeners[type]) {
+            const index = this.listeners[type].indexOf(callback);
+            if (index > -1) {
+                this.listeners[type].splice(index, 1);
+            }
+        }
+    },
+    
+    // Notify listeners
+    notifyListeners: function(type, data) {
+        if (this.listeners[type]) {
+            this.listeners[type].forEach(callback => {
+                try {
+                    callback(data);
+                } catch (error) {
+                    console.error(`❌ State listener error (${type}):`, error);
+                }
+            });
+        }
+    },
+    
+    // Get current state summary
+    getState: function() {
+        return {
+            month: this.currentMonth,
+            user: this.currentUser?.email || null,
+            online: this.isOnline,
+            lastRefresh: this.lastDataRefresh
+        };
+    }
+};
+
+// Auto-refresh Manager
+const AutoRefresh = {
+    intervals: {},
+    
+    // Start auto-refresh for a data type
+    start: function(type, callback, intervalMs = 60000) {
+        this.stop(type); // Clear any existing interval
+        
+        this.intervals[type] = setInterval(() => {
+            if (AppState.isOnline && AppState.needsRefresh(type)) {
+                console.log(`🔄 Auto-refreshing ${type} data`);
+                callback();
+            }
+        }, intervalMs);
+        
+        console.log(`⏰ Auto-refresh started for ${type} (${intervalMs}ms)`);
+    },
+    
+    // Stop auto-refresh
+    stop: function(type) {
+        if (this.intervals[type]) {
+            clearInterval(this.intervals[type]);
+            delete this.intervals[type];
+            console.log(`⏰ Auto-refresh stopped for ${type}`);
+        }
+    },
+    
+    // Stop all auto-refresh
+    stopAll: function() {
+        Object.keys(this.intervals).forEach(type => this.stop(type));
+    }
+};
+
+// Connection Monitor
+const ConnectionMonitor = {
+    isOnline: navigator.onLine,
+    retryQueue: [],
+    
+    init: function() {
+        AppState.addListener('connection', (data) => {
+            this.isOnline = data.online;
+            
+            if (data.online) {
+                UIUtils.showNotification('🟢 Connection restored', 'success');
+                this.processRetryQueue();
+            } else {
+                UIUtils.showNotification('🔴 Connection lost - working offline', 'warning');
+            }
+        });
+    },
+    
+    // Add failed operation to retry queue
+    queueRetry: function(operation, context = {}) {
+        this.retryQueue.push({
+            operation,
+            context,
+            timestamp: Date.now()
+        });
+        console.log(`📦 Queued operation for retry: ${operation.name || 'anonymous'}`);
+    },
+    
+    // Process retry queue when connection restored
+    processRetryQueue: function() {
+        if (this.retryQueue.length === 0) return;
+        
+        console.log(`🔄 Processing ${this.retryQueue.length} queued operations`);
+        
+        const queue = [...this.retryQueue];
+        this.retryQueue = [];
+        
+        queue.forEach(async (item) => {
+            try {
+                await item.operation(item.context);
+                console.log(`✅ Retry successful: ${item.operation.name || 'anonymous'}`);
+            } catch (error) {
+                console.error(`❌ Retry failed: ${item.operation.name || 'anonymous'}`, error);
+                // Re-queue if still offline
+                if (!this.isOnline) {
+                    this.retryQueue.push(item);
+                }
+            }
+        });
+    }
+};
+
 // Export utilities to global scope
 window.Logger = Logger;
 window.ActivityLogger = ActivityLogger;
@@ -843,3 +1353,7 @@ window.PermissionUtils = PermissionUtils;
 window.DataUtils = DataUtils;
 window.DOMUtils = DOMUtils;
 window.FileUtils = FileUtils;
+window.FormUtils = FormUtils;
+window.AppState = AppState;
+window.AutoRefresh = AutoRefresh;
+window.ConnectionMonitor = ConnectionMonitor;

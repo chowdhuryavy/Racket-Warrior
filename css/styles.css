@@ -3112,6 +3112,30 @@ body {
         align-items: center;
         gap: 1rem;
     }
+    
+    /* Fix main content spacing on mobile */
+    .main-content {
+        margin-left: 0; /* Remove sidebar margin on mobile */
+        margin-top: var(--header-height); /* Keep header spacing */
+        padding: 1rem 0.5rem; /* Add mobile padding */
+    }
+    
+    /* Adjust header for mobile */
+    .app-header {
+        left: 0; /* Start from left edge on mobile */
+        padding: 0 1rem; /* Reduce header padding */
+    }
+    
+    /* Ensure page content has proper spacing */
+    .page-content {
+        padding: 1rem 0.5rem; /* Consistent mobile padding */
+    }
+    
+    /* Fix container spacing on mobile */
+    .container {
+        padding: 0 0.5rem; /* Reduce container padding */
+        max-width: 100%; /* Full width on mobile */
+    }
 }
 
 #pageTitle {
