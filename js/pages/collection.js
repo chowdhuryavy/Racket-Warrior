@@ -399,6 +399,11 @@ const Collection = {
         const monthFilter = document.getElementById('collectionMonthFilter')?.value || '';
         const playerFilter = document.getElementById('collectionPlayerFilter')?.value || '';
         
+        // Debug logging (remove in production)
+        if (monthFilter) {
+            console.log('🔍 Filtering collections by month:', monthFilter);
+        }
+        
         this.filteredData = this.currentData.filter(collection => {
             const matchesSearch = !searchTerm || 
                 collection.PlayerName?.toLowerCase().includes(searchTerm) ||
@@ -410,6 +415,10 @@ const Collection = {
             
             return matchesSearch && matchesMonth && matchesPlayer;
         });
+        
+        if (monthFilter) {
+            console.log(`🎯 Month filter applied: ${this.filteredData.length} collections found for ${monthFilter}`);
+        }
         this.renderTable(this.filteredData);
     },
 

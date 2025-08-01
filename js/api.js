@@ -149,6 +149,10 @@ const API = {
         return await this.makeRequest('forgot_password', { email });
     },
 
+    verifyOTP: async function(email, otp) {
+        return await this.makeRequest('verify_otp', { email, otp });
+    },
+
     resetPassword: async function(token, newPassword) {
         return await this.makeRequest('reset_password', { token, newPassword });
     },
