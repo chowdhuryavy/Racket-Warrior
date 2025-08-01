@@ -1514,31 +1514,61 @@ function handleGetAvailableMonths(params) {
       return { success: false, message: 'Unauthorized access' };
     }
     
-    // Get all months that have data
+    // Get all months that have actual data based on DATES (not month fields)
     const availableMonths = new Set();
     
-    // Check income sheet for months
+    // Check income sheet - extract months from Date field
     const incomeSheet = getSheet(SHEETS.income.name);
     const incomeData = getSheetData(incomeSheet);
     incomeData.forEach(item => {
-      if (item.Month) {
-        availableMonths.add(item.Month);
+      if (item.Date) {
+        try {
+          const date = new Date(item.Date);
+          if (!isNaN(date.getTime())) {
+            const monthKey = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
+            availableMonths.add(monthKey);
+          }
+        } catch (e) {
+          // Ignore invalid dates
+        }
       }
     });
     
-    // Check expenses sheet for months
+    // Check expenses sheet - extract months from Date field
     const expensesSheet = getSheet(SHEETS.expenses.name);
     const expensesData = getSheetData(expensesSheet);
     expensesData.forEach(expense => {
-      if (expense.Month) {
-        availableMonths.add(expense.Month);
+      if (expense.Date) {
+        try {
+          const date = new Date(expense.Date);
+          if (!isNaN(date.getTime())) {
+            const monthKey = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
+            availableMonths.add(monthKey);
+          }
+        } catch (e) {
+          // Ignore invalid dates
+        }
       }
     });
     
-    // Check players sheet for months (from MonthlyStatus)
+    // Check players sheet - extract months from JoinDate and MonthlyStatus
     const playersSheet = getSheet(SHEETS.players.name);
     const playersData = getSheetData(playersSheet);
     playersData.forEach(player => {
+      // Add month from player join date
+      if (player.JoinDate) {
+        try {
+          const date = new Date(player.JoinDate);
+          if (!isNaN(date.getTime())) {
+            const monthKey = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
+            availableMonths.add(monthKey);
+          }
+        } catch (e) {
+          // Ignore invalid dates
+        }
+      }
+      
+      // Add months from MonthlyStatus
       if (player.MonthlyStatus) {
         try {
           const monthlyStatus = JSON.parse(player.MonthlyStatus);
@@ -3263,8 +3293,13 @@ function handleUpdatePlayerMonthlyStatus(params) {
       return { success: false, message: 'Unauthorized access' };
     }
     
-    if (!playerId || !month || !status) {
-      return { success: false, message: 'Player ID, month, and status are required' };
+    if (!playerId || !month) {
+      return { success: false, message: 'Player ID and month are required' };
+    }
+    
+    // Status can be 'active', 'inactive', null, or '' (to remove status)
+    if (status && !['active', 'inactive'].includes(status)) {
+      return { success: false, message: 'Status must be "active", "inactive", or empty to remove' };
     }
     
     const playersSheet = getSheet(SHEETS.players.name);
@@ -3288,18 +3323,53 @@ function handleUpdatePlayerMonthlyStatus(params) {
     }
     
     // Update the monthly status for the specific month
-    monthlyStatus[month] = status;
+    if (status === null || status === '') {
+      delete monthlyStatus[month]; // Remove the status completely
+    } else {
+      monthlyStatus[month] = status;
+    }
     
-    // Auto-carryforward: If setting a player as active, also set them active for next month
+    // Advanced Auto-carryforward Logic
     if (status === 'active') {
+      // When setting a player as active, carry forward to ALL future months until explicitly set inactive
       const currentDate = new Date(month + '-01');
-      const nextMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
-      const nextMonthKey = nextMonth.getFullYear() + '-' + String(nextMonth.getMonth() + 1).padStart(2, '0');
+      const currentYear = currentDate.getFullYear();
+      const currentMonth = currentDate.getMonth();
       
-      // Only carryforward if next month doesn't already have a status
-      if (!monthlyStatus[nextMonthKey]) {
-        monthlyStatus[nextMonthKey] = 'active';
-        console.log(`🔄 Auto-carryforward: ${player.Name} set to active for ${nextMonthKey}`);
+      // Generate next 12 months to carry forward
+      for (let i = 1; i <= 12; i++) {
+        const futureDate = new Date(currentYear, currentMonth + i, 1);
+        const futureMonthKey = futureDate.getFullYear() + '-' + String(futureDate.getMonth() + 1).padStart(2, '0');
+        
+        // Only carryforward if future month doesn't already have a status
+        if (!monthlyStatus[futureMonthKey]) {
+          monthlyStatus[futureMonthKey] = 'active';
+          console.log(`🔄 Auto-carryforward: ${player.Name} set to active for ${futureMonthKey}`);
+        } else {
+          // Stop if we hit a month that already has a status (user explicitly set it)
+          break;
+        }
+      }
+    } else if (status === 'inactive') {
+      // When setting a player as inactive, they stop carrying forward but can resume later
+      // Don't automatically clear future months - let user set them individually
+      console.log(`🛑 Player ${player.Name} set inactive for ${month} - carryforward stops but can resume later`);
+    } else if (status === null || status === '') {
+      // When removing status, also remove auto-carryforward for future months
+      const currentDate = new Date(month + '-01');
+      const currentYear = currentDate.getFullYear();
+      const currentMonth = currentDate.getMonth();
+      
+      // Clear future months that were auto-carried forward
+      for (let i = 1; i <= 12; i++) {
+        const futureDate = new Date(currentYear, currentMonth + i, 1);
+        const futureMonthKey = futureDate.getFullYear() + '-' + String(futureDate.getMonth() + 1).padStart(2, '0');
+        
+        // Only clear if it was active (don't override explicit statuses)
+        if (monthlyStatus[futureMonthKey] === 'active') {
+          delete monthlyStatus[futureMonthKey];
+          console.log(`🗑️ Auto-carryforward cleared: ${player.Name} for ${futureMonthKey}`);
+        }
       }
     }
     
