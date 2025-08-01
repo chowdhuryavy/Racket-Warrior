@@ -1052,9 +1052,23 @@ function handleGetIncome(params) {
     const incomeSheet = getSheet(SHEETS.income.name);
     let income = getSheetData(incomeSheet);
     
-    // Filter by month if provided
+    // Filter by month if provided (derive from Date field to match available months logic)
     if (month) {
-      income = income.filter(item => item.Month === month);
+      income = income.filter(item => {
+        if (item.Date) {
+          try {
+            const date = new Date(item.Date);
+            if (!isNaN(date.getTime())) {
+              const itemMonthKey = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
+              return itemMonthKey === month;
+            }
+          } catch (e) {
+            // Fallback to Month field if Date parsing fails
+            return item.Month === month;
+          }
+        }
+        return item.Month === month;
+      });
     }
     
     // Sort by date (newest first)
@@ -1259,9 +1273,23 @@ function handleGetExpenses(params) {
     const expensesSheet = getSheet(SHEETS.expenses.name);
     let expenses = getSheetData(expensesSheet);
     
-    // Filter by month if provided
+    // Filter by month if provided (derive from Date field to match available months logic)
     if (month) {
-      expenses = expenses.filter(expense => expense.Month === month);
+      expenses = expenses.filter(expense => {
+        if (expense.Date) {
+          try {
+            const date = new Date(expense.Date);
+            if (!isNaN(date.getTime())) {
+              const expenseMonthKey = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
+              return expenseMonthKey === month;
+            }
+          } catch (e) {
+            // Fallback to Month field if Date parsing fails
+            return expense.Month === month;
+          }
+        }
+        return expense.Month === month;
+      });
     }
     
     // Sort by date (newest first)
@@ -1527,9 +1555,10 @@ function handleGetAvailableMonths(params) {
           if (!isNaN(date.getTime())) {
             const monthKey = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
             availableMonths.add(monthKey);
+            console.log(`📅 Income date: ${item.Date} → parsed: ${date.toISOString()} → month: ${monthKey}`);
           }
         } catch (e) {
-          // Ignore invalid dates
+          console.warn(`❌ Invalid income date: ${item.Date}`);
         }
       }
     });
@@ -1544,9 +1573,10 @@ function handleGetAvailableMonths(params) {
           if (!isNaN(date.getTime())) {
             const monthKey = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
             availableMonths.add(monthKey);
+            console.log(`📅 Expense date: ${expense.Date} → parsed: ${date.toISOString()} → month: ${monthKey}`);
           }
         } catch (e) {
-          // Ignore invalid dates
+          console.warn(`❌ Invalid expense date: ${expense.Date}`);
         }
       }
     });
@@ -1562,9 +1592,10 @@ function handleGetAvailableMonths(params) {
           if (!isNaN(date.getTime())) {
             const monthKey = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
             availableMonths.add(monthKey);
+            console.log(`📅 Player join date: ${player.JoinDate} → parsed: ${date.toISOString()} → month: ${monthKey}`);
           }
         } catch (e) {
-          // Ignore invalid dates
+          console.warn(`❌ Invalid player join date: ${player.JoinDate}`);
         }
       }
       
@@ -3165,16 +3196,32 @@ function sendWelcomeEmail(email, name, tempPassword) {
 </html>
 `;
     
-    MailApp.sendEmail({
-      to: email,
-      subject: subject,
-      htmlBody: htmlBody
-    });
-    
-    console.log(`✅ Welcome email sent successfully to: ${email}`);
-    return true;
+    // Try MailApp first
+    try {
+      MailApp.sendEmail({
+        to: email,
+        subject: subject,
+        htmlBody: htmlBody
+      });
+      console.log(`✅ Welcome email sent successfully via MailApp to: ${email}`);
+      return true;
+    } catch (mailError) {
+      console.error(`❌ MailApp failed for ${email}:`, mailError.toString());
+      
+      // Try GmailApp as fallback
+      try {
+        GmailApp.sendEmail(email, subject, '', {
+          htmlBody: htmlBody
+        });
+        console.log(`✅ Welcome email sent successfully via GmailApp to: ${email}`);
+        return true;
+      } catch (gmailError) {
+        console.error(`❌ GmailApp also failed for ${email}:`, gmailError.toString());
+        return false;
+      }
+    }
   } catch (error) {
-    console.error(`❌ Failed to send welcome email to ${email}:`, error.toString());
+    console.error(`❌ Complete failure sending welcome email to ${email}:`, error.toString());
     return false;
   }
 }

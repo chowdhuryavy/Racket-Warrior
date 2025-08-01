@@ -565,9 +565,11 @@ const Admin = {
     },
     
     // Load users from API
-    loadUsers: async function() {
+    loadUsers: async function(skipLoadingIndicator = false) {
         try {
-            UIUtils.showLoading();
+            if (!skipLoadingIndicator) {
+                UIUtils.showLoading();
+            }
             Logger.info('Loading users from API...');
             const response = await API.getUsers();
             
@@ -588,7 +590,9 @@ const Admin = {
             UIUtils.showNotification('Error loading users. Please try again.', 'error');
             this.renderEmptyUsersList();
         } finally {
-            UIUtils.hideLoading();
+            if (!skipLoadingIndicator) {
+                UIUtils.hideLoading();
+            }
         }
     },
     
@@ -805,7 +809,13 @@ const Admin = {
                 this.closeModal('addUserModal');
                 
                 // Load users and hide loading screen
-                await this.loadUsers();
+                try {
+                    await this.loadUsers(true); // Skip loading indicator since we already have one
+                    console.log('✅ Users loaded successfully after user creation');
+                } catch (loadError) {
+                    console.error('❌ Failed to load users after creation:', loadError);
+                    UIUtils.showNotification('⚠️ User created but failed to refresh list. Please refresh page.', 'warning');
+                }
                 LoadingScreenUtils.hide();
             } else {
                 LoadingScreenUtils.hide();
