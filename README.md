@@ -1,8 +1,8 @@
-# 🏋️ Gym Management System
+# 🏸 Racket Warrior - Badminton Group Manager
 
-A comprehensive, modern web-based gym management system built with vanilla JavaScript, HTML5, CSS3, and Google Apps Script backend. Features beautiful animations, responsive design, and complete gym operation management.
+A comprehensive, modern web-based badminton group management system built with vanilla JavaScript, HTML5, CSS3, and Google Apps Script backend. Features beautiful animations, responsive design, and complete group operation management.
 
-![Gym Management System](https://i.imgur.com/04MGPFl.png)
+![Racket Warrior](https://i.imgur.com/04MGPFl.png)
 
 ## ✨ Features
 
@@ -25,9 +25,9 @@ A comprehensive, modern web-based gym management system built with vanilla JavaS
 
 ### 👥 Player Management
 - **Complete Player Profiles** (Name, Phone, Email, Join Date, Status)
-- **Monthly Activity Tracking** with checkbox grid
+- **Monthly Activity Tracking** for badminton group participation
 - **Advanced Filtering** by month and status
-- **Bulk Operations** with responsive table design
+- **Responsive Table Design** with edit/delete operations
 - **Status Management** (Active/Inactive)
 
 ### 💰 Financial Management

@@ -1,979 +1,484 @@
 <!DOCTYPE html>
+<!-- 
+    IMPORTANT: If you see JavaScript syntax errors like "Identifier 'month' has already been declared"
+    or modules showing as false in console, please:
+    1. Hard refresh: Ctrl+F5 (Windows/Linux) or Cmd+Shift+R (Mac)
+    2. Clear browser cache: Developer Tools (F12) > Application > Storage > Clear site data
+    3. Or open in incognito/private mode
+    
+    Version: 2024123020 - DOM FIXES: Dashboard element detection, admin refresh flow, content spacing optimization
+-->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#0891b2">
-    <meta name="description" content="Complete Gym Management System with member tracking, collections, and expense management">
-    <title>Racket Warrior - Badminton Management System</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Racket Warrior - Badminton Group Manager</title>
+    
+    <!-- External CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/mobile-fix.css">
+
 </head>
 <body>
-    <!-- Login Page -->
-    <div id="loginPage" class="page active">
-        <div class="login-container">
-            <div class="login-card">
-                <div class="logo-container">
-                    <img src="https://i.imgur.com/04MGPFl.png" alt="Gym Logo" class="logo">
-                </div>
-                <h2>Welcome Back</h2>
-                <p style="text-align: center; color: var(--text-secondary); margin-bottom: 2rem; font-weight: 500;">
-                    Sign in to your account to continue
-                </p>
-                
-                <form id="loginForm">
-                    <div class="form-group">
-                        <label for="loginEmail">Email</label>
-                        <input type="email" id="loginEmail" placeholder="your@email.com" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="loginPassword">Password</label>
-                        <input type="password" id="loginPassword" placeholder="Enter your password" required>
-                    </div>
-                    
-                    <div class="form-options" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; color: var(--text-secondary);">
-                            <input type="checkbox" id="rememberMe" style="width: auto; margin: 0;">
-                            Remember me
-                        </label>
-                        <a href="#" onclick="showForgotPassword()" style="font-size: 14px; color: var(--primary-color); text-decoration: none;">
-                            Forgot Password?
-                        </a>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-arrow-right"></i>
-                        Sign In
-                    </button>
-                </form>
-                
-                <div class="login-footer">
-                    Racket Warrior Badminton Management System
-                </div>
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loading-logo-container">
+            <img src="https://i.imgur.com/04MGPFl.png" alt="Racket Warrior" class="loading-logo">
+            <div class="loading-pulse"></div>
+        </div>
+        <div class="loading-text">
+            <h2>Racket Warrior</h2>
+            <p>Initializing your badminton experience...</p>
+            <div class="loading-dots">
+                <span></span>
+                <span></span>
+                <span></span>
             </div>
         </div>
     </div>
 
-    <!-- Professional Forgot Password Modal -->
-    <div id="forgotPasswordModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeForgotPassword()">&times;</span>
-            <h3>🔒 Reset Your Password</h3>
-            
-            <!-- Step 1: Email Input -->
-            <div id="forgotStep1">
-                <div style="text-align: center; margin-bottom: 1.5rem; color: var(--text-secondary);">
-                    Enter your email address and we'll send you a verification code
-                </div>
-                <form id="forgotPasswordForm">
-                    <div class="form-group icon-email">
-                        <label>Email Address</label>
-                        <input type="email" id="forgotEmail" placeholder="Enter your email address" required>
-                    </div>
-                    <div class="form-actions" style="justify-content: center;">
-                        <button type="button" class="btn btn-secondary" onclick="closeForgotPassword()">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Send Verification Code</button>
-                    </div>
-                </form>
+    <!-- Login Container -->
+    <div id="loginContainer" class="login-container">
+        <div class="login-card animate__animated animate__fadeIn">
+            <div class="login-header">
+                <img src="https://i.imgur.com/04MGPFl.png" alt="Racket Warrior" class="logo">
+                <h1>Racket Warrior</h1>
+                <p>Badminton Group Manager</p>
             </div>
             
-            <!-- Step 2: OTP Verification -->
-            <div id="forgotStep2" style="display: none;">
-                <div style="text-align: center; margin-bottom: 1.5rem; color: var(--text-secondary);">
-                    We've sent a verification code to your email. Please enter it below.
+                                    <form id="loginForm" class="login-form">
+                            <div class="form-group animate__animated animate__fadeInUp animate__delay-1s">
+                                <label for="email" class="form-label">
+                                    <i class="fas fa-envelope"></i>
+                                    Email Address
+                                </label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-envelope input-icon"></i>
+                                    <input type="email" id="email" name="email" placeholder="Enter your email address" required>
+                                    <div class="input-focus-line"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group animate__animated animate__fadeInUp animate__delay-2s">
+                                <label for="password" class="form-label">
+                                    <i class="fas fa-lock"></i>
+                                    Password
+                                </label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-lock input-icon"></i>
+                                    <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                                    <div class="input-focus-line"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-options animate__animated animate__fadeInUp animate__delay-3s">
+                                <div class="remember-me">
+                                    <input type="checkbox" id="rememberMe" name="rememberMe">
+                                    <label for="rememberMe" class="checkbox-label">
+                                        <span class="checkmark"></span>
+                                        Remember me
+                                    </label>
+                                </div>
+                                <a href="#" class="forgot-password-inline" onclick="showForgotPassword()">
+                                    Forgot Password?
+                                </a>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary ripple animate__animated animate__fadeInUp animate__delay-4s">
+                                <i class="fas fa-sign-in-alt"></i>
+                                <span>Sign In</span>
+                            </button>
+                        </form>
+                        
+                        <!-- Moved outside to avoid overlap -->
+        </div>
+    </div>
+
+    <!-- Designer Credit - Clean & Elegant -->
+    <div class="designer-credit-wrapper">
+        <div class="designer-credit animate__animated animate__fadeInUp animate__delay-5s">
+            <div class="credit-container">
+                <div class="credit-content">
+                    <div class="credit-icon">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <div class="credit-text-section">
+                        <span class="credit-label">Made by</span>
+                        <span class="designer-name">Avy</span>
+                    </div>
+                    <div class="credit-sparkles">
+                        <span class="sparkle sparkle-1">✨</span>
+                        <span class="sparkle sparkle-2">⭐</span>
+                        <span class="sparkle sparkle-3">💫</span>
+                    </div>
                 </div>
-                <form id="otpVerificationForm">
-                    <div class="form-group" style="position: relative;">
-                        <label>Verification Code</label>
-                        <input type="text" id="otpCode" placeholder="Enter 6-digit code" required style="padding-left: 3rem; text-align: center; font-size: 1.2rem; letter-spacing: 0.2rem;">
-                        <div style="position: absolute; left: 1rem; top: 3rem; color: #667eea; z-index: 1;">
-                            <i class="fas fa-key"></i>
-                        </div>
-                    </div>
-                    <div class="form-actions" style="justify-content: center;">
-                        <button type="button" class="btn btn-secondary" onclick="showForgotStep(1)">Back</button>
-                        <button type="submit" class="btn btn-primary">Verify Code</button>
-                    </div>
-                </form>
-            </div>
-            
-            <!-- Step 3: New Password -->
-            <div id="forgotStep3" style="display: none;">
-                <div style="text-align: center; margin-bottom: 1.5rem; color: var(--text-secondary);">
-                    Create a strong new password for your account
-                </div>
-                <form id="resetPasswordForm">
-                    <div class="form-group" style="position: relative;">
-                        <label>New Password</label>
-                        <input type="password" id="newPassword" placeholder="Enter new password" required style="padding-left: 3rem; padding-right: 3rem;">
-                        <div style="position: absolute; left: 1rem; top: 3rem; color: #667eea; z-index: 1;">
-                            <i class="fas fa-lock"></i>
-                        </div>
-                        <span class="toggle-password" onclick="togglePassword('newPassword')" style="position: absolute; right: 1rem; top: 3rem; cursor: pointer; color: var(--text-secondary); z-index: 1;">
-                            <i class="fas fa-eye"></i>
-                        </span>
-                    </div>
-                    <div class="form-group" style="position: relative;">
-                        <label>Confirm Password</label>
-                        <input type="password" id="confirmPassword" placeholder="Confirm new password" required style="padding-left: 3rem; padding-right: 3rem;">
-                        <div style="position: absolute; left: 1rem; top: 3rem; color: #667eea; z-index: 1;">
-                            <i class="fas fa-lock"></i>
-                        </div>
-                        <span class="toggle-password" onclick="togglePassword('confirmPassword')" style="position: absolute; right: 1rem; top: 3rem; cursor: pointer; color: var(--text-secondary); z-index: 1;">
-                            <i class="fas fa-eye"></i>
-                        </span>
-                    </div>
-                    
-                    <!-- Professional Password Requirements -->
-                    <div class="password-requirements">
-                        <div style="font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary);">Password Requirements:</div>
-                        <div class="requirements-grid">
-                            <div class="requirement-item" id="req-length">
-                                <i class="fas fa-times requirement-icon"></i>
-                                <span>At least 8 characters</span>
-                            </div>
-                            <div class="requirement-item" id="req-uppercase">
-                                <i class="fas fa-times requirement-icon"></i>
-                                <span>One uppercase letter</span>
-                            </div>
-                            <div class="requirement-item" id="req-lowercase">
-                                <i class="fas fa-times requirement-icon"></i>
-                                <span>One lowercase letter</span>
-                            </div>
-                            <div class="requirement-item" id="req-number">
-                                <i class="fas fa-times requirement-icon"></i>
-                                <span>One number</span>
-                            </div>
-                            <div class="requirement-item" id="req-special">
-                                <i class="fas fa-times requirement-icon"></i>
-                                <span>One special character</span>
-                            </div>
-                            <div class="requirement-item" id="req-match">
-                                <i class="fas fa-times requirement-icon"></i>
-                                <span>Passwords match</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="form-actions" style="justify-content: center;">
-                        <button type="button" class="btn btn-secondary" onclick="showForgotStep(2)">Back</button>
-                        <button type="submit" class="btn btn-primary" id="resetPasswordBtn" disabled>Reset Password</button>
-                    </div>
-                </form>
             </div>
         </div>
     </div>
 
     <!-- Main App Container -->
     <div id="appContainer" class="app-container" style="display: none;">
+        <!-- Mobile Sidebar Overlay -->
+        <div class="sidebar-overlay" onclick="closeMobileSidebar()"></div>
+        
         <!-- Sidebar -->
-                    <div id="sidebar" class="sidebar">
-                <div class="sidebar-header">
-                    <div class="sidebar-logo">
-                        <img src="https://i.imgur.com/04MGPFl.png" alt="Gym Logo" class="logo">
-                        <h1>Racket Warrior</h1>
-                    </div>
-                    <button class="close-sidebar" onclick="closeSidebar()">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            <nav class="sidebar-nav">
-                <a href="#" class="nav-item active" onclick="handleNavClick('dashboard')">
-                    <i class="fas fa-tachometer-alt"></i>
-                    <span>Dashboard</span>
-                </a>
-                
-                <!-- Players Section -->
-                <div class="nav-section" id="playersSection">
-                    <div class="nav-section-header" onclick="toggleNavSection('playersSection')">
-                        <i class="fas fa-users"></i>
-                        <span>Players</span>
-                    </div>
-                    <div class="nav-sub-items">
-                        <a href="#" class="nav-sub-item" onclick="handleNavClick('players-add')">
-                            <i class="fas fa-plus"></i>
-                            <span>Add Player</span>
-                        </a>
-                        <a href="#" class="nav-sub-item" onclick="handleNavClick('players-view')">
-                            <i class="fas fa-list"></i>
-                            <span>View Players</span>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Collections Section -->
-                <div class="nav-section" id="collectionsSection">
-                    <div class="nav-section-header" onclick="toggleNavSection('collectionsSection')">
-                        <i class="fas fa-money-bill-wave"></i>
-                        <span>Collections</span>
-                    </div>
-                    <div class="nav-sub-items">
-                        <a href="#" class="nav-sub-item" onclick="handleNavClick('collections-add')">
-                            <i class="fas fa-plus"></i>
-                            <span>Add Collection</span>
-                        </a>
-                        <a href="#" class="nav-sub-item" onclick="handleNavClick('collections-view')">
-                            <i class="fas fa-list"></i>
-                            <span>View Collections</span>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Expenses Section -->
-                <div class="nav-section" id="expensesSection">
-                    <div class="nav-section-header" onclick="toggleNavSection('expensesSection')">
-                        <i class="fas fa-receipt"></i>
-                        <span>Expenses</span>
-                    </div>
-                    <div class="nav-sub-items">
-                        <a href="#" class="nav-sub-item" onclick="handleNavClick('expenses-add')">
-                            <i class="fas fa-plus"></i>
-                            <span>Add Expense</span>
-                        </a>
-                        <a href="#" class="nav-sub-item" onclick="handleNavClick('expenses-view')">
-                            <i class="fas fa-list"></i>
-                            <span>View Expenses</span>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Admin Only Sections -->
-                <a href="#" class="nav-item admin-only" onclick="handleNavClick('logs')">
-                    <i class="fas fa-clipboard-list"></i>
-                    <span>Logs</span>
-                </a>
-                <a href="#" class="nav-item admin-only" onclick="handleNavClick('admin')">
-                    <i class="fas fa-cog"></i>
-                    <span>Admin</span>
-                </a>
-            </nav>
-            <div class="sidebar-footer">
-                <div class="user-info">
-                    <div class="user-avatar">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <div class="user-details">
-                        <span class="user-name" id="currentUserName">User Name</span>
-                        <span class="user-role" id="currentUserRole">Role</span>
-                    </div>
-                </div>
-                <button class="btn btn-secondary logout-btn" onclick="logout()">
-                    <i class="fas fa-sign-out-alt"></i>
-                    Logout
+        <aside id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <img src="https://i.imgur.com/04MGPFl.png" alt="Racket Warrior" class="sidebar-logo">
+                <h3>Racket Warrior</h3>
+                <p>Badminton Management</p>
+                <button id="sidebarToggle" class="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
                 </button>
             </div>
-        </div>
-
-        <!-- Mobile Menu Button -->
-        <button id="mobileMenuBtn" class="mobile-menu-btn" onclick="toggleSidebar()">
-            <i class="fas fa-bars"></i>
-        </button>
-
-        <!-- Sidebar Overlay for Mobile -->
-        <div id="sidebarOverlay" class="sidebar-overlay" onclick="closeSidebar()"></div>
+            
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="#" onclick="showPage('dashboard')" class="active"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a></li>
+                    
+                    <!-- Players Dropdown -->
+                    <li class="nav-dropdown" data-role="admin,view_edit,view">
+                        <a href="#" class="nav-dropdown-toggle" onclick="toggleNavDropdown('players-dropdown')">
+                            <i class="fas fa-users"></i>
+                            <span>Players</span>
+                            <i class="fas fa-chevron-down dropdown-icon"></i>
+                        </a>
+                        <ul class="nav-dropdown-menu" id="players-dropdown">
+                            <li data-role="admin,view_edit">
+                                <a href="#" onclick="showPage('players-add')">
+                                    <i class="fas fa-user-plus"></i>
+                                    <span>Add Player</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" onclick="showPage('players-view')">
+                                    <i class="fas fa-eye"></i>
+                                    <span>View Players</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    
+                    <!-- Collection Dropdown -->
+                    <li class="nav-dropdown" data-role="admin,view_edit,view">
+                        <a href="#" class="nav-dropdown-toggle" onclick="toggleNavDropdown('collection-dropdown')">
+                            <i class="fas fa-coins"></i>
+                            <span>Collection</span>
+                            <i class="fas fa-chevron-down dropdown-icon"></i>
+                        </a>
+                        <ul class="nav-dropdown-menu" id="collection-dropdown">
+                            <li data-role="admin,view_edit">
+                                <a href="#" onclick="showPage('collection-add')">
+                                    <i class="fas fa-plus"></i>
+                                    <span>Add Collection</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" onclick="showPage('collection-view')">
+                                    <i class="fas fa-eye"></i>
+                                    <span>View Collections</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    
+                    <!-- Expenses Dropdown -->
+                    <li class="nav-dropdown" data-role="admin,view_edit,view">
+                        <a href="#" class="nav-dropdown-toggle" onclick="toggleNavDropdown('expenses-dropdown')">
+                            <i class="fas fa-receipt"></i>
+                            <span>Expenses</span>
+                            <i class="fas fa-chevron-down dropdown-icon"></i>
+                        </a>
+                        <ul class="nav-dropdown-menu" id="expenses-dropdown">
+                            <li data-role="admin,view_edit">
+                                <a href="#" onclick="showPage('expenses-add')">
+                                    <i class="fas fa-plus"></i>
+                                    <span>Add Expense</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" onclick="showPage('expenses-view')">
+                                    <i class="fas fa-eye"></i>
+                                    <span>View Expenses</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    
+                    <li><a href="#" onclick="showPage('reports')"><i class="fas fa-chart-line"></i><span>Reports</span></a></li>
+                    <li data-role="admin"><a href="#" onclick="showPage('logs')"><i class="fas fa-history"></i><span>Logs</span></a></li>
+                    <li data-role="admin"><a href="#" onclick="showPage('admin')"><i class="fas fa-cog"></i><span>Admin Panel</span></a></li>
+                </ul>
+            </nav>
+        </aside>
 
         <!-- Main Content -->
-        <div class="main-content">
-            <!-- Dashboard Page -->
-            <div id="dashboardPage" class="content-page active">
-                <div class="page-header">
-                    <div>
-                        <h1>Dashboard</h1>
-                        <p>Racket Warrior Management Overview</p>
-                    </div>
-                    <div class="month-filter">
-                        <label for="monthFilter">Month:</label>
-                        <select id="monthFilter" onchange="filterByMonth()">
-                            <option value="">All Months</option>
-                        </select>
-                    </div>
+        <main class="main-content">
+            <!-- Header -->
+            <header class="app-header">
+                <div class="header-left">
+                    <button id="mobileMenuToggle" class="mobile-menu-toggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1 id="pageTitle">Dashboard</h1>
                 </div>
-
-                <!-- Dashboard Cards -->
-                <div class="dashboard-cards">
-                    <div class="dashboard-card">
-                        <div class="card-icon" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <div class="card-content">
-                            <h3>Active Players</h3>
-                            <p class="card-value" id="activePlayersCount">0</p>
-                            <small class="card-label">Total Active</small>
-                        </div>
-                    </div>
-
-                    <div class="dashboard-card">
-                        <div class="card-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
-                            <i class="fas fa-coins"></i>
-                        </div>
-                        <div class="card-content">
-                            <h3>Total Collection</h3>
-                            <p class="card-value" id="totalCollectionAmount">₹0.00</p>
-                            <small class="card-label">This Month</small>
-                        </div>
-                    </div>
-
-                    <div class="dashboard-card">
-                        <div class="card-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
-                            <i class="fas fa-receipt"></i>
-                        </div>
-                        <div class="card-content">
-                            <h3>Total Expense</h3>
-                            <p class="card-value" id="totalExpenseAmount">₹0.00</p>
-                            <small class="card-label">This Month</small>
-                        </div>
-                    </div>
-
-                    <div class="dashboard-card">
-                        <div class="card-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
-                            <i class="fas fa-chart-line"></i>
-                        </div>
-                        <div class="card-content">
-                            <h3>Total Balance</h3>
-                            <p class="card-value" id="totalBalanceAmount">₹0.00</p>
-                            <small class="card-label">Current</small>
+                
+                <div class="header-right">
+                    <div class="user-profile">
+                        <img id="userPhoto" src="https://ui-avatars.com/api/?name=User&background=667eea&color=fff&size=128" alt="User" class="user-avatar" onclick="toggleProfileDropdown()">
+                        <span id="userName">User</span>
+                        
+                        <div id="profileDropdown" class="profile-dropdown">
+                            <div class="profile-info">
+                                <img id="dropdownUserPhoto" src="https://ui-avatars.com/api/?name=User&background=667eea&color=fff&size=128" alt="User">
+                                <div>
+                                    <p class="username" id="dropdownUserName">User</p>
+                                    <p class="role" id="userRole">Role</p>
+                                </div>
+                            </div>
+                            <hr>
+                            <a href="#" onclick="showChangePassword()"><i class="fas fa-key"></i> Change Password</a>
+                            <a href="#" onclick="showChangePhoto()"><i class="fas fa-camera"></i> Change Photo</a>
+                            <hr>
+                            <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
                         </div>
                     </div>
                 </div>
+            </header>
 
-                <!-- Monthly Summary -->
-                <div class="monthly-summary">
-                    <h2>Monthly Summary</h2>
-                    <div class="summary-cards">
-                        <div class="summary-item">
-                            <span class="summary-label">Collection for <span id="currentMonth">Current Month</span></span>
-                            <span class="summary-value positive" id="monthlyCollection">QAR 1,200</span>
-                        </div>
-                        <div class="summary-item">
-                            <span class="summary-label">Expenses for <span id="currentMonthExpense">Current Month</span></span>
-                            <span class="summary-value negative" id="monthlyExpenses">QAR 800</span>
-                        </div>
-                    </div>
-                </div>
+            <!-- Page Content -->
+            <div id="pageContent" class="page-content">
+                <!-- Content will be loaded dynamically -->
             </div>
-
-            <!-- Players Add Page -->
-            <div id="players-addPage" class="content-page">
-                <div class="page-header">
-                    <div>
-                        <h1>Add New Player</h1>
-                        <p>Add a new player to the system</p>
-                    </div>
-                    <div class="action-buttons">
-                        <button class="btn btn-secondary" onclick="handleNavClick('dashboard')">
-                            <i class="fas fa-home"></i>
-                            Back to Dashboard
-                        </button>
-                        <button class="btn btn-secondary" onclick="handleNavClick('players-view')">
-                            <i class="fas fa-arrow-left"></i>
-                            Back to Players
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Add Player Form -->
-                <div class="form-container">
-                    <form id="addPlayerForm" class="advanced-form">
-                        <div class="form-grid">
-                            <div class="form-group icon-user required">
-                                <label for="playerName">Full Name</label>
-                                <input type="text" id="playerName" name="name" placeholder="Enter player's full name" required>
-                            </div>
-                            <div class="form-group icon-phone required">
-                                <label for="playerPhone">Phone Number</label>
-                                <input type="tel" id="playerPhone" name="phone" placeholder="Enter phone number" required>
-                            </div>
-                            <div class="form-group icon-email">
-                                <label for="playerEmail" class="optional">Email Address</label>
-                                <input type="email" id="playerEmail" name="email" placeholder="Enter email address (optional)">
-                            </div>
-                            <div class="form-group icon-calendar required">
-                                <label for="playerJoinDate">Join Date</label>
-                                <input type="date" id="playerJoinDate" name="joinDate" required>
-                            </div>
-                            <div class="form-group required">
-                                <label for="playerStatus">Status</label>
-                                <select id="playerStatus" name="status" required>
-                                    <option value="">Select Status</option>
-                                    <option value="active">🟢 Active</option>
-                                    <option value="inactive">🔴 Inactive</option>
-                                </select>
-                            </div>
-                            <div class="form-group icon-note full-width">
-                                <label for="playerNotes" class="optional">Notes</label>
-                                <textarea id="playerNotes" name="notes" rows="3" placeholder="Add any additional notes about the player..."></textarea>
-                            </div>
-                        </div>
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i>
-                                Save Player
-                            </button>
-                            <button type="reset" class="btn btn-secondary">
-                                <i class="fas fa-undo"></i>
-                                Reset Form
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Players View Page -->
-            <div id="players-viewPage" class="content-page">
-                <div class="page-header">
-                    <div>
-                        <h1>View Players</h1>
-                        <p>Manage all players in the system</p>
-                    </div>
-                    <div class="action-buttons">
-                        <button class="btn btn-secondary" onclick="handleNavClick('dashboard')">
-                            <i class="fas fa-home"></i>
-                            Back to Dashboard
-                        </button>
-                        <button class="btn btn-primary" onclick="handleNavClick('players-add')">
-                            <i class="fas fa-plus"></i>
-                            Add New Player
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Players Filters -->
-                <div class="filters-section">
-                    <div class="filter-group">
-                        <input type="text" id="playerSearchInput" placeholder="Search players..." class="search-input">
-                        <select id="playerStatusFilter" class="filter-select">
-                            <option value="">All Status</option>
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Players Content -->
-                <div class="players-content">
-                    <div id="playersViewTable" class="table-container">
-                        <!-- Players table will be populated here -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Collections Add Page -->
-            <div id="collections-addPage" class="content-page">
-                <div class="page-header">
-                    <div>
-                        <h1>Add New Collection</h1>
-                        <p>Record a new payment collection</p>
-                    </div>
-                    <div class="action-buttons">
-                        <button class="btn btn-secondary" onclick="handleNavClick('dashboard')">
-                            <i class="fas fa-home"></i>
-                            Back to Dashboard
-                        </button>
-                        <button class="btn btn-secondary" onclick="handleNavClick('collections-view')">
-                            <i class="fas fa-arrow-left"></i>
-                            Back to Collections
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Add Collection Form -->
-                <div class="form-container">
-                    <form id="addCollectionForm" class="advanced-form">
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="collectionDate">Collection Date *</label>
-                                <input type="date" id="collectionDate" name="date" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="collectionPlayer">Player *</label>
-                                <select id="collectionPlayer" name="player" required>
-                                    <option value="">Select Player</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="collectionAmount">Amount (QAR) *</label>
-                                <input type="number" id="collectionAmount" name="amount" step="0.01" min="0" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="collectionMethod">Payment Method</label>
-                                <select id="collectionMethod" name="method">
-                                    <option value="cash">Cash</option>
-                                    <option value="card">Card</option>
-                                    <option value="transfer">Bank Transfer</option>
-                                    <option value="other">Other</option>
-                                </select>
-                            </div>
-                            <div class="form-group full-width">
-                                <label for="collectionDescription">Description</label>
-                                <textarea id="collectionDescription" name="description" rows="3"></textarea>
-                            </div>
-                        </div>
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i>
-                                Save Collection
-                            </button>
-                            <button type="reset" class="btn btn-secondary">
-                                <i class="fas fa-undo"></i>
-                                Reset Form
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Collections View Page -->
-            <div id="collections-viewPage" class="content-page">
-                <div class="page-header">
-                    <div>
-                        <h1>View Collections</h1>
-                        <p>Track all payment collections</p>
-                    </div>
-                    <div class="action-buttons">
-                        <button class="btn btn-secondary" onclick="handleNavClick('dashboard')">
-                            <i class="fas fa-home"></i>
-                            Back to Dashboard
-                        </button>
-                        <button class="btn btn-primary" onclick="handleNavClick('collections-add')">
-                            <i class="fas fa-plus"></i>
-                            Add New Collection
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Collections Filters -->
-                <div class="filters-section">
-                    <div class="filter-group">
-                        <input type="text" id="collectionSearchInput" placeholder="Search collections..." class="search-input">
-                        <select id="collectionMonthFilter" class="filter-select">
-                            <option value="">All Months</option>
-                        </select>
-                        <select id="collectionPlayerFilter" class="filter-select">
-                            <option value="">All Players</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Collections Content -->
-                <div class="collections-content">
-                    <div id="collectionsViewTable" class="table-container">
-                        <!-- Collections table will be populated here -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Expenses Add Page -->
-            <div id="expenses-addPage" class="content-page">
-                <div class="page-header">
-                    <div>
-                        <h1>Add New Expense</h1>
-                        <p>Record a new business expense</p>
-                    </div>
-                    <div class="action-buttons">
-                        <button class="btn btn-secondary" onclick="handleNavClick('dashboard')">
-                            <i class="fas fa-home"></i>
-                            Back to Dashboard
-                        </button>
-                        <button class="btn btn-secondary" onclick="handleNavClick('expenses-view')">
-                            <i class="fas fa-arrow-left"></i>
-                            Back to Expenses
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Add Expense Form -->
-                <div class="form-container">
-                    <form id="addExpenseForm" class="advanced-form">
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="expenseDate">Expense Date *</label>
-                                <input type="date" id="expenseDate" name="date" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="expenseCategory">Category *</label>
-                                <select id="expenseCategory" name="category" required>
-                                    <option value="">Select Category</option>
-                                    <option value="equipment">Equipment</option>
-                                    <option value="maintenance">Maintenance</option>
-                                    <option value="utilities">Utilities</option>
-                                    <option value="rent">Rent</option>
-                                    <option value="marketing">Marketing</option>
-                                    <option value="other">Other</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="expenseAmount">Amount (QAR) *</label>
-                                <input type="number" id="expenseAmount" name="amount" step="0.01" min="0" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="expenseVendor">Vendor/Supplier</label>
-                                <input type="text" id="expenseVendor" name="vendor">
-                            </div>
-                            <div class="form-group full-width">
-                                <label for="expenseDescription">Description *</label>
-                                <textarea id="expenseDescription" name="description" rows="3" required></textarea>
-                            </div>
-                        </div>
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i>
-                                Save Expense
-                            </button>
-                            <button type="reset" class="btn btn-secondary">
-                                <i class="fas fa-undo"></i>
-                                Reset Form
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Expenses View Page -->
-            <div id="expenses-viewPage" class="content-page">
-                <div class="page-header">
-                    <div>
-                        <h1>View Expenses</h1>
-                        <p>Track all business expenses</p>
-                    </div>
-                    <div class="action-buttons">
-                        <button class="btn btn-secondary" onclick="handleNavClick('dashboard')">
-                            <i class="fas fa-home"></i>
-                            Back to Dashboard
-                        </button>
-                        <button class="btn btn-primary" onclick="handleNavClick('expenses-add')">
-                            <i class="fas fa-plus"></i>
-                            Add New Expense
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Expenses Filters -->
-                <div class="filters-section">
-                    <div class="filter-group">
-                        <input type="text" id="expenseSearchInput" placeholder="Search expenses..." class="search-input">
-                        <select id="expenseMonthFilter" class="filter-select">
-                            <option value="">All Months</option>
-                        </select>
-                        <select id="expenseCategoryFilter" class="filter-select">
-                            <option value="">All Categories</option>
-                            <option value="equipment">Equipment</option>
-                            <option value="maintenance">Maintenance</option>
-                            <option value="utilities">Utilities</option>
-                            <option value="rent">Rent</option>
-                            <option value="marketing">Marketing</option>
-                            <option value="other">Other</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Expenses Content -->
-                <div class="expenses-content">
-                    <div id="expensesViewTable" class="table-container">
-                        <!-- Expenses table will be populated here -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Logs Page (Admin Only) -->
-            <div id="logsPage" class="content-page admin-only">
-                <div class="page-header">
-                    <div>
-                        <h1>System Logs</h1>
-                        <p>Track all system activities and user actions</p>
-                    </div>
-                    <div class="action-buttons">
-                        <button class="btn btn-secondary" onclick="refreshLogsData()">
-                            <i class="fas fa-sync"></i>
-                            Refresh Logs
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Logs Filters -->
-                <div class="filters-section">
-                    <div class="filter-group">
-                        <input type="text" id="logsSearchInput" placeholder="Search logs..." class="search-input">
-                        <select id="logsActionFilter" class="filter-select">
-                            <option value="">All Actions</option>
-                            <option value="LOGIN">Login</option>
-                            <option value="LOGOUT">Logout</option>
-                            <option value="PLAYER_ADD">Player Added</option>
-                            <option value="COLLECTION_ADD">Collection Added</option>
-                            <option value="EXPENSE_ADD">Expense Added</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Logs Content -->
-                <div class="logs-content">
-                    <div id="logsTable" class="table-container">
-                        <!-- Logs table will be populated here -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Admin Panel Page (Admin Only) -->
-            <div id="adminPage" class="content-page admin-only">
-                <div class="page-header">
-                    <div>
-                        <h1>Admin Panel</h1>
-                        <p>Manage users and system settings</p>
-                    </div>
-                    <div class="action-buttons">
-                        <button class="btn btn-primary" onclick="showAddUserModal()">
-                            <i class="fas fa-user-plus"></i>
-                            Add User
-                        </button>
-                        <button class="btn btn-secondary" onclick="refreshUsersData()">
-                            <i class="fas fa-sync"></i>
-                            View All Users
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Users Filters -->
-                <div class="filters-section">
-                    <div class="filter-group">
-                        <input type="text" id="usersSearchInput" placeholder="Search users..." class="search-input">
-                        <select id="usersRoleFilter" class="filter-select">
-                            <option value="">All Roles</option>
-                            <option value="admin">Admin</option>
-                            <option value="user">User</option>
-                            <option value="view">View Only</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Users Content -->
-                <div class="users-content">
-                    <div id="usersTable" class="table-container">
-                        <!-- Users table will be populated here -->
-                    </div>
-                </div>
-            </div>
-        </div>
+        </main>
     </div>
 
-    <!-- Edit Modals (for editing existing data) -->
-    <!-- Edit Player Modal -->
-    <div id="editPlayerModal" class="modal">
+    <!-- Modals -->
+    <div id="modalContainer"></div>
+
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <!-- JavaScript -->
+    <script src="js/config.js?v=2024123020"></script>
+    <script src="js/api.js?v=2024123020"></script>
+    <script src="js/utils.js?v=2024123020"></script>
+    <script src="js/auth.js?v=2024123020"></script>
+    <script src="js/app.js?v=2024123020"></script>
+    <script src="js/pages/dashboard.js?v=2024123020"></script>
+    <script src="js/pages/players.js?v=2024123020"></script>
+    <script src="js/pages/collection.js?v=2024123020"></script>
+    <script src="js/pages/expenses.js?v=2024123020"></script>
+    <script src="js/pages/reports.js?v=2024123020"></script>
+    <script src="js/pages/admin.js?v=2024123020"></script>
+    <script src="js/pages/logs.js?v=2024123020"></script>
+    
+    <script>
+        // Simple initialization when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize authentication
+            if (window.Auth && typeof window.Auth.init === 'function') {
+                Auth.init();
+            } else {
+                console.error('Authentication module not available');
+            }
+        });
+    </script>
+    
+    <script>
+        // Navigation dropdown toggle function
+        function toggleNavDropdown(dropdownId) {
+            console.log('📱 toggleNavDropdown called for:', dropdownId);
+            
+            const dropdown = document.getElementById(dropdownId);
+            if (!dropdown) {
+                console.error('📱 Dropdown not found:', dropdownId);
+                return;
+            }
+            
+            const toggle = dropdown.previousElementSibling;
+            const icon = toggle?.querySelector('.dropdown-icon');
+            
+            console.log('📱 Dropdown elements:', {
+                dropdown: !!dropdown,
+                toggle: !!toggle,
+                icon: !!icon,
+                isActive: dropdown.classList.contains('active')
+            });
+            
+            if (dropdown.classList.contains('active')) {
+                console.log('📱 Closing dropdown');
+                dropdown.classList.remove('active');
+                if (toggle) toggle.classList.remove('active');
+                if (icon) icon.style.transform = 'rotate(0deg)';
+            } else {
+                console.log('📱 Opening dropdown');
+                // Close all other dropdowns
+                document.querySelectorAll('.nav-dropdown-menu').forEach(menu => {
+                    menu.classList.remove('active');
+                });
+                document.querySelectorAll('.nav-dropdown-toggle').forEach(t => {
+                    t.classList.remove('active');
+                    const i = t.querySelector('.dropdown-icon');
+                    if (i) i.style.transform = 'rotate(0deg)';
+                });
+                
+                // Open this dropdown
+                dropdown.classList.add('active');
+                if (toggle) toggle.classList.add('active');
+                if (icon) icon.style.transform = 'rotate(180deg)';
+            }
+        }
+        
+        // Mobile Sidebar Functions (Updated to use consistent selectors)
+        function toggleMobileSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            
+            if (sidebar && sidebar.classList.contains('show')) {
+                closeMobileSidebar();
+            } else {
+                if (sidebar) sidebar.classList.add('show');
+                if (overlay) overlay.classList.add('show');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+        
+        function closeMobileSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            
+            if (sidebar) sidebar.classList.remove('show');
+            if (overlay) overlay.classList.remove('show');
+            document.body.style.overflow = '';
+        }
+        
+        // Setup mobile menu toggle
+        // Password toggle function removed
+
+        function setupMobileMenu() {
+            // Ensure overlay exists
+            let overlay = document.querySelector('.sidebar-overlay');
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.className = 'sidebar-overlay';
+                overlay.addEventListener('click', closeMobileSidebar);
+                document.body.appendChild(overlay);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            setupMobileMenu();
+            
+            // Mobile menu button test completed successfully
+            
+            const mobileToggle = document.getElementById('mobileMenuToggle');
+            if (mobileToggle) {
+                mobileToggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // Try App.toggleMobileMenu first
+                    if (window.App && typeof window.App.toggleMobileMenu === 'function') {
+                        window.App.toggleMobileMenu();
+                    } else {
+                        // Fallback implementation
+                        const sidebar = document.getElementById('sidebar');
+                        const overlay = document.querySelector('.sidebar-overlay');
+                        
+                        if (sidebar) {
+                            sidebar.classList.toggle('show');
+                        }
+                        if (overlay) {
+                            overlay.classList.toggle('show');
+                        }
+                    }
+                });
+            }
+            
+            // Close sidebar when clicking on navigation links (mobile only)
+            document.querySelectorAll('.sidebar-nav a').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    // Don't close sidebar for dropdown toggle buttons
+                    if (link.classList.contains('nav-dropdown-toggle')) {
+                        console.log('📱 Dropdown toggle clicked, keeping sidebar open');
+                        return; // Keep sidebar open for dropdown toggles
+                    }
+                    
+                    if (window.innerWidth <= 768) {
+                        console.log('📱 Navigation link clicked, closing sidebar');
+                        // Close mobile sidebar
+                        const sidebar = document.getElementById('sidebar');
+                        const overlay = document.querySelector('.sidebar-overlay');
+                        if (sidebar) {
+                            sidebar.classList.remove('show');
+                        }
+                        if (overlay) {
+                            overlay.classList.remove('show');
+                        }
+                        document.body.style.overflow = '';
+                    }
+                });
+            });
+            
+            // Close sidebar when clicking on overlay
+            document.addEventListener('click', function(event) {
+                if (event.target.classList.contains('sidebar-overlay')) {
+                    const sidebar = document.getElementById('sidebar');
+                    const overlay = document.querySelector('.sidebar-overlay');
+                    if (sidebar) {
+                        sidebar.classList.remove('show');
+                    }
+                    if (overlay) {
+                        overlay.classList.remove('show');
+                    }
+                }
+            });
+        });
+    </script>
+
+    <!-- Photo Upload Modal -->
+    <div id="changePhotoModal" class="modal" style="display: none;">
         <div class="modal-content">
-            <span class="close" onclick="closeModal('editPlayerModal')">&times;</span>
-            <h3 id="editPlayerModalTitle">✨ Edit Player Details</h3>
-            <form id="editPlayerForm">
-                <input type="hidden" id="editPlayerId">
-                <div class="form-group icon-user">
-                    <label>Full Name</label>
-                    <input type="text" id="editPlayerName" placeholder="Enter player's full name" required>
+            <div class="modal-header">
+                <h3>Change Profile Photo</h3>
+                <span class="close" onclick="document.getElementById('changePhotoModal').style.display='none'">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="current-photo-section">
+                    <h4>Current Photo</h4>
+                    <img id="currentPhoto" class="current-photo-preview" alt="Current Profile Photo">
                 </div>
-                <div class="form-group icon-phone">
-                    <label>Phone Number</label>
-                    <input type="tel" id="editPlayerPhone" placeholder="Enter phone number" required>
-                </div>
-                <div class="form-group icon-email">
-                    <label class="optional">Email Address</label>
-                    <input type="email" id="editPlayerEmail" placeholder="Enter email address (optional)">
-                </div>
-                <div class="form-group icon-calendar">
-                    <label>Join Date</label>
-                    <input type="date" id="editPlayerJoinDate" required>
-                </div>
-                <div class="form-group">
-                    <label>Status</label>
-                    <select id="editPlayerStatus" required>
-                        <option value="active">🟢 Active</option>
-                        <option value="inactive">🔴 Inactive</option>
-                    </select>
-                </div>
-                <div class="form-group icon-note">
-                    <label class="optional">Notes</label>
-                    <textarea id="editPlayerNotes" rows="3" placeholder="Add any additional notes..."></textarea>
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('editPlayerModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Update Player</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Edit Collection Modal -->
-    <div id="editCollectionModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal('editCollectionModal')">&times;</span>
-            <h3 id="editCollectionModalTitle">Edit Collection</h3>
-            <form id="editCollectionForm">
-                <input type="hidden" id="editCollectionId">
-                <div class="form-group">
-                    <label>Date</label>
-                    <input type="date" id="editCollectionDate" required>
-                </div>
-                <div class="form-group">
-                    <label>Player</label>
-                    <select id="editCollectionPlayer" required>
-                        <option value="">Select Player</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Amount (QAR)</label>
-                    <input type="number" id="editCollectionAmount" min="0" step="0.01" required>
-                </div>
-                <div class="form-group">
-                    <label>Payment Method</label>
-                    <select id="editCollectionMethod">
-                        <option value="cash">Cash</option>
-                        <option value="card">Card</option>
-                        <option value="transfer">Bank Transfer</option>
-                        <option value="other">Other</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Description</label>
-                    <textarea id="editCollectionDescription" rows="3"></textarea>
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('editCollectionModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Update Collection</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Edit Expense Modal -->
-    <div id="editExpenseModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal('editExpenseModal')">&times;</span>
-            <h3 id="editExpenseModalTitle">Edit Expense</h3>
-            <form id="editExpenseForm">
-                <input type="hidden" id="editExpenseId">
-                <div class="form-group">
-                    <label>Date</label>
-                    <input type="date" id="editExpenseDate" required>
-                </div>
-                <div class="form-group">
-                    <label>Category</label>
-                    <select id="editExpenseCategory" required>
-                        <option value="">Select Category</option>
-                        <option value="equipment">Equipment</option>
-                        <option value="maintenance">Maintenance</option>
-                        <option value="utilities">Utilities</option>
-                        <option value="rent">Rent</option>
-                        <option value="marketing">Marketing</option>
-                        <option value="other">Other</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Amount (QAR)</label>
-                    <input type="number" id="editExpenseAmount" min="0" step="0.01" required>
-                </div>
-                <div class="form-group">
-                    <label>Vendor/Supplier</label>
-                    <input type="text" id="editExpenseVendor">
-                </div>
-                <div class="form-group">
-                    <label>Description</label>
-                    <textarea id="editExpenseDescription" rows="3" required></textarea>
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('editExpenseModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Update Expense</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Add User Modal -->
-    <div id="addUserModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal('addUserModal')">&times;</span>
-            <h3 id="addUserModalTitle">👤 Add New User</h3>
-            <form id="addUserForm">
-                <div class="form-group icon-user">
-                    <label>Full Name</label>
-                    <input type="text" id="addUserName" placeholder="Enter user's full name" required>
-                </div>
-                <div class="form-group icon-email">
-                    <label>Email Address</label>
-                    <input type="email" id="addUserEmail" placeholder="Enter email address" required>
-                </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" id="addUserPassword" placeholder="Enter password (leave blank for auto-generated)" style="padding-left: 3rem;">
-                    <div style="position: absolute; left: 1rem; top: 3rem; color: #667eea; z-index: 1;">
-                        <i class="fas fa-lock"></i>
+                
+                <div class="upload-section">
+                    <h4>Upload New Photo</h4>
+                    <div id="fileUploadArea" class="file-upload-area">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Click to select a photo</p>
+                        <p class="file-info">JPG, PNG, GIF up to 5MB</p>
                     </div>
-                    <small style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 0.5rem; display: block;">
-                        Leave blank to auto-generate a secure password (user will receive via email)
-                    </small>
+                    <input type="file" id="photoFile" accept="image/*" style="display: none;">
+                    <p id="fileName" class="file-name"></p>
+                    
+                    <div id="uploadSection" class="upload-section" style="display: none;">
+                        <img id="photoPreview" class="photo-preview" style="display: none;">
+                        <form id="uploadPhotoForm">
+                            <button type="submit" class="btn-unified btn-unified-primary">
+                                <i class="fas fa-upload"></i>
+                                Upload Photo
+                            </button>
+                        </form>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>Role</label>
-                    <select id="addUserRole" required>
-                        <option value="">Select Role</option>
-                        <option value="view">👁️ View Only</option>
-                        <option value="user">👤 User</option>
-                        <option value="admin">👑 Admin</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Status</label>
-                    <select id="addUserStatus" required>
-                        <option value="active">🟢 Active</option>
-                        <option value="inactive">🔴 Inactive</option>
-                    </select>
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('addUserModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Add User</button>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
-
-    <!-- Edit User Modal -->
-    <div id="editUserModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal('editUserModal')">&times;</span>
-            <h3 id="editUserModalTitle">Edit User</h3>
-            <form id="editUserForm">
-                <input type="hidden" id="editUserId">
-                <div class="form-group">
-                    <label>Full Name</label>
-                    <input type="text" id="editUserName" required>
-                </div>
-                <div class="form-group">
-                    <label>Email Address</label>
-                    <input type="email" id="editUserEmail" required>
-                </div>
-                <div class="form-group">
-                    <label>Role</label>
-                    <select id="editUserRole" required>
-                        <option value="view">View Only</option>
-                        <option value="user">User</option>
-                        <option value="admin">Admin</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Status</label>
-                    <select id="editUserStatus" required>
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                    </select>
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('editUserModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Update User</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Loading spinner removed - using button loading only -->
-
-    <!-- Notification -->
-    <div id="notification" class="notification"></div>
-
-    <script src="js/app.js"></script>
 </body>
 </html>
